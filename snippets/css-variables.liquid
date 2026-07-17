@@ -14,5 +14,15 @@
     --color-background: {{ settings.background_color }};
     --color-foreground: {{ settings.foreground_color }};
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+
+    {% # Sunflower-inspired design tokens shared across homepage sections %}
+    --font-heading--family: Georgia, 'Times New Roman', Times, serif;
+    --color-surface: #f1efe0;
+    --color-surface-deep: #e7e4cf;
+    --color-muted: #7c7a5e;
+    --color-accent: #d69a1e;
+    --color-line: #e4e0ce;
+    --section-spacing: clamp(3.5rem, 8vw, 7rem);
+    --content-gap: clamp(1.25rem, 3vw, 2.5rem);
   }
 {% endstyle %}

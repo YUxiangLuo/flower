@@ -1,0 +1,184 @@
+{% comment %}
+  Displays a curated grid of products from a chosen collection.
+  Intended for a "Best sellers" style showcase on the homepage.
+{% endcomment %}
+
+{% liquid
+  assign collection = section.settings.collection
+  assign limit = section.settings.products_to_show
+%}
+
+<div class="featured full-width">
+  <div class="featured__inner">
+    <header class="featured__header">
+      <div>
+        {% if section.settings.eyebrow != blank %}
+          <p class="featured__eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="featured__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </div>
+
+      {% if section.settings.show_view_all and collection != blank %}
+        <a class="featured__view-all" href="{{ collection.url }}">
+          {{ 'sections.featured_products.view_all' | t }}
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      {% endif %}
+    </header>
+
+    <div class="featured__grid" style="--columns: {{ section.settings.columns }}">
+      {% if collection != blank and collection.products.size > 0 %}
+        {% for product in collection.products limit: limit %}
+          {% render 'product-card', product: product, image_size: 700 %}
+        {% endfor %}
+      {% else %}
+        {% for i in (1..section.settings.columns) %}
+          <div class="featured__placeholder">
+            {{ 'product-1' | placeholder_svg_tag: 'featured__placeholder-image' }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .featured {
+    background-color: var(--color-surface);
+  }
+
+  .featured__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+  }
+
+  .featured__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .featured__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.9rem;
+  }
+
+  .featured__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    line-height: 1.1;
+  }
+
+  .featured__view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    padding-bottom: 0.2rem;
+    border-bottom: 1px solid var(--color-line);
+    transition: border-color 0.4s ease;
+  }
+
+  .featured__view-all:hover,
+  .featured__view-all:focus-visible {
+    border-color: var(--color-accent);
+  }
+
+  .featured__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    gap: var(--content-gap);
+  }
+
+  .featured__placeholder {
+    aspect-ratio: 1 / 1;
+    background-color: var(--color-background);
+  }
+
+  .featured__placeholder-image {
+    width: 100%;
+    height: 100%;
+    opacity: 0.4;
+  }
+
+  @media (max-width: 989px) {
+    .featured__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 549px) {
+    .featured__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.featured_products.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.featured_products.eyebrow",
+      "default": "Loved worldwide"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.featured_products.heading",
+      "default": "Our best sellers"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:sections.featured_products.collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "t:sections.featured_products.products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "t:sections.featured_products.columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "t:sections.featured_products.show_view_all",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.featured_products.name"
+    }
+  ]
+}
+{% endschema %}

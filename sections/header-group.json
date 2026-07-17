@@ -11,12 +11,19 @@
   "type": "header",
   "name": "t:general.header",
   "sections": {
+    "announcement": {
+      "type": "announcement-bar",
+      "settings": {
+        "text": "20% off selected products",
+        "show_arrow": true
+      }
+    },
     "header": {
       "type": "header",
-      "settings": {}
+      "settings": {
+        "menu": "main-menu"
+      }
     }
   },
-  "order": [
-    "header"
-  ],
+  "order": ["announcement", "header"]
 }
