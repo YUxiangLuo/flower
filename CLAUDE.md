@@ -1,0 +1,1 @@
+/home/alice/pros/flower/AGENTS.md
