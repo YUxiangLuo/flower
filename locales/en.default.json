@@ -11,13 +11,22 @@
     "comment_form_email": "Email",
     "comment_form_name": "Name",
     "comment_form_submit": "Post",
-    "comment_form_title": "Add a comment"
+    "comment_form_title": "Add a comment",
+    "read_more": "Read more"
   },
   "cart": {
     "checkout": "Checkout",
     "title": "Cart",
     "update": "Update",
-    "remove": "Remove"
+    "remove": "Remove",
+    "empty": "Your cart is empty.",
+    "empty_cta": "Continue shopping",
+    "product": "Product",
+    "quantity": "Quantity",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "taxes_note": "Shipping and taxes are calculated at checkout.",
+    "note": "Order note"
   },
   "customers": {
     "login": {

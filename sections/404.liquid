@@ -1,19 +1,58 @@
 {% comment %}
-  This section is used in the 404 template to render page shown when customers
-  enter an invalid store URL.
+  Rendered when a customer visits an invalid store URL.
 
   https://shopify.dev/docs/storefronts/themes/architecture/templates/404
 {% endcomment %}
 
-<h1>{{ '404.title' | t }}</h1>
+<div class="notfound">
+  <p class="notfound__code">{{ '404.title' | t }}</p>
+  <h1 class="notfound__title">{{ '404.not_found' | t }}</h1>
+  <a class="notfound__button" href="{{ routes.all_products_collection_url }}">
+    {{ '404.back_to_shopping' | t }}
+  </a>
+</div>
 
-<p>
-  {{ '404.not_found' | t }}
-</p>
+{% stylesheet %}
+  .notfound {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.25rem;
+    padding-block: clamp(5rem, 14vw, 11rem);
+  }
 
-<a href="{{ routes.all_products_collection_url }}">
-  {{ '404.back_to_shopping' | t }}
-</a>
+  .notfound__code {
+    font-family: var(--font-heading--family);
+    font-size: clamp(4rem, 12vw, 8rem);
+    line-height: 1;
+    color: var(--color-accent);
+  }
+
+  .notfound__title {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .notfound__button {
+    margin-top: 0.75rem;
+    padding: 0.9rem 2.4rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border: 1px solid var(--color-foreground);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .notfound__button:hover,
+  .notfound__button:focus-visible {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+{% endstylesheet %}
 
 {% schema %}
 {

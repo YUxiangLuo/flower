@@ -91,6 +91,13 @@
       "column_heading": "Column heading",
       "content": "Content"
     },
+    "cart": {
+      "show_note": "Show order note"
+    },
+    "blog": {
+      "columns": "Columns",
+      "show_excerpt": "Show excerpt"
+    },
     "collection": {
       "show_description": "Show collection description",
       "products_per_page": "Products per page",
