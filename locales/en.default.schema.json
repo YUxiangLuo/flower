@@ -102,6 +102,10 @@
       "columns": "Columns",
       "show_description": "Show collection descriptions"
     },
+    "page": {
+      "eyebrow": "Eyebrow",
+      "content_width": "Content width"
+    },
     "hero": {
       "name": "Hero",
       "image": "Image",
