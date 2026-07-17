@@ -1,0 +1,168 @@
+{% comment %}
+  Customer testimonials on a soft surface background.
+  Each testimonial is a block so merchants can manage social proof.
+{% endcomment %}
+
+<div class="testimonials full-width">
+  <div class="testimonials__inner">
+    <header class="testimonials__header">
+      {% if section.settings.eyebrow != blank %}
+        <p class="testimonials__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="testimonials__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+    </header>
+
+    <div class="testimonials__grid">
+      {% for block in section.blocks %}
+        <figure class="testimonial" {{ block.shopify_attributes }}>
+          {% if block.settings.rating > 0 %}
+            <div class="testimonial__stars" aria-label="{{ block.settings.rating }}">
+              {% for i in (1..block.settings.rating) %}
+                <span aria-hidden="true">&#9733;</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <blockquote class="testimonial__quote">{{ block.settings.quote }}</blockquote>
+
+          <figcaption class="testimonial__author">{{ block.settings.author }}</figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .testimonials {
+    background-color: var(--color-background);
+  }
+
+  .testimonials__inner {
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+    max-width: var(--page-width);
+    margin-inline: auto;
+  }
+
+  .testimonials__header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .testimonials__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.9rem;
+  }
+
+  .testimonials__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    line-height: 1.1;
+  }
+
+  .testimonials__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--content-gap);
+  }
+
+  .testimonial {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    text-align: center;
+    align-items: center;
+  }
+
+  .testimonial__stars {
+    display: flex;
+    gap: 0.2rem;
+    color: var(--color-accent);
+    font-size: 0.9rem;
+  }
+
+  .testimonial__quote {
+    font-family: var(--font-heading--family);
+    font-size: 1.15rem;
+    line-height: 1.5;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .testimonial__author {
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.testimonials.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.testimonials.eyebrow",
+      "default": "Loved by 290+ customers worldwide"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.testimonials.heading",
+      "default": "Kind words from our clients"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "t:sections.testimonials.block_name",
+      "settings": [
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "t:sections.testimonials.rating",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "t:sections.testimonials.quote",
+          "default": "So pleased with my order. Will definitely be purchasing more."
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "t:sections.testimonials.author",
+          "default": "Miss E."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "t:sections.testimonials.name",
+      "blocks": [
+        { "type": "testimonial" },
+        { "type": "testimonial" },
+        { "type": "testimonial" },
+        { "type": "testimonial" }
+      ]
+    }
+  ]
+}
+{% endschema %}

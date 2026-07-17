@@ -1,0 +1,180 @@
+{% comment %}
+  A row of occasion cards linking to curated collections.
+  Uses section blocks so merchants can add, remove and reorder occasions.
+{% endcomment %}
+
+<div class="occasion">
+  <header class="occasion__header">
+    {% if section.settings.eyebrow != blank %}
+      <p class="occasion__eyebrow">{{ section.settings.eyebrow }}</p>
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h2 class="occasion__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+  </header>
+
+  <div class="occasion__grid" style="--columns: {{ section.blocks.size }}">
+    {% for block in section.blocks %}
+      <a
+        class="occasion__card"
+        href="{{ block.settings.link | default: '#' }}"
+        {{ block.shopify_attributes }}
+      >
+        <div class="occasion__media">
+          {% if block.settings.image %}
+            {{
+              block.settings.image
+              | image_url: width: 900, height: 1100, crop: 'center'
+              | image_tag: loading: 'lazy', class: 'occasion__image', alt: block.settings.title
+            }}
+          {% else %}
+            {{ 'lifestyle-2' | placeholder_svg_tag: 'occasion__image occasion__image--placeholder' }}
+          {% endif %}
+        </div>
+        <h3 class="occasion__card-title">
+          <span>{{ block.settings.title }}</span>
+          <span class="occasion__arrow" aria-hidden="true">&rarr;</span>
+        </h3>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .occasion {
+    padding-block: var(--section-spacing);
+  }
+
+  .occasion__header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .occasion__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.9rem;
+  }
+
+  .occasion__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    line-height: 1.1;
+  }
+
+  .occasion__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    gap: var(--content-gap);
+  }
+
+  .occasion__card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    color: var(--color-foreground);
+    text-decoration: none;
+  }
+
+  .occasion__media {
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background-color: var(--color-surface);
+  }
+
+  .occasion__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .occasion__card:hover .occasion__image,
+  .occasion__card:focus-visible .occasion__image {
+    transform: scale(1.05);
+  }
+
+  .occasion__card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.25rem;
+  }
+
+  .occasion__arrow {
+    color: var(--color-accent);
+    transition: transform 0.4s ease;
+  }
+
+  .occasion__card:hover .occasion__arrow,
+  .occasion__card:focus-visible .occasion__arrow {
+    transform: translateX(0.35rem);
+  }
+
+  @media (max-width: 749px) {
+    .occasion__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.occasion.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.occasion.eyebrow",
+      "default": "Find the perfect gift"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.occasion.heading",
+      "default": "Shop by occasion"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "occasion",
+      "name": "t:sections.occasion.block_name",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.occasion.image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.occasion.title",
+          "default": "The anniversary collection"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "t:sections.occasion.link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "t:sections.occasion.name",
+      "blocks": [
+        { "type": "occasion" },
+        { "type": "occasion" },
+        { "type": "occasion" }
+      ]
+    }
+  ]
+}
+{% endschema %}

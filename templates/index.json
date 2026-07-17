@@ -9,12 +9,70 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "hello-world",
+    "hero": {
+      "type": "hero",
+      "settings": {}
+    },
+    "occasion": {
+      "type": "shop-by-occasion",
+      "blocks": {
+        "occasion-1": { "type": "occasion", "settings": {} },
+        "occasion-2": {
+          "type": "occasion",
+          "settings": { "title": "The birthday keepsake" }
+        },
+        "occasion-3": {
+          "type": "occasion",
+          "settings": { "title": "Everlasting gifts for mum" }
+        }
+      },
+      "block_order": ["occasion-1", "occasion-2", "occasion-3"],
+      "settings": {}
+    },
+    "featured": {
+      "type": "featured-products",
+      "settings": {}
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "blocks": {
+        "t-1": { "type": "testimonial", "settings": {} },
+        "t-2": {
+          "type": "testimonial",
+          "settings": { "quote": "It's great, very beautiful.", "author": "Odysseas M." }
+        },
+        "t-3": {
+          "type": "testimonial",
+          "settings": { "quote": "Love the vibrant colors!", "author": "Michele R." }
+        },
+        "t-4": {
+          "type": "testimonial",
+          "settings": {
+            "quote": "This pressed flower frame is absolutely breathtaking.",
+            "author": "Sarah M."
+          }
+        }
+      },
+      "block_order": ["t-1", "t-2", "t-3", "t-4"],
+      "settings": {}
+    },
+    "gallery": {
+      "type": "gallery",
+      "blocks": {
+        "g-1": { "type": "image", "settings": {} },
+        "g-2": { "type": "image", "settings": {} },
+        "g-3": { "type": "image", "settings": {} },
+        "g-4": { "type": "image", "settings": {} },
+        "g-5": { "type": "image", "settings": {} },
+        "g-6": { "type": "image", "settings": {} }
+      },
+      "block_order": ["g-1", "g-2", "g-3", "g-4", "g-5", "g-6"],
+      "settings": {}
+    },
+    "creator": {
+      "type": "creator-story",
       "settings": {}
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["hero", "occasion", "featured", "testimonials", "gallery", "creator"]
 }

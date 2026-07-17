@@ -12,7 +12,6 @@
     "colors": "Colors",
     "column": "Column",
     "content": "Content",
-    "custom_section": "Custom section",
     "fonts": "Fonts",
     "footer": "Footer",
     "group": "Group",
@@ -72,6 +71,95 @@
       "title": "Title",
       "subtitle": "Subtitle",
       "normal": "Normal text"
+    }
+  },
+  "sections": {
+    "announcement": {
+      "name": "Announcement bar",
+      "text": "Text",
+      "link": "Link",
+      "show_arrow": "Show arrow",
+      "background_color": "Background color",
+      "text_color": "Text color"
     },
+    "footer": {
+      "tagline": "Tagline",
+      "social_header": "Social",
+      "social_facebook": "Facebook URL",
+      "social_instagram": "Instagram URL",
+      "newsletter_header": "Newsletter",
+      "show_newsletter": "Show email signup",
+      "newsletter_heading": "Newsletter heading",
+      "bottom_header": "Bottom bar",
+      "background_color": "Background color",
+      "text_color": "Text color",
+      "menu_block": "Link column",
+      "text_block": "Text column",
+      "column_heading": "Column heading",
+      "content": "Content"
+    },
+    "hero": {
+      "name": "Hero",
+      "image": "Image",
+      "overlay_opacity": "Overlay opacity",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "subheading": "Subheading",
+      "button_label": "Button label",
+      "button_link": "Button link",
+      "content_position": "Content position",
+      "position_left": "Left",
+      "position_center": "Center",
+      "position_right": "Right",
+      "content_width": "Content width"
+    },
+    "occasion": {
+      "name": "Shop by occasion",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "block_name": "Occasion",
+      "image": "Image",
+      "title": "Title",
+      "link": "Link"
+    },
+    "featured_products": {
+      "name": "Best sellers",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "collection": "Collection",
+      "products_to_show": "Products to show",
+      "columns": "Columns",
+      "show_view_all": "Show view all link"
+    },
+    "testimonials": {
+      "name": "Testimonials",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "block_name": "Testimonial",
+      "rating": "Rating",
+      "quote": "Quote",
+      "author": "Author"
+    },
+    "gallery": {
+      "name": "Gallery",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "feature_first": "Feature first image",
+      "block_name": "Image",
+      "image": "Image"
+    },
+    "creator": {
+      "name": "Creator story",
+      "image": "Image",
+      "image_position": "Image position",
+      "position_left": "Left",
+      "position_right": "Right",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "body": "Body",
+      "signature": "Signature",
+      "button_label": "Button label",
+      "button_link": "Button link"
+    }
   }
 }

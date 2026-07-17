@@ -48,5 +48,18 @@
     "submit": "Search",
     "no_results_html": "No results found for {{ terms }}",
     "results_for_html": "{{ count }} results found for {{ terms }}"
+  },
+  "sections": {
+    "featured_products": {
+      "view_all": "View all",
+      "sale": "Sale"
+    },
+    "footer": {
+      "email_placeholder": "Email",
+      "subscribe": "Subscribe",
+      "newsletter_success": "Thanks for subscribing.",
+      "follow_facebook": "Follow us on Facebook",
+      "follow_instagram": "Follow us on Instagram"
+    }
   }
 }

@@ -13,13 +13,29 @@
   "sections": {
     "footer": {
       "type": "footer",
+      "blocks": {
+        "col-1": {
+          "type": "menu",
+          "settings": { "heading": "Customer service", "menu": "footer" }
+        },
+        "col-2": {
+          "type": "menu",
+          "settings": { "heading": "Quick links", "menu": "main-menu" }
+        },
+        "col-3": {
+          "type": "text",
+          "settings": {
+            "heading": "Contact us",
+            "content": "<p>Ho King Commercial Centre, 2 Yuen Street, Hong Kong</p><p>Email: info@driedpetalsgallery.com</p><p>Phone: 852-6158-8111</p>"
+          }
+        }
+      },
+      "block_order": ["col-1", "col-2", "col-3"],
       "settings": {
-        "menu": "",
+        "show_newsletter": true,
         "show_payment_icons": true
       }
     }
   },
-  "order": [
-    "footer"
-  ]
+  "order": ["footer"]
 }
