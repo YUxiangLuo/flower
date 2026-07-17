@@ -30,6 +30,17 @@
   "collections": {
     "title": "Collections"
   },
+  "collection": {
+    "filter": "Filter",
+    "apply": "Apply",
+    "clear_all": "Clear all",
+    "price_from": "From",
+    "price_to": "To",
+    "sort_by": "Sort by",
+    "products_count": "{{ count }} products",
+    "pagination": "Pagination",
+    "empty": "No products found."
+  },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
     "card": "Gift card",
