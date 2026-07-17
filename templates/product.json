@@ -11,10 +11,37 @@
   "sections": {
     "main": {
       "type": "product",
+      "blocks": {
+        "highlight-1": {
+          "type": "highlight",
+          "settings": { "text": "Handcrafted from real pressed flowers" }
+        },
+        "highlight-2": {
+          "type": "highlight",
+          "settings": { "text": "Made to order in 2–3 weeks" }
+        },
+        "highlight-3": {
+          "type": "highlight",
+          "settings": { "text": "Ships worldwide, duties prepaid" }
+        },
+        "shipping": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Shipping & returns",
+            "content": "<p>Each keepsake is made to order and carefully packed. Duties and VAT are prepaid, with no surprises at your door. Returns accepted within 14 days of delivery.</p>"
+          }
+        },
+        "care": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Care",
+            "content": "<p>Display away from direct sunlight to preserve the natural colours of the pressed flowers. Wipe the glazing gently with a dry, soft cloth.</p>"
+          }
+        }
+      },
+      "block_order": ["highlight-1", "highlight-2", "highlight-3", "shipping", "care"],
       "settings": {}
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["main"]
 }

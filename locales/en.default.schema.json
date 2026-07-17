@@ -106,6 +106,14 @@
       "eyebrow": "Eyebrow",
       "content_width": "Content width"
     },
+    "product": {
+      "show_vendor": "Show vendor",
+      "highlight": "Highlight",
+      "highlight_text": "Text",
+      "collapsible": "Collapsible row",
+      "collapsible_heading": "Heading",
+      "collapsible_content": "Content"
+    },
     "hero": {
       "name": "Hero",
       "image": "Image",

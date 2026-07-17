@@ -53,6 +53,16 @@
     "password": "Password",
     "enter": "Enter"
   },
+  "product": {
+    "add_to_cart": "Add to cart",
+    "sold_out": "Sold out",
+    "unavailable": "Unavailable",
+    "variant": "Variant",
+    "quantity": "Quantity",
+    "decrease_quantity": "Decrease quantity",
+    "increase_quantity": "Increase quantity",
+    "sale": "Sale"
+  },
   "search": {
     "title": "Search",
     "placeholder": "Search articles, pages, or products",
