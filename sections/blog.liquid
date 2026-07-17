@@ -182,13 +182,14 @@
   "name": "t:general.blog",
   "settings": [
     {
-      "type": "range",
+      "type": "select",
       "id": "columns",
       "label": "t:sections.blog.columns",
-      "min": 2,
-      "max": 3,
-      "step": 1,
-      "default": 3
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ],
+      "default": "3"
     },
     {
       "type": "checkbox",
