@@ -1,65 +1,60 @@
 {% comment %}
-  A split image-and-text section telling the brand's founder story.
+  A two-column "meet the creator" feature: a portrait image paired with the
+  brand's founder story. Constrained to the page width for a balanced,
+  editorial composition.
 {% endcomment %}
 
-<div class="creator full-width">
-  <div class="creator__inner creator__inner--{{ section.settings.image_position }}">
-    <div class="creator__media">
-      {% if section.settings.image %}
-        {{
-          section.settings.image
-          | image_url: width: 1400
-          | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '600, 900, 1400'
-        }}
-      {% else %}
-        {{ 'lifestyle-2' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}
-      {% endif %}
-    </div>
+<div class="creator creator--{{ section.settings.image_position }}">
+  <div class="creator__media">
+    {% if section.settings.image %}
+      {{
+        section.settings.image
+        | image_url: width: 1200
+        | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200'
+      }}
+    {% else %}
+      {{ 'image' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}
+    {% endif %}
+  </div>
 
-    <div class="creator__content">
-      {% if section.settings.eyebrow != blank %}
-        <p class="creator__eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="creator__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-      {% if section.settings.body != blank %}
-        <div class="creator__body">{{ section.settings.body }}</div>
-      {% endif %}
-      {% if section.settings.signature != blank %}
-        <p class="creator__signature">{{ section.settings.signature }}</p>
-      {% endif %}
-      {% if section.settings.button_label != blank %}
-        <a class="creator__button" href="{{ section.settings.button_link | default: '#' }}">
-          {{ section.settings.button_label }}
-        </a>
-      {% endif %}
-    </div>
+  <div class="creator__content">
+    {% if section.settings.eyebrow != blank %}
+      <p class="creator__eyebrow">{{ section.settings.eyebrow }}</p>
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h2 class="creator__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+    {% if section.settings.body != blank %}
+      <div class="creator__body">{{ section.settings.body }}</div>
+    {% endif %}
+    {% if section.settings.signature != blank %}
+      <p class="creator__signature">{{ section.settings.signature }}</p>
+    {% endif %}
+    {% if section.settings.button_label != blank %}
+      <a class="creator__button" href="{{ section.settings.button_link | default: '#' }}">
+        {{ section.settings.button_label }}
+      </a>
+    {% endif %}
   </div>
 </div>
 
 {% stylesheet %}
   .creator {
-    background-color: var(--color-background);
-  }
-
-  .creator__inner {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: stretch;
-    min-height: 34rem;
+    grid-template-columns: 5fr 6fr;
+    align-items: center;
+    gap: clamp(2rem, 6vw, 5.5rem);
+    padding-block: var(--section-spacing);
   }
 
-  .creator__inner--right {
-    direction: rtl;
-  }
-
-  .creator__inner--right > * {
-    direction: ltr;
+  .creator--right .creator__media {
+    order: 2;
   }
 
   .creator__media {
     overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background-color: var(--color-surface);
   }
 
   .creator__image {
@@ -68,13 +63,15 @@
     object-fit: cover;
   }
 
+  .creator__image--placeholder {
+    opacity: 0.4;
+  }
+
   .creator__content {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    justify-content: center;
-    padding: var(--section-spacing) max(var(--page-margin), 6vw);
-    max-width: 40rem;
+    max-width: 34rem;
   }
 
   .creator__eyebrow {
@@ -87,12 +84,12 @@
   .creator__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    font-size: clamp(2rem, 3.5vw, 3.1rem);
     line-height: 1.15;
   }
 
   .creator__body {
-    line-height: 1.7;
+    line-height: 1.75;
     color: var(--color-muted);
   }
 
@@ -103,12 +100,13 @@
   .creator__signature {
     font-family: var(--font-heading--family);
     font-style: italic;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
+    margin-top: 0.25rem;
   }
 
   .creator__button {
     align-self: flex-start;
-    margin-top: 0.75rem;
+    margin-top: 1rem;
     padding: 0.9rem 2.4rem;
     font-size: 0.8rem;
     letter-spacing: 0.18em;
@@ -126,14 +124,21 @@
   }
 
   @media (max-width: 749px) {
-    .creator__inner,
-    .creator__inner--right {
+    .creator {
       grid-template-columns: 1fr;
-      direction: ltr;
+      gap: 2rem;
+    }
+
+    .creator--right .creator__media {
+      order: 0;
     }
 
     .creator__media {
       aspect-ratio: 4 / 3;
+    }
+
+    .creator__content {
+      max-width: none;
     }
   }
 {% endstylesheet %}

@@ -17,7 +17,7 @@
     <span class="hero__scrim" style="--scrim: {{ section.settings.overlay_opacity }}%"></span>
   </div>
 
-  <div class="hero__content" style="--max-text: {{ section.settings.content_width }}ch">
+  <div class="hero__content" style="--max-text: {{ section.settings.content_width }}rem">
     {% if section.settings.eyebrow != blank %}
       <p class="hero__eyebrow">{{ section.settings.eyebrow }}</p>
     {% endif %}
@@ -53,6 +53,7 @@
     inset: 0;
     z-index: -1;
     overflow: hidden;
+    background-color: var(--color-foreground);
   }
 
   .hero__image {
@@ -105,6 +106,7 @@
     font-size: clamp(2.5rem, 6vw, 4.75rem);
     line-height: 1.05;
     letter-spacing: -0.01em;
+    text-wrap: balance;
   }
 
   .hero__subheading {
@@ -200,11 +202,11 @@
       "type": "range",
       "id": "content_width",
       "label": "t:sections.hero.content_width",
-      "min": 20,
-      "max": 60,
+      "min": 28,
+      "max": 64,
       "step": 2,
-      "unit": "ch",
-      "default": 32
+      "unit": "rem",
+      "default": 44
     }
   ],
   "presets": [
