@@ -7,7 +7,6 @@
     "cart": "Cart",
     "collection": "Collection",
     "collections": "Collections",
-    "collection_card": "Collection card",
     "collections_grid": "Collections grid",
     "colors": "Colors",
     "column": "Column",
@@ -36,8 +35,6 @@
     "alignment": "Alignment",
     "background": "Background",
     "foreground": "Foreground",
-    "grid_gap": "Grid spacing",
-    "grid_item_width": "Grid item width",
     "input_corner_radius": "Input corner radius",
     "layout_direction": "Layout direction",
     "menu": "Menu",
@@ -62,10 +59,6 @@
     "page_width": {
       "narrow": "Narrow",
       "wide": "Wide"
-    },
-    "size": {
-      "large": "Large",
-      "small": "Small"
     },
     "text_style": {
       "title": "Title",
@@ -102,6 +95,12 @@
       "show_description": "Show collection description",
       "products_per_page": "Products per page",
       "columns": "Columns"
+    },
+    "collections": {
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "columns": "Columns",
+      "show_description": "Show collection descriptions"
     },
     "hero": {
       "name": "Hero",
