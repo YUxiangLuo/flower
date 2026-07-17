@@ -98,6 +98,11 @@
       "column_heading": "Column heading",
       "content": "Content"
     },
+    "collection": {
+      "show_description": "Show collection description",
+      "products_per_page": "Products per page",
+      "columns": "Columns"
+    },
     "hero": {
       "name": "Hero",
       "image": "Image",
