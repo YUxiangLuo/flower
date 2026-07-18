@@ -9,7 +9,7 @@
  */
 {
   "sections": {
-    "hero": {
+    "banner": {
       "type": "hero",
       "settings": {}
     },
@@ -33,7 +33,7 @@
       "type": "featured-products",
       "settings": {}
     },
-    "testimonials": {
+    "reviews": {
       "type": "testimonials",
       "blocks": {
         "t-1": { "type": "testimonial", "settings": {} },
@@ -56,7 +56,7 @@
       "block_order": ["t-1", "t-2", "t-3", "t-4"],
       "settings": {}
     },
-    "gallery": {
+    "lookbook": {
       "type": "gallery",
       "blocks": {
         "g-1": { "type": "image", "settings": {} },
@@ -74,5 +74,5 @@
       "settings": {}
     }
   },
-  "order": ["hero", "occasion", "featured", "testimonials", "gallery", "creator"]
+  "order": ["banner", "occasion", "featured", "reviews", "lookbook", "creator"]
 }
