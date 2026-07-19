@@ -43,11 +43,7 @@
       {% endfor %}
     </div>
 
-    {% if paginate.pages > 1 %}
-      <nav class="blog__pagination" aria-label="{{ blog.title }}">
-        {{ paginate | default_pagination }}
-      </nav>
-    {% endif %}
+    {% render 'pagination', paginate: paginate %}
   {% endpaginate %}
 </div>
 
@@ -144,24 +140,6 @@
 
   .blog-card__link span {
     transition: transform 0.3s ease;
-  }
-
-  .blog__pagination {
-    display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: clamp(2.5rem, 5vw, 4rem);
-  }
-
-  .blog__pagination a,
-  .blog__pagination .page.current {
-    color: var(--color-foreground);
-    text-decoration: none;
-    padding: 0.25rem 0.6rem;
-  }
-
-  .blog__pagination .page.current {
-    border-bottom: 1px solid var(--color-accent);
   }
 
   @media (max-width: 989px) {

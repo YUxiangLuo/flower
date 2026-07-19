@@ -47,8 +47,14 @@
     "price_to": "To",
     "sort_by": "Sort by",
     "products_count": "{{ count }} products",
-    "pagination": "Pagination",
     "empty": "No products found."
+  },
+  "general": {
+    "pagination": {
+      "label": "Pagination",
+      "previous": "Previous page",
+      "next": "Next page"
+    }
   },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",

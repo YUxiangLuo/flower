@@ -1,0 +1,141 @@
+{% doc %}
+  Renders a numbered pagination control: previous arrow, page numbers with
+  ellipses, then next arrow.
+
+  Replaces the `default_pagination` filter, whose markup can't be structured
+  or labelled for assistive technology.
+
+  @param {paginate} paginate - The paginate object from a `{% paginate %}` block
+  @param {string} [anchor] - Fragment appended to every link, e.g. 'comments'
+
+  @example
+  {% render 'pagination', paginate: paginate %}
+  {% render 'pagination', paginate: paginate, anchor: 'comments' %}
+{% enddoc %}
+
+{% liquid
+  if anchor
+    assign fragment = '#' | append: anchor
+  else
+    assign fragment = ''
+  endif
+%}
+
+{% if paginate.pages > 1 %}
+  <nav class="pagination" aria-label="{{ 'general.pagination.label' | t }}">
+    <ul class="pagination__list" role="list">
+      <li>
+        {% if paginate.previous.is_link %}
+          <a
+            class="pagination__arrow"
+            href="{{ paginate.previous.url }}{{ fragment }}"
+            aria-label="{{ 'general.pagination.previous' | t }}"
+          >
+            {{- 'icon-chevron.svg' | inline_asset_content -}}
+          </a>
+        {% else %}
+          <span class="pagination__arrow pagination__arrow--disabled" aria-hidden="true">
+            {{- 'icon-chevron.svg' | inline_asset_content -}}
+          </span>
+        {% endif %}
+      </li>
+
+      {% for part in paginate.parts %}
+        <li>
+          {% if part.is_link %}
+            <a class="pagination__item" href="{{ part.url }}{{ fragment }}">{{ part.title }}</a>
+          {% elsif part.title == paginate.current_page %}
+            <span class="pagination__item pagination__item--current" aria-current="page">
+              {{- part.title -}}
+            </span>
+          {% else %}
+            <span class="pagination__item pagination__item--gap">{{ part.title }}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+
+      <li>
+        {% if paginate.next.is_link %}
+          <a
+            class="pagination__arrow pagination__arrow--next"
+            href="{{ paginate.next.url }}{{ fragment }}"
+            aria-label="{{ 'general.pagination.next' | t }}"
+          >
+            {{- 'icon-chevron.svg' | inline_asset_content -}}
+          </a>
+        {% else %}
+          <span
+            class="pagination__arrow pagination__arrow--next pagination__arrow--disabled"
+            aria-hidden="true"
+          >
+            {{- 'icon-chevron.svg' | inline_asset_content -}}
+          </span>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+
+{% stylesheet %}
+  .pagination {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .pagination__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pagination__item,
+  .pagination__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding-inline: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  a.pagination__item:hover,
+  a.pagination__arrow:hover {
+    border-color: var(--color-line);
+    color: var(--color-accent);
+  }
+
+  .pagination__item--current {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-background);
+  }
+
+  /* The ellipsis is a label, not a target — keep it narrow and quiet. */
+  .pagination__item--gap {
+    min-width: 0;
+    padding-inline: 0.25rem;
+    color: var(--color-muted);
+  }
+
+  .pagination__arrow svg {
+    width: 1.1rem;
+  }
+
+  .pagination__arrow--next svg {
+    transform: rotate(180deg);
+  }
+
+  .pagination__arrow--disabled {
+    color: var(--color-muted);
+    opacity: 0.4;
+  }
+{% endstylesheet %}

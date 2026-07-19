@@ -40,9 +40,7 @@
               </div>
             {% endfor %}
 
-            {% if paginate.pages > 1 %}
-              <nav class="article__pagination">{{ paginate | default_pagination: anchor: 'comments' }}</nav>
-            {% endif %}
+            {% render 'pagination', paginate: paginate, anchor: 'comments' %}
           {% endpaginate %}
         </div>
       {% endif %}
