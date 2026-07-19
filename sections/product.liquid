@@ -589,6 +589,15 @@
       });
     }
 
+    /* Keeps ?variant= in the address bar in sync so the selection survives a
+       refresh and can be shared. Uses replaceState to avoid filling up history. */
+    function updateUrl(variantId) {
+      if (!variantId || !window.history || !window.history.replaceState) return;
+      var url = new URL(window.location.href);
+      url.searchParams.set('variant', variantId);
+      window.history.replaceState({}, '', url.toString());
+    }
+
     function applyOption(option) {
       if (!option) return;
       if (priceEl && option.dataset.price) priceEl.textContent = option.dataset.price;
@@ -611,11 +620,12 @@
       }
     }
 
-    function onOptionChange() {
+    function onOptionChange(syncUrl) {
       var variant = findVariant(selectedValues());
       if (variant && select) select.value = variant.id;
       if (variant && select) {
         applyOption(select.selectedOptions[0]);
+        if (syncUrl) updateUrl(variant.id);
       } else if (addBtn) {
         addBtn.disabled = true;
         addBtn.textContent = addBtn.getAttribute('data-label-unavailable');
@@ -625,12 +635,16 @@
     if (optionInputs.length && select) {
       if (selectWrapper) selectWrapper.hidden = true;
       optionInputs.forEach(function (input) {
-        input.addEventListener('change', onOptionChange);
+        input.addEventListener('change', function () {
+          onOptionChange(true);
+        });
       });
-      onOptionChange();
+      /* The URL is left untouched on load: Liquid already resolved the variant. */
+      onOptionChange(false);
     } else if (select) {
       select.addEventListener('change', function () {
         applyOption(select.selectedOptions[0]);
+        updateUrl(select.value);
       });
     }
 
