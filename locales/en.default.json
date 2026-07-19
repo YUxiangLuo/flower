@@ -90,6 +90,9 @@
       "newsletter_success": "Thanks for subscribing.",
       "follow_facebook": "Follow us on Facebook",
       "follow_instagram": "Follow us on Instagram"
+    },
+    "header": {
+      "menu": "Menu"
     }
   }
 }
