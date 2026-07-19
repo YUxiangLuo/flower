@@ -99,6 +99,13 @@
     },
     "header": {
       "menu": "Menu"
+    },
+    "hero": {
+      "label": "Featured",
+      "carousel": "Carousel",
+      "previous_slide": "Previous slide",
+      "next_slide": "Next slide",
+      "go_to_slide": "Go to slide {{ index }}"
     }
   }
 }

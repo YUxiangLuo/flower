@@ -134,7 +134,10 @@
       "position_left": "Left",
       "position_center": "Center",
       "position_right": "Right",
-      "content_width": "Content width"
+      "content_width": "Content width",
+      "slide": "Slide",
+      "autoplay": "Autoplay",
+      "autoplay_interval": "Change slides every"
     },
     "occasion": {
       "name": "Shop by occasion",

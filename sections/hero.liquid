@@ -1,51 +1,181 @@
 {% comment %}
-  Full-bleed hero with a serif headline and a single call to action.
-  Designed for an elegant, minimal storefront introduction.
+  Full-bleed hero carousel. Each slide is a block carrying its own image and
+  copy. Slides are stacked in a single grid cell so the tallest one sets the
+  height and crossfading never reflows the page.
 {% endcomment %}
 
-<div class="hero full-width hero--{{ section.settings.content_position }}">
-  <div class="hero__media">
-    {% if section.settings.image %}
-      {{
-        section.settings.image
-        | image_url: width: 2400
-        | image_tag: loading: 'eager', fetchpriority: 'high', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400'
-      }}
+{% liquid
+  assign slide_count = section.blocks.size
+  if section.settings.autoplay and slide_count > 1
+    assign autoplay = true
+  else
+    assign autoplay = false
+  endif
+%}
+
+<div
+  class="hero full-width hero--{{ section.settings.content_position }}"
+  style="--max-text: {{ section.settings.content_width }}rem"
+  {% if slide_count > 1 %}
+    data-hero
+    data-autoplay="{{ autoplay }}"
+    data-interval="{{ section.settings.autoplay_interval | times: 1000 }}"
+    role="region"
+    aria-roledescription="{{ 'sections.hero.carousel' | t }}"
+    aria-label="{{ 'sections.hero.label' | t }}"
+  {% endif %}
+>
+  <div class="hero__slides">
+    {% for block in section.blocks %}
+      <div
+        class="hero__slide"
+        data-hero-slide
+        {% if forloop.first %}
+          data-active
+        {% else %}
+          aria-hidden="true"
+        {% endif %}
+        {{ block.shopify_attributes }}
+      >
+        <div class="hero__media">
+          {% if block.settings.image %}
+            {% comment %} Only the first slide is above the fold. {% endcomment %}
+            {% if forloop.first %}
+              {{
+                block.settings.image
+                | image_url: width: 2400
+                | image_tag: loading: 'eager', fetchpriority: 'high', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400'
+              }}
+            {% else %}
+              {{
+                block.settings.image
+                | image_url: width: 2400
+                | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400'
+              }}
+            {% endif %}
+          {% else %}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
+          {% endif %}
+          <span class="hero__scrim" style="--scrim: {{ block.settings.overlay_opacity }}%"></span>
+        </div>
+
+        <div class="hero__content">
+          {% if block.settings.eyebrow != blank %}
+            <p class="hero__eyebrow">{{ block.settings.eyebrow }}</p>
+          {% endif %}
+
+          {% if block.settings.heading != blank %}
+            {% if forloop.first %}
+              <h1 class="hero__heading">{{ block.settings.heading }}</h1>
+            {% else %}
+              <p class="hero__heading">{{ block.settings.heading }}</p>
+            {% endif %}
+          {% endif %}
+
+          {% if block.settings.subheading != blank %}
+            <p class="hero__subheading">{{ block.settings.subheading }}</p>
+          {% endif %}
+
+          {% if block.settings.button_label != blank %}
+            <a class="hero__button" href="{{ block.settings.button_link | default: '#' }}">
+              {{ block.settings.button_label }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
     {% else %}
-      {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
-    {% endif %}
-    <span class="hero__scrim" style="--scrim: {{ section.settings.overlay_opacity }}%"></span>
+      <div class="hero__slide" data-active>
+        <div class="hero__media">
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
+          <span class="hero__scrim" style="--scrim: 30%"></span>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 
-  <div class="hero__content" style="--max-text: {{ section.settings.content_width }}rem">
-    {% if section.settings.eyebrow != blank %}
-      <p class="hero__eyebrow">{{ section.settings.eyebrow }}</p>
-    {% endif %}
+  {% if slide_count > 1 %}
+    <div class="hero__controls">
+      <button
+        class="hero__arrow hero__arrow--prev"
+        type="button"
+        data-hero-prev
+        aria-label="{{ 'sections.hero.previous_slide' | t }}"
+      >
+        {{- 'icon-chevron.svg' | inline_asset_content -}}
+      </button>
 
-    {% if section.settings.heading != blank %}
-      <h1 class="hero__heading">{{ section.settings.heading }}</h1>
-    {% endif %}
+      <div class="hero__dots" role="tablist">
+        {% for block in section.blocks %}
+          <button
+            class="hero__dot"
+            type="button"
+            role="tab"
+            data-hero-dot="{{ forloop.index0 }}"
+            aria-label="{{ 'sections.hero.go_to_slide' | t: index: forloop.index }}"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+          ></button>
+        {% endfor %}
+      </div>
 
-    {% if section.settings.subheading != blank %}
-      <p class="hero__subheading">{{ section.settings.subheading }}</p>
-    {% endif %}
-
-    {% if section.settings.button_label != blank %}
-      <a class="hero__button" href="{{ section.settings.button_link | default: '#' }}">
-        {{ section.settings.button_label }}
-      </a>
-    {% endif %}
-  </div>
+      <button
+        class="hero__arrow hero__arrow--next"
+        type="button"
+        data-hero-next
+        aria-label="{{ 'sections.hero.next_slide' | t }}"
+      >
+        {{- 'icon-chevron.svg' | inline_asset_content -}}
+      </button>
+    </div>
+  {% endif %}
 </div>
 
 {% stylesheet %}
   .hero {
     position: relative;
     display: grid;
-    align-items: center;
-    min-height: clamp(30rem, 82vh, 52rem);
     color: #fff;
+    /* Dark backstop so nothing light can flash through before images decode. */
+    background-color: var(--color-foreground);
     isolation: isolate;
+  }
+
+  /* Slides and controls share one cell so the controls overlay the artwork
+     instead of being auto-placed into a row of their own. */
+  .hero__slides {
+    grid-area: 1 / 1;
+    display: grid;
+  }
+
+  /* Every slide occupies the same cell, so the tallest one sets the height. */
+  .hero__slide {
+    grid-area: 1 / 1;
+    position: relative;
+    display: grid;
+    align-items: center;
+    /* Fill what's left of the viewport below the announcement bar and header.
+       The fallback covers both at their default heights until JS measures
+       them; svh keeps mobile browser chrome from cropping the slide. */
+    min-height: calc(100svh - var(--hero-offset, 7.5rem));
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1.2s ease-in-out, visibility 0s linear 1.2s;
+  }
+
+  /* The incoming slide fades in on top; the outgoing one stays fully opaque
+     underneath until that finishes. Fading both at once would let the page
+     background show through at the midpoint and flash the whole hero. */
+  .hero__slide[data-active] {
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 1.2s ease-in-out, visibility 0s;
+  }
+
+  .hero__slide[data-leaving] {
+    z-index: 1;
+    opacity: 1;
+    visibility: visible;
+    transition: none;
   }
 
   .hero__media {
@@ -60,6 +190,23 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  /* Ken Burns: the push-in restarts each time a slide becomes active, since
+     the attribute re-applies the rule. It has to keep running while the slide
+     is leaving too, or the image would snap back to 1x mid-fade. */
+  .hero__slide[data-active] .hero__image,
+  .hero__slide[data-leaving] .hero__image {
+    animation: hero-push-in 12s ease-out forwards;
+  }
+
+  @keyframes hero-push-in {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.08);
+    }
   }
 
   .hero__scrim {
@@ -137,55 +284,274 @@
     background-color: #fff;
     color: var(--color-foreground);
   }
+
+  .hero__controls {
+    grid-area: 1 / 1;
+    align-self: end;
+    justify-self: center;
+    /* Above both the active (2) and leaving (1) slide layers. */
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding-bottom: clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .hero__arrow {
+    display: flex;
+    padding: 0.5rem;
+    background: transparent;
+    border: 0;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+
+  .hero__arrow:hover,
+  .hero__arrow:focus-visible {
+    opacity: 1;
+  }
+
+  .hero__arrow svg {
+    width: 1.4rem;
+  }
+
+  .hero__arrow--next svg {
+    transform: rotate(180deg);
+  }
+
+  .hero__dots {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .hero__dot {
+    width: 2.25rem;
+    height: 1px;
+    padding: 0;
+    background-color: rgb(255 255 255 / 0.45);
+    border: 0;
+    cursor: pointer;
+    transition: background-color 0.4s ease;
+  }
+
+  /* The hit area stays finger-sized even though the mark is a hairline. */
+  .hero__dot::before {
+    content: '';
+    display: block;
+    height: 2.75rem;
+    margin-top: -1.375rem;
+  }
+
+  .hero__dot[aria-selected='true'] {
+    background-color: #fff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__slide,
+    .hero__slide[data-active] {
+      transition: none;
+    }
+
+    .hero__slide[data-active] .hero__image {
+      animation: none;
+    }
+  }
 {% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    /* Everything stacked above the hero — announcement bar, header — adds up
+       to its offset from the top of the document, so one measurement covers
+       whatever the merchant has enabled. */
+    function measureOffset() {
+      var hero = document.querySelector('.hero');
+      if (!hero) return;
+      var section = hero.closest('.shopify-section') || hero;
+      var offset = section.getBoundingClientRect().top + window.pageYOffset;
+      document.documentElement.style.setProperty('--hero-offset', offset + 'px');
+    }
+
+    measureOffset();
+    window.addEventListener('resize', measureOffset);
+    window.addEventListener('load', measureOffset);
+
+    document.querySelectorAll('[data-hero]').forEach(function (hero) {
+      var slides = Array.prototype.slice.call(hero.querySelectorAll('[data-hero-slide]'));
+      var dots = Array.prototype.slice.call(hero.querySelectorAll('[data-hero-dot]'));
+      if (slides.length < 2) return;
+
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var interval = parseInt(hero.getAttribute('data-interval'), 10) || 6000;
+      var index = 0;
+      var timer = null;
+      var leaveTimer = null;
+
+      /* Read the crossfade length off the stylesheet so the two can't drift. */
+      var fade = (parseFloat(getComputedStyle(slides[0]).transitionDuration) || 1.2) * 1000;
+
+      function show(next) {
+        var previous = index;
+        index = (next + slides.length) % slides.length;
+        if (index === previous) return;
+
+        clearTimeout(leaveTimer);
+        slides.forEach(function (slide, i) {
+          slide.removeAttribute('data-leaving');
+          if (i === index) {
+            slide.setAttribute('data-active', '');
+            slide.removeAttribute('aria-hidden');
+          } else {
+            slide.removeAttribute('data-active');
+            slide.setAttribute('aria-hidden', 'true');
+          }
+        });
+
+        /* Hold the outgoing slide opaque below the incoming one until the
+           fade is over, so the background never shows through. */
+        var outgoing = slides[previous];
+        outgoing.setAttribute('data-leaving', '');
+        leaveTimer = setTimeout(function () {
+          outgoing.removeAttribute('data-leaving');
+        }, fade);
+
+        dots.forEach(function (dot, i) {
+          dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        });
+      }
+
+      function stop() {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function start() {
+        stop();
+        if (hero.getAttribute('data-autoplay') !== 'true') return;
+        if (reduced.matches) return;
+        timer = setInterval(function () {
+          show(index + 1);
+        }, interval);
+      }
+
+      /* Advancing by hand shouldn't leave a partial interval running. */
+      function goTo(next) {
+        show(next);
+        start();
+      }
+
+      var prev = hero.querySelector('[data-hero-prev]');
+      var next = hero.querySelector('[data-hero-next]');
+      if (prev) {
+        prev.addEventListener('click', function () {
+          goTo(index - 1);
+        });
+      }
+      if (next) {
+        next.addEventListener('click', function () {
+          goTo(index + 1);
+        });
+      }
+      dots.forEach(function (dot, i) {
+        dot.addEventListener('click', function () {
+          goTo(i);
+        });
+      });
+
+      hero.addEventListener('mouseenter', stop);
+      hero.addEventListener('mouseleave', start);
+      hero.addEventListener('focusin', stop);
+      hero.addEventListener('focusout', function (event) {
+        if (!hero.contains(event.relatedTarget)) start();
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stop();
+        else start();
+      });
+
+      if (reduced.addEventListener) reduced.addEventListener('change', start);
+
+      start();
+    });
+  })();
+{% endjavascript %}
 
 {% schema %}
 {
   "name": "t:sections.hero.name",
+  "max_blocks": 8,
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "t:sections.hero.slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.hero.image"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "label": "t:sections.hero.overlay_opacity",
+          "min": 0,
+          "max": 80,
+          "step": 5,
+          "unit": "%",
+          "default": 30
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "t:sections.hero.eyebrow",
+          "default": "Pressed flower artistry"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "t:sections.hero.heading",
+          "default": "Turn the people you love into art made with real flowers"
+        },
+        {
+          "type": "textarea",
+          "id": "subheading",
+          "label": "t:sections.hero.subheading",
+          "default": "Every keepsake is handcrafted from real botanicals and made to last far beyond the day itself."
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "t:sections.hero.button_label",
+          "default": "Discover your keepsake"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "t:sections.hero.button_link"
+        }
+      ]
+    }
+  ],
   "settings": [
     {
-      "type": "image_picker",
-      "id": "image",
-      "label": "t:sections.hero.image"
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "t:sections.hero.autoplay",
+      "default": true
     },
     {
       "type": "range",
-      "id": "overlay_opacity",
-      "label": "t:sections.hero.overlay_opacity",
-      "min": 0,
-      "max": 80,
-      "step": 5,
-      "unit": "%",
-      "default": 30
-    },
-    {
-      "type": "text",
-      "id": "eyebrow",
-      "label": "t:sections.hero.eyebrow",
-      "default": "Pressed flower artistry"
-    },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "t:sections.hero.heading",
-      "default": "Turn the people you love into art made with real flowers"
-    },
-    {
-      "type": "textarea",
-      "id": "subheading",
-      "label": "t:sections.hero.subheading",
-      "default": "Every keepsake is handcrafted from real botanicals and made to last far beyond the day itself."
-    },
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "t:sections.hero.button_label",
-      "default": "Discover your keepsake"
-    },
-    {
-      "type": "url",
-      "id": "button_link",
-      "label": "t:sections.hero.button_link"
+      "id": "autoplay_interval",
+      "label": "t:sections.hero.autoplay_interval",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "unit": "s",
+      "default": 6
     },
     {
       "type": "select",
@@ -211,7 +577,8 @@
   ],
   "presets": [
     {
-      "name": "t:sections.hero.name"
+      "name": "t:sections.hero.name",
+      "blocks": [{ "type": "slide" }, { "type": "slide" }, { "type": "slide" }]
     }
   ]
 }

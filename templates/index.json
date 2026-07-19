@@ -11,6 +11,26 @@
   "sections": {
     "banner": {
       "type": "hero",
+      "blocks": {
+        "slide-1": { "type": "slide", "settings": {} },
+        "slide-2": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Made to keep",
+            "heading": "A bouquet that outlives the occasion",
+            "subheading": "Pressed by hand within days of blooming, then set in glass to hold its colour for years."
+          }
+        },
+        "slide-3": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Yours alone",
+            "heading": "Built around the flowers that mean something to you",
+            "subheading": "Send us the stems from the day, or choose birth flowers for everyone in the frame."
+          }
+        }
+      },
+      "block_order": ["slide-1", "slide-2", "slide-3"],
       "settings": {}
     },
     "occasion": {
