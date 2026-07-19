@@ -127,6 +127,9 @@
     position: relative;
     display: flex;
     align-items: center;
+    /* Never give up width: these are fixed-size targets, and shrinking the box
+       would drag the icon down with it via the global svg max-width rule. */
+    flex: 0 0 auto;
     color: var(--color-foreground);
     text-decoration: none;
     cursor: pointer;
@@ -134,6 +137,9 @@
 
   .header__action svg {
     width: 1.4rem;
+    height: 1.4rem;
+    max-width: none;
+    flex: 0 0 auto;
   }
 
   .header__cart-count {
@@ -164,6 +170,8 @@
 
   .header__menu-icon svg {
     width: 1.4rem;
+    height: 1.4rem;
+    max-width: none;
   }
 
   .header__menu-icon--close,
