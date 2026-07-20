@@ -2,51 +2,71 @@
   <br>
     <img src="./assets/shoppy-x-ray.svg" alt="logo" width="200">
   <br>
-  Shopify Skeleton Theme
+  Flower
 </h1>
 
-A minimal, carefully structured Shopify theme designed to help you quickly get started. Designed with modularity, maintainability, and Shopify's best practices in mind.
+<p align="center">
+  A Shopify theme for pressed-flower keepsakes, by
+  <a href="https://vesein.dev">vesein.dev</a>.
+  Built on Online Store 2.0 with modular sections, warm sunflower-inspired styling,
+  and Shopify's recommended architecture.
+</p>
 
 <p align="center">
   <a href="./LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="./actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Shopify/skeleton-theme/actions/workflows/ci.yml/badge.svg"></a>
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/author-vesein.dev-informational.svg" alt="Author">
 </p>
+
+## Theme info
+
+| Field | Value |
+|-------|--------|
+| Name | Flower |
+| Version | 1.0.0 |
+| Author | [vesein.dev](https://vesein.dev) |
+| Docs / support | [vesein.dev](https://vesein.dev) |
+
+Defined in `config/settings_schema.json` under `theme_info`.
 
 ## Getting started
 
 ### Prerequisites
 
-Before starting, ensure you have the latest Shopify CLI installed:
-
-- [Shopify CLI](https://shopify.dev/docs/api/shopify-cli) – helps you download, upload, preview themes, and streamline your workflows
-
-If you use VS Code:
-
-- [Shopify Liquid VS Code Extension](https://shopify.dev/docs/storefronts/themes/tools/shopify-liquid-vscode) – provides syntax highlighting, linting, inline documentation, and auto-completion specifically designed for Liquid templates
+- [Shopify CLI](https://shopify.dev/docs/api/shopify-cli) – download, upload, and preview themes
+- Optional (VS Code): [Shopify Liquid extension](https://shopify.dev/docs/storefronts/themes/tools/shopify-liquid-vscode) – highlighting, linting, and docs
 
 ### Clone
 
-Clone this repository using Git or Shopify CLI:
-
 ```bash
-git clone git@github.com:Shopify/skeleton-theme.git
-# or
-shopify theme init
+git clone git@github.com:YUxiangLuo/flower.git
+cd flower
 ```
 
 ### Preview
-
-Preview this theme using Shopify CLI:
 
 ```bash
 shopify theme dev
 ```
 
+## What's included
+
+Homepage and storefront modules tailored to a handmade keepsake brand:
+
+- **Hero carousel** – full-bleed autoplay slides
+- **Shop by occasion** – occasion-based entry cards
+- **Featured products**, **testimonials**, **gallery**, **creator story**
+- **Product page** – media gallery, variant picker, highlights, collapsible details
+- **Collection** – facet filters and sorting
+- Cart, search, blog, article, collections list, and 404 – styled to match
+
+Design tokens (cream paper background, serif headings, gold accent) live in `snippets/css-variables.liquid`.
+
 ## Theme architecture
 
 ```bash
 .
-├── assets          # Stores static assets (CSS, JS, images, fonts, etc.)
+├── assets          # Static assets (CSS, JS, images, fonts, etc.)
 ├── blocks          # Reusable, nestable, customizable UI components
 ├── config          # Global theme settings and customization options
 ├── layout          # Top-level wrappers for pages (layout templates)
@@ -60,29 +80,23 @@ To learn more, refer to the [theme architecture documentation](https://shopify.d
 
 ### Templates
 
-[Templates](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) control what's rendered on each type of page in a theme.
+[Templates](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) control what's rendered on each type of page.
 
-The Skeleton Theme scaffolds [JSON templates](https://shopify.dev/docs/storefronts/themes/architecture/templates/json-templates) to make it easy for merchants to customize their store.
-
-None of the template types are required, and not all of them are included in the Skeleton Theme. Refer to the [template types reference](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) for a full list.
+This theme uses [JSON templates](https://shopify.dev/docs/storefronts/themes/architecture/templates/json-templates) so merchants can rearrange sections in the theme editor.
 
 ### Sections
 
-[Sections](https://shopify.dev/docs/storefronts/themes/architecture/sections) are Liquid files that allow you to create reusable modules of content that can be customized by merchants. They can also include blocks which allow merchants to add, remove, and reorder content within a section.
-
-Sections are made customizable by including a `{% schema %}` in the body. For more information, refer to the [section schema documentation](https://shopify.dev/docs/storefronts/themes/architecture/sections/section-schema).
+[Sections](https://shopify.dev/docs/storefronts/themes/architecture/sections) are Liquid modules that merchants can customize. They may include blocks for nested content. Each section exposes settings via a `{% schema %}` tag. See the [section schema docs](https://shopify.dev/docs/storefronts/themes/architecture/sections/section-schema).
 
 ### Blocks
 
-[Blocks](https://shopify.dev/docs/storefronts/themes/architecture/blocks) let developers create flexible layouts by breaking down sections into smaller, reusable pieces of Liquid. Each block has its own set of settings, and can be added, removed, and reordered within a section.
-
-Blocks are made customizable by including a `{% schema %}` in the body. For more information, refer to the [block schema documentation](https://shopify.dev/docs/storefronts/themes/architecture/blocks/theme-blocks/schema).
+[Blocks](https://shopify.dev/docs/storefronts/themes/architecture/blocks) break sections into smaller reusable pieces with their own settings. See the [block schema docs](https://shopify.dev/docs/storefronts/themes/architecture/blocks/theme-blocks/schema).
 
 ## Schemas
 
-When developing components defined by schema settings, we recommend these guidelines to simplify your code:
+When developing components defined by schema settings:
 
-- **Single property settings**: For settings that correspond to a single CSS property, use CSS variables:
+- **Single property settings**: map to CSS variables:
 
   ```liquid
   <div class="collection" style="--gap: {{ block.settings.gap }}px">
@@ -110,7 +124,7 @@ When developing components defined by schema settings, we recommend these guidel
   {% endschema %}
   ```
 
-- **Multiple property settings**: For settings that control multiple CSS properties, use CSS classes:
+- **Multiple property settings**: use CSS classes:
 
   ```liquid
   <div class="collection {{ block.settings.layout }}">
@@ -143,18 +157,12 @@ When developing components defined by schema settings, we recommend these guidel
 
 ## CSS & JavaScript
 
-For CSS and JavaScript, we recommend using the [`{% stylesheet %}`](https://shopify.dev/docs/api/liquid/tags#stylesheet) and [`{% javascript %}`](https://shopify.dev/docs/api/liquid/tags/javascript) tags. They can be included multiple times, but the code will only appear once.
+Prefer the [`{% stylesheet %}`](https://shopify.dev/docs/api/liquid/tags#stylesheet) and [`{% javascript %}`](https://shopify.dev/docs/api/liquid/tags/javascript) tags on sections, blocks, and snippets. They can appear multiple times; Shopify deduplicates the output.
 
 ### `critical.css`
 
-The Skeleton Theme explicitly separates essential CSS necessary for every page into a dedicated `critical.css` file.
-
-## Contributing
-
-We're excited for your contributions to the Skeleton Theme! This repository aims to remain as lean, lightweight, and fundamental as possible, and we kindly ask your contributions to align with this intention.
-
-Visit our [CONTRIBUTING.md](./CONTRIBUTING.md) for a detailed overview of our process, guidelines, and recommendations.
+Global essentials (reset, base layout) live in `assets/critical.css` and load on every page. Component styles stay co-located with their Liquid files.
 
 ## License
 
-Skeleton Theme is open-sourced under the [MIT](./LICENSE.md) License.
+Flower is derived from Shopify's Skeleton Theme and is open-sourced under the [MIT](./LICENSE.md) License (Shopify theme use terms apply).

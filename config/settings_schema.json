@@ -1,11 +1,11 @@
 [
   {
     "name": "theme_info",
-    "theme_name": "Skeleton",
-    "theme_version": "0.1.0",
-    "theme_author": "Shopify",
-    "theme_documentation_url": "https://help.shopify.com/manual/online-store/themes",
-    "theme_support_url": "https://support.shopify.com/"
+    "theme_name": "Flower",
+    "theme_version": "1.0.0",
+    "theme_author": "vesein.dev",
+    "theme_documentation_url": "https://vesein.dev",
+    "theme_support_url": "https://vesein.dev"
   },
   {
     "name": "t:general.typography",
