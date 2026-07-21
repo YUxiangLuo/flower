@@ -64,6 +64,11 @@
       "title": "Title",
       "subtitle": "Subtitle",
       "normal": "Normal text"
+    },
+    "background": {
+      "page": "Page",
+      "surface": "Cream",
+      "surface_deep": "Deep cream"
     }
   },
   "sections": {
@@ -186,6 +191,49 @@
       "signature": "Signature",
       "button_label": "Button label",
       "button_link": "Button link"
+    },
+    "craft_steps": {
+      "name": "How it's made",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "background": "Background",
+      "block_name": "Step",
+      "image": "Image",
+      "title": "Title",
+      "text": "Text"
+    },
+    "reassurance": {
+      "name": "Reassurance bar",
+      "block_name": "Point",
+      "icon": "Icon",
+      "label": "Label",
+      "background_color": "Background color",
+      "text_color": "Text color"
+    },
+    "personalization": {
+      "name": "Personalization",
+      "image": "Image",
+      "image_position": "Image position",
+      "position_left": "Left",
+      "position_right": "Right",
+      "background": "Background",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "body": "Body",
+      "button_label": "Button label",
+      "button_link": "Button link"
+    },
+    "cta": {
+      "name": "Call to action",
+      "background_image": "Background image",
+      "overlay_opacity": "Overlay opacity",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "subheading": "Subheading",
+      "button_label": "Button label",
+      "button_link": "Button link",
+      "background_color": "Background color",
+      "text_color": "Text color"
     }
   }
 }

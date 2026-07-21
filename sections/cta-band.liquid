@@ -1,0 +1,185 @@
+{% comment %}
+  A full-width closing call-to-action band. Optional background image with a
+  scrim; otherwise a solid colour. Ends the homepage with a clear next step.
+{% endcomment %}
+
+<div
+  class="cta full-width"
+  style="--cta-bg: {{ section.settings.background_color }}; --cta-text: {{ section.settings.text_color }}; --cta-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+>
+  {% if section.settings.background_image %}
+    <div class="cta__media">
+      {{
+        section.settings.background_image
+        | image_url: width: 2200
+        | image_tag: loading: 'lazy', class: 'cta__image', sizes: '100vw', widths: '900, 1400, 1800, 2200'
+      }}
+      <div class="cta__scrim" aria-hidden="true"></div>
+    </div>
+  {% endif %}
+
+  <div class="cta__inner">
+    {% if section.settings.eyebrow != blank %}
+      <p class="cta__eyebrow">{{ section.settings.eyebrow }}</p>
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h2 class="cta__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+    {% if section.settings.subheading != blank %}
+      <p class="cta__subheading">{{ section.settings.subheading }}</p>
+    {% endif %}
+    {% if section.settings.button_label != blank %}
+      <a class="cta__button" href="{{ section.settings.button_link | default: '#' }}">
+        {{ section.settings.button_label }}
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .cta {
+    position: relative;
+    background-color: var(--cta-bg);
+    color: var(--cta-text);
+    overflow: hidden;
+  }
+
+  .cta__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .cta__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cta__scrim {
+    position: absolute;
+    inset: 0;
+    background-color: var(--cta-bg);
+    opacity: var(--cta-overlay);
+  }
+
+  .cta__inner {
+    position: relative;
+    max-width: 48rem;
+    margin-inline: auto;
+    padding-block: clamp(4rem, 9vw, 7.5rem);
+    padding-inline: max(var(--page-margin), 3vw);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.15rem;
+  }
+
+  .cta__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .cta__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.1rem, 4.5vw, 3.4rem);
+    line-height: 1.1;
+  }
+
+  .cta__subheading {
+    max-width: 34rem;
+    line-height: 1.75;
+    opacity: 0.85;
+  }
+
+  .cta__button {
+    margin-top: 0.75rem;
+    padding: 0.95rem 2.6rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cta-bg);
+    background-color: var(--cta-text);
+    text-decoration: none;
+    border: 1px solid var(--cta-text);
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  .cta__button:hover,
+  .cta__button:focus-visible {
+    background-color: transparent;
+    color: var(--cta-text);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.cta.name",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:sections.cta.background_image"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "t:sections.cta.overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 55
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.cta.eyebrow",
+      "default": "Ready to begin?"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.cta.heading",
+      "default": "Turn your flowers into a keepsake"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "t:sections.cta.subheading",
+      "default": "Handcrafted from real botanicals and made to last far beyond the day itself."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.cta.button_label",
+      "default": "Start your keepsake"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.cta.button_link"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:sections.cta.background_color",
+      "default": "#2a3320"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:sections.cta.text_color",
+      "default": "#fcfaf4"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.cta.name"
+    }
+  ]
+}
+{% endschema %}

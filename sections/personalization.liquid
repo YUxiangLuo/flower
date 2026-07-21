@@ -1,0 +1,216 @@
+{% comment %}
+  A two-column feature that pays off the hero's personalization promise:
+  send us your own flowers, or choose birth flowers for everyone in the frame.
+{% endcomment %}
+
+<div class="personal personal--{{ section.settings.background }} full-width">
+  <div class="personal__inner personal--{{ section.settings.image_position }}">
+    <div class="personal__media">
+      {% if section.settings.image %}
+        {{
+          section.settings.image
+          | image_url: width: 1200
+          | image_tag: loading: 'lazy', class: 'personal__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200'
+        }}
+      {% else %}
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'personal__image personal__image--placeholder' }}
+      {% endif %}
+    </div>
+
+    <div class="personal__content">
+      {% if section.settings.eyebrow != blank %}
+        <p class="personal__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="personal__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+      {% if section.settings.body != blank %}
+        <div class="personal__body">{{ section.settings.body }}</div>
+      {% endif %}
+      {% if section.settings.button_label != blank %}
+        <a class="personal__button" href="{{ section.settings.button_link | default: '#' }}">
+          {{ section.settings.button_label }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .personal--page {
+    background-color: var(--color-background);
+  }
+  .personal--surface {
+    background-color: var(--color-surface);
+  }
+  .personal--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .personal__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+    display: grid;
+    grid-template-columns: 5fr 6fr;
+    align-items: center;
+    gap: clamp(2rem, 6vw, 5.5rem);
+  }
+
+  .personal--right .personal__media {
+    order: 2;
+  }
+
+  .personal__media {
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background-color: var(--color-surface-deep);
+  }
+
+  .personal__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .personal__image--placeholder {
+    opacity: 0.4;
+  }
+
+  .personal__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 34rem;
+  }
+
+  .personal__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .personal__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2rem, 3.5vw, 3.1rem);
+    line-height: 1.15;
+  }
+
+  .personal__body {
+    line-height: 1.75;
+    color: var(--color-muted);
+  }
+
+  .personal__body > * + * {
+    margin-top: 1rem;
+  }
+
+  .personal__button {
+    align-self: flex-start;
+    margin-top: 1rem;
+    padding: 0.9rem 2.4rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border: 1px solid var(--color-foreground);
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  .personal__button:hover,
+  .personal__button:focus-visible {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  @media (max-width: 749px) {
+    .personal__inner {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .personal--right .personal__media {
+      order: 0;
+    }
+
+    .personal__media {
+      aspect-ratio: 4 / 3;
+    }
+
+    .personal__content {
+      max-width: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.personalization.name",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.personalization.image"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "t:sections.personalization.image_position",
+      "options": [
+        { "value": "left", "label": "t:sections.personalization.position_left" },
+        { "value": "right", "label": "t:sections.personalization.position_right" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.personalization.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "surface-deep"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.personalization.eyebrow",
+      "default": "Yours alone"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.personalization.heading",
+      "default": "Built around the flowers that mean something"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "t:sections.personalization.body",
+      "default": "<p>Send us the stems from the day, or choose birth flowers for everyone in the frame. We match your palette and compose each keepsake around the blooms that matter to you.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.personalization.button_label",
+      "default": "Start a custom keepsake"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.personalization.button_link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.personalization.name"
+    }
+  ]
+}
+{% endschema %}
