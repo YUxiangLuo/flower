@@ -76,7 +76,8 @@
     "quantity": "Quantity",
     "decrease_quantity": "Decrease quantity",
     "increase_quantity": "Increase quantity",
-    "sale": "Sale"
+    "sale": "Sale",
+    "optional": "Optional"
   },
   "search": {
     "title": "Search",
