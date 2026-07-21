@@ -46,6 +46,17 @@
                 {% unless item.product.has_only_default_variant %}
                   <p class="cart__variant">{{ item.variant.title }}</p>
                 {% endunless %}
+                {%- capture cart_item_properties -%}
+                  {%- for property in item.properties -%}
+                    {%- assign property_first_char = property.first | slice: 0 -%}
+                    {%- unless property.last == blank or property_first_char == '_' -%}
+                      <li class="cart__property"><span class="cart__property-name">{{ property.first }}:</span> {{ property.last }}</li>
+                    {%- endunless -%}
+                  {%- endfor -%}
+                {%- endcapture -%}
+                {%- if cart_item_properties != blank -%}
+                  <ul class="cart__properties">{{ cart_item_properties }}</ul>
+                {%- endif -%}
                 <p class="cart__unit-price">{{ item.final_price | money }}</p>
                 <a class="cart__remove" href="{{ item.url_to_remove }}">{{ 'cart.remove' | t }}</a>
               </div>
@@ -193,6 +204,23 @@
   .cart__unit-price {
     font-size: 0.85rem;
     color: var(--color-muted);
+  }
+
+  .cart__properties {
+    list-style: none;
+    margin: 0.15rem 0 0;
+    padding: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
+  .cart__properties:empty {
+    display: none;
+  }
+
+  .cart__property-name {
+    color: var(--color-foreground);
   }
 
   .cart__remove {
