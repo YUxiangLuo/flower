@@ -62,7 +62,7 @@
     },
     "lasting": {
       "type": "lasting-gift",
-      "settings": {}
+      "settings": { "background": "surface-deep" }
     },
     "giftflow": {
       "type": "gift-steps",
