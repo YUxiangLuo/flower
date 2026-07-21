@@ -1,9 +1,4 @@
-<h1 align="center" style="position: relative;">
-  <br>
-    <img src="./assets/shoppy-x-ray.svg" alt="logo" width="200">
-  <br>
-  Flower
-</h1>
+<h1 align="center">Flower</h1>
 
 <p align="center">
   A Shopify theme for pressed-flower keepsakes, by
@@ -13,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="./LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+  <a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-see%20LICENSE.md-green.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/author-vesein.dev-informational.svg" alt="Author">
 </p>
@@ -165,4 +160,4 @@ Global essentials (reset, base layout) live in `assets/critical.css` and load on
 
 ## License
 
-Flower is derived from Shopify's Skeleton Theme and is open-sourced under the [MIT](./LICENSE.md) License (Shopify theme use terms apply).
+Flower builds on Shopify's Online Store 2.0 starter foundation. It is released under the [license](./LICENSE.md) in this repository; Shopify theme use terms apply.
