@@ -1,0 +1,203 @@
+{% comment %}
+  A three-step "gifting made easy" walkthrough. Block-driven so merchants can
+  add, remove and reorder steps. Reassures gift-buyers that ordering a bespoke
+  keepsake for someone is simple.
+{% endcomment %}
+
+<div class="giftsteps giftsteps--{{ section.settings.background }} full-width">
+  <div class="giftsteps__inner">
+    <header class="giftsteps__header">
+      {% if section.settings.eyebrow != blank %}
+        <p class="giftsteps__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="giftsteps__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+    </header>
+
+    <ol class="giftsteps__list" style="--columns: {{ section.blocks.size }}">
+      {% for block in section.blocks %}
+        <li class="giftsteps__step" {{ block.shopify_attributes }}>
+          <span class="giftsteps__num" aria-hidden="true">{{ forloop.index }}</span>
+          {% if block.settings.title != blank %}
+            <h3 class="giftsteps__step-title">{{ block.settings.title }}</h3>
+          {% endif %}
+          {% if block.settings.text != blank %}
+            <p class="giftsteps__step-text">{{ block.settings.text }}</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+
+{% stylesheet %}
+  .giftsteps--page {
+    background-color: var(--color-background);
+  }
+  .giftsteps--surface {
+    background-color: var(--color-surface);
+  }
+  .giftsteps--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .giftsteps__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+  }
+
+  .giftsteps__header {
+    text-align: center;
+    max-width: 42rem;
+    margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .giftsteps__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.9rem;
+  }
+
+  .giftsteps__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    line-height: 1.15;
+  }
+
+  .giftsteps__list {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    gap: var(--content-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+
+  .giftsteps__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .giftsteps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 1px solid var(--color-accent);
+    border-radius: 50%;
+    font-family: var(--font-heading--family);
+    font-size: 1.4rem;
+    color: var(--color-accent);
+  }
+
+  .giftsteps__step-title {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+
+  .giftsteps__step-text {
+    line-height: 1.7;
+    color: var(--color-muted);
+    max-width: 22rem;
+  }
+
+  @media (max-width: 749px) {
+    .giftsteps__list {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.gift_steps.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.gift_steps.eyebrow",
+      "default": "Gifting made easy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.gift_steps.heading",
+      "default": "A thoughtful gift in three steps"
+    },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.gift_steps.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "page"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "t:sections.gift_steps.block_name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.gift_steps.title",
+          "default": "Choose their keepsake"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "t:sections.gift_steps.text",
+          "default": "Pick a design, or send us the flowers that mean something to them."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "t:sections.gift_steps.name",
+      "blocks": [
+        {
+          "type": "step",
+          "settings": {
+            "title": "Choose their keepsake",
+            "text": "Pick a design, or send us the flowers that mean something to them."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "title": "Add a personal note",
+            "text": "Include names, a message or a gift note — we handcraft it to order."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "title": "Arrives gift-ready",
+            "text": "Beautifully packed and shipped worldwide, ready to give."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

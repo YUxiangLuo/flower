@@ -1,0 +1,185 @@
+{% comment %}
+  A full-width closing call-to-action band for the gifting homepage. Optional
+  background image with a scrim; otherwise a solid colour.
+{% endcomment %}
+
+<div
+  class="giftcta full-width"
+  style="--giftcta-bg: {{ section.settings.background_color }}; --giftcta-text: {{ section.settings.text_color }}; --giftcta-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+>
+  {% if section.settings.background_image %}
+    <div class="giftcta__media">
+      {{
+        section.settings.background_image
+        | image_url: width: 2200
+        | image_tag: loading: 'lazy', class: 'giftcta__image', sizes: '100vw', widths: '900, 1400, 1800, 2200'
+      }}
+      <div class="giftcta__scrim" aria-hidden="true"></div>
+    </div>
+  {% endif %}
+
+  <div class="giftcta__inner">
+    {% if section.settings.eyebrow != blank %}
+      <p class="giftcta__eyebrow">{{ section.settings.eyebrow }}</p>
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h2 class="giftcta__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+    {% if section.settings.subheading != blank %}
+      <p class="giftcta__subheading">{{ section.settings.subheading }}</p>
+    {% endif %}
+    {% if section.settings.button_label != blank %}
+      <a class="giftcta__button" href="{{ section.settings.button_link | default: '#' }}">
+        {{ section.settings.button_label }}
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .giftcta {
+    position: relative;
+    background-color: var(--giftcta-bg);
+    color: var(--giftcta-text);
+    overflow: hidden;
+  }
+
+  .giftcta__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .giftcta__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .giftcta__scrim {
+    position: absolute;
+    inset: 0;
+    background-color: var(--giftcta-bg);
+    opacity: var(--giftcta-overlay);
+  }
+
+  .giftcta__inner {
+    position: relative;
+    max-width: 48rem;
+    margin-inline: auto;
+    padding-block: clamp(4rem, 9vw, 7.5rem);
+    padding-inline: max(var(--page-margin), 3vw);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.15rem;
+  }
+
+  .giftcta__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .giftcta__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.1rem, 4.5vw, 3.4rem);
+    line-height: 1.1;
+  }
+
+  .giftcta__subheading {
+    max-width: 34rem;
+    line-height: 1.75;
+    opacity: 0.85;
+  }
+
+  .giftcta__button {
+    margin-top: 0.75rem;
+    padding: 0.95rem 2.6rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--giftcta-bg);
+    background-color: var(--giftcta-text);
+    text-decoration: none;
+    border: 1px solid var(--giftcta-text);
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  .giftcta__button:hover,
+  .giftcta__button:focus-visible {
+    background-color: transparent;
+    color: var(--giftcta-text);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.gift_cta.name",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:sections.gift_cta.background_image"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "t:sections.gift_cta.overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 55
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.gift_cta.eyebrow",
+      "default": "Ready to give something lasting?"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.gift_cta.heading",
+      "default": "Find the perfect gift"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "t:sections.gift_cta.subheading",
+      "default": "A handcrafted keepsake they'll keep long after the flowers would have faded."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.gift_cta.button_label",
+      "default": "Shop gifts"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.gift_cta.button_link"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:sections.gift_cta.background_color",
+      "default": "#2a3320"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:sections.gift_cta.text_color",
+      "default": "#fcfaf4"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.gift_cta.name"
+    }
+  ]
+}
+{% endschema %}

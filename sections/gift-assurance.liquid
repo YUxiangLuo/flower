@@ -1,0 +1,126 @@
+{% comment %}
+  A slim, full-width strip of gifting reassurances (gift-ready, gift note,
+  worldwide shipping, lasting). Block-driven so merchants can edit the points.
+{% endcomment %}
+
+<div
+  class="giftassure full-width"
+  style="--giftassure-bg: {{ section.settings.background_color }}; --giftassure-text: {{ section.settings.text_color }};"
+>
+  <ul class="giftassure__list" style="--columns: {{ section.blocks.size }}">
+    {% for block in section.blocks %}
+      <li class="giftassure__item" {{ block.shopify_attributes }}>
+        {% if block.settings.icon %}
+          {{
+            block.settings.icon
+            | image_url: width: 96, height: 96
+            | image_tag: loading: 'lazy', class: 'giftassure__icon', alt: block.settings.label
+          }}
+        {% else %}
+          <span class="giftassure__dot" aria-hidden="true"></span>
+        {% endif %}
+        <span class="giftassure__label">{{ block.settings.label }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% stylesheet %}
+  .giftassure {
+    background-color: var(--giftassure-bg);
+    color: var(--giftassure-text);
+  }
+
+  .giftassure__list {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: 1.35rem;
+    padding-inline: var(--page-margin);
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    gap: 1rem var(--content-gap);
+    list-style: none;
+  }
+
+  .giftassure__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    text-align: center;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .giftassure__icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: contain;
+  }
+
+  .giftassure__dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 749px) {
+    .giftassure__list {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.gift_assurance.name",
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:sections.gift_assurance.background_color",
+      "default": "#2a3320"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:sections.gift_assurance.text_color",
+      "default": "#fcfaf4"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "point",
+      "name": "t:sections.gift_assurance.block_name",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "t:sections.gift_assurance.icon"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:sections.gift_assurance.label",
+          "default": "Arrives gift-ready"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "t:sections.gift_assurance.name",
+      "blocks": [
+        { "type": "point", "settings": { "label": "Arrives gift-ready" } },
+        { "type": "point", "settings": { "label": "Add a free gift note" } },
+        { "type": "point", "settings": { "label": "Ships worldwide" } },
+        { "type": "point", "settings": { "label": "A gift that lasts for years" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
