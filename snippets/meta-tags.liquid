@@ -1,3 +1,15 @@
+{% doc %}
+  Renders the document's core meta tags: charset and viewport, SEO title and
+  description, canonical URL, and Open Graph / Twitter card tags for social
+  sharing. Rendered once per page in the document `<head>`.
+
+  Takes no parameters; reads from global objects (`page_title`,
+  `page_description`, `canonical_url`, `shop`, etc.).
+
+  @example
+  {% render 'meta-tags' %}
+{% enddoc %}
+
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width,initial-scale=1">

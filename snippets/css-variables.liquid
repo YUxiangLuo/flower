@@ -1,3 +1,15 @@
+{% doc %}
+  Emits the theme's global CSS custom properties on `:root`, loading the
+  primary font (with `display: swap`) and exposing typography, layout, colour
+  and icon tokens shared across every section. Rendered once per page in the
+  document `<head>`.
+
+  Takes no parameters; reads from global `settings`.
+
+  @example
+  {% render 'css-variables' %}
+{% enddoc %}
+
 {% style %}
   {% # Loads all font variantions with display: swap %}
   {{ settings.type_primary_font | font_face: font_display: 'swap' }}
