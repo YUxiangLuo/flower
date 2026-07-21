@@ -12,6 +12,18 @@
     "main": {
       "type": "product",
       "blocks": {
+        "personalize-names": {
+          "type": "personalization_field",
+          "settings": { "label": "Names or message to include", "field_type": "text" }
+        },
+        "personalize-flowers": {
+          "type": "personalization_field",
+          "settings": { "label": "Tell us about your flowers", "field_type": "textarea" }
+        },
+        "personalize-gift": {
+          "type": "personalization_field",
+          "settings": { "label": "Gift note", "field_type": "textarea" }
+        },
         "highlight-1": {
           "type": "highlight",
           "settings": { "text": "Handcrafted from real pressed flowers" }
@@ -39,7 +51,16 @@
           }
         }
       },
-      "block_order": ["highlight-1", "highlight-2", "highlight-3", "shipping", "care"],
+      "block_order": [
+        "personalize-names",
+        "personalize-flowers",
+        "personalize-gift",
+        "highlight-1",
+        "highlight-2",
+        "highlight-3",
+        "shipping",
+        "care"
+      ],
       "settings": {}
     }
   },

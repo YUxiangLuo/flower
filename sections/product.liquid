@@ -10,6 +10,7 @@
   assign current_variant = product.selected_or_first_available_variant
   assign highlight_blocks = section.blocks | where: 'type', 'highlight'
   assign detail_blocks = section.blocks | where: 'type', 'collapsible_row'
+  assign personalization_blocks = section.blocks | where: 'type', 'personalization_field'
 %}
 
 <div class="product" data-product>
@@ -68,6 +69,13 @@
       </span>
     </div>
 
+    {% if section.settings.lead_time != blank %}
+      <p class="product__lead-time">
+        <span class="product__lead-time-dot" aria-hidden="true"></span>
+        {{ section.settings.lead_time }}
+      </p>
+    {% endif %}
+
     {% form 'product', product, class: 'product__form' %}
       {% unless product.has_only_default_variant %}
         <div class="product__options">
@@ -118,6 +126,41 @@
           {% endfor %}
         </select>
       </div>
+
+      {% if personalization_blocks.size > 0 %}
+        <div class="product__personalization">
+          {% if section.settings.personalization_heading != blank %}
+            <p class="product__personalization-title">{{ section.settings.personalization_heading }}</p>
+          {% endif %}
+          {% for block in personalization_blocks %}
+            <div class="product__field" {{ block.shopify_attributes }}>
+              <label class="product__field-label" for="prop-{{ block.id }}">
+                {{ block.settings.label }}
+                {% unless block.settings.required %}
+                  <span class="product__field-optional">{{ 'product.optional' | t }}</span>
+                {% endunless %}
+              </label>
+              {% if block.settings.field_type == 'textarea' %}
+                <textarea
+                  class="product__field-input"
+                  id="prop-{{ block.id }}"
+                  name="properties[{{ block.settings.label | escape }}]"
+                  rows="3"
+                  {% if block.settings.required %}required{% else %}data-property-optional{% endif %}
+                ></textarea>
+              {% else %}
+                <input
+                  class="product__field-input"
+                  type="text"
+                  id="prop-{{ block.id }}"
+                  name="properties[{{ block.settings.label | escape }}]"
+                  {% if block.settings.required %}required{% else %}data-property-optional{% endif %}
+                >
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
 
       <div class="product__purchase">
         <div class="product__quantity">
@@ -264,6 +307,23 @@
     align-self: center;
   }
 
+  .product__lead-time {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: -0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .product__lead-time-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
   .product__form {
     display: flex;
     flex-direction: column;
@@ -334,6 +394,50 @@
     border: 1px solid var(--color-line);
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  .product__personalization {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .product__personalization-title {
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .product__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .product__field-label {
+    font-size: 0.85rem;
+  }
+
+  .product__field-optional {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  .product__field-input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    resize: vertical;
+  }
+
+  .product__field-input:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
   }
 
   .product__purchase {
@@ -522,6 +626,9 @@
     .product {
       grid-template-columns: 1fr;
       gap: 2rem;
+      /* The media leads on mobile, so the full section spacing above it reads
+         as dead space under the header. Keep a small, deliberate gap instead. */
+      padding-top: 1.5rem;
     }
 
     .product__info {
@@ -530,6 +637,7 @@
 
     .product__media {
       flex-direction: row;
+      align-items: flex-start;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
@@ -541,9 +649,18 @@
       display: none;
     }
 
+    /* Uniform square slides so mixed aspect ratios (e.g. a portrait video
+       beside square photos) don't stretch shorter media and leave a blank
+       area below them. Media is shown in full, letterboxed on the surface. */
     .product__media-item {
       flex: 0 0 86%;
+      aspect-ratio: 1 / 1;
       scroll-snap-align: center;
+    }
+
+    .product__image {
+      height: 100%;
+      object-fit: contain;
     }
   }
 {% endstylesheet %}
@@ -656,6 +773,17 @@
           qtyInput.value = next;
         });
       });
+
+      /* Don't store blank optional personalization fields as empty line-item
+         properties: disabled inputs aren't submitted with the form. */
+      var form = root.querySelector('.product__form');
+      if (form) {
+        form.addEventListener('submit', function () {
+          root.querySelectorAll('[data-property-optional]').forEach(function (field) {
+            if (!field.value.trim()) field.disabled = true;
+          });
+        });
+      }
     }
 
     /* Scope to the section that loaded so re-renders in the theme editor
@@ -681,9 +809,49 @@
       "id": "show_vendor",
       "label": "t:sections.product.show_vendor",
       "default": true
+    },
+    {
+      "type": "text",
+      "id": "lead_time",
+      "label": "t:sections.product.lead_time",
+      "default": "Handmade to order · ready in 2–3 weeks"
+    },
+    {
+      "type": "text",
+      "id": "personalization_heading",
+      "label": "t:sections.product.personalization_heading",
+      "default": "Personalise your keepsake"
     }
   ],
   "blocks": [
+    {
+      "type": "personalization_field",
+      "name": "t:sections.product.personalization_field",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:sections.product.field_label",
+          "default": "Names or message to include"
+        },
+        {
+          "type": "select",
+          "id": "field_type",
+          "label": "t:sections.product.field_type",
+          "options": [
+            { "value": "text", "label": "t:sections.product.field_type_text" },
+            { "value": "textarea", "label": "t:sections.product.field_type_textarea" }
+          ],
+          "default": "text"
+        },
+        {
+          "type": "checkbox",
+          "id": "required",
+          "label": "t:sections.product.field_required",
+          "default": false
+        }
+      ]
+    },
     {
       "type": "highlight",
       "name": "t:sections.product.highlight",
