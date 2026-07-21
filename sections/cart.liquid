@@ -373,17 +373,24 @@
 
 {% javascript %}
   (function () {
-    var cart = document.querySelector('.cart__form');
-    if (!cart) return;
-    cart.querySelectorAll('[data-qty-step]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        var input = document.getElementById(button.getAttribute('data-qty-target'));
-        if (!input) return;
-        var step = parseInt(button.getAttribute('data-qty-step'), 10);
-        var next = (parseInt(input.value, 10) || 0) + step;
-        if (next < 0) next = 0;
-        input.value = next;
+    function init(scope) {
+      var cart = scope.querySelector('.cart__form');
+      if (!cart) return;
+      cart.querySelectorAll('[data-qty-step]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var input = document.getElementById(button.getAttribute('data-qty-target'));
+          if (!input) return;
+          var step = parseInt(button.getAttribute('data-qty-step'), 10);
+          var next = (parseInt(input.value, 10) || 0) + step;
+          if (next < 0) next = 0;
+          input.value = next;
+        });
       });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
     });
   })();
 {% endjavascript %}

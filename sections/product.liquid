@@ -550,113 +550,124 @@
 
 {% javascript %}
   (function () {
-    var root = document.querySelector('[data-product]');
-    if (!root) return;
+    function init(root) {
+      var select = root.querySelector('[data-variant-select]');
+      var selectWrapper = root.querySelector('[data-variant-select-wrapper]');
+      var optionInputs = root.querySelectorAll('[data-option-input]');
+      var priceEl = root.querySelector('[data-price]');
+      var compareEl = root.querySelector('[data-compare]');
+      var badgeEl = root.querySelector('[data-badge]');
+      var addBtn = root.querySelector('[data-add-button]');
 
-    var select = root.querySelector('[data-variant-select]');
-    var selectWrapper = root.querySelector('[data-variant-select-wrapper]');
-    var optionInputs = root.querySelectorAll('[data-option-input]');
-    var priceEl = root.querySelector('[data-price]');
-    var compareEl = root.querySelector('[data-compare]');
-    var badgeEl = root.querySelector('[data-badge]');
-    var addBtn = root.querySelector('[data-add-button]');
-
-    var variants = [];
-    var dataEl = root.querySelector('[data-variants]');
-    if (dataEl) {
-      try {
-        variants = JSON.parse(dataEl.textContent);
-      } catch (e) {
-        variants = [];
-      }
-    }
-
-    function selectedValues() {
-      var values = [];
-      root.querySelectorAll('[data-option-position]').forEach(function (group) {
-        var pos = parseInt(group.getAttribute('data-option-position'), 10) - 1;
-        var checked = group.querySelector('input:checked');
-        if (checked) values[pos] = checked.value;
-      });
-      return values;
-    }
-
-    function findVariant(values) {
-      return variants.find(function (variant) {
-        return values.every(function (value, index) {
-          return variant.options[index] === value;
-        });
-      });
-    }
-
-    /* Keeps ?variant= in the address bar in sync so the selection survives a
-       refresh and can be shared. Uses replaceState to avoid filling up history. */
-    function updateUrl(variantId) {
-      if (!variantId || !window.history || !window.history.replaceState) return;
-      var url = new URL(window.location.href);
-      url.searchParams.set('variant', variantId);
-      window.history.replaceState({}, '', url.toString());
-    }
-
-    function applyOption(option) {
-      if (!option) return;
-      if (priceEl && option.dataset.price) priceEl.textContent = option.dataset.price;
-      if (compareEl) {
-        if (option.dataset.compare) {
-          compareEl.textContent = option.dataset.compare;
-          compareEl.hidden = false;
-          if (badgeEl) badgeEl.hidden = false;
-        } else {
-          compareEl.hidden = true;
-          if (badgeEl) badgeEl.hidden = true;
+      var variants = [];
+      var dataEl = root.querySelector('[data-variants]');
+      if (dataEl) {
+        try {
+          variants = JSON.parse(dataEl.textContent);
+        } catch (e) {
+          variants = [];
         }
       }
-      if (addBtn) {
-        var available = option.dataset.available === 'true';
-        addBtn.disabled = !available;
-        addBtn.textContent = available
-          ? addBtn.getAttribute('data-label-add')
-          : addBtn.getAttribute('data-label-soldout');
-      }
-    }
 
-    function onOptionChange(syncUrl) {
-      var variant = findVariant(selectedValues());
-      if (variant && select) select.value = variant.id;
-      if (variant && select) {
-        applyOption(select.selectedOptions[0]);
-        if (syncUrl) updateUrl(variant.id);
-      } else if (addBtn) {
-        addBtn.disabled = true;
-        addBtn.textContent = addBtn.getAttribute('data-label-unavailable');
+      function selectedValues() {
+        var values = [];
+        root.querySelectorAll('[data-option-position]').forEach(function (group) {
+          var pos = parseInt(group.getAttribute('data-option-position'), 10) - 1;
+          var checked = group.querySelector('input:checked');
+          if (checked) values[pos] = checked.value;
+        });
+        return values;
       }
-    }
 
-    if (optionInputs.length && select) {
-      if (selectWrapper) selectWrapper.hidden = true;
-      optionInputs.forEach(function (input) {
-        input.addEventListener('change', function () {
-          onOptionChange(true);
+      function findVariant(values) {
+        return variants.find(function (variant) {
+          return values.every(function (value, index) {
+            return variant.options[index] === value;
+          });
+        });
+      }
+
+      /* Keeps ?variant= in the address bar in sync so the selection survives a
+         refresh and can be shared. Uses replaceState to avoid filling up history. */
+      function updateUrl(variantId) {
+        if (!variantId || !window.history || !window.history.replaceState) return;
+        var url = new URL(window.location.href);
+        url.searchParams.set('variant', variantId);
+        window.history.replaceState({}, '', url.toString());
+      }
+
+      function applyOption(option) {
+        if (!option) return;
+        if (priceEl && option.dataset.price) priceEl.textContent = option.dataset.price;
+        if (compareEl) {
+          if (option.dataset.compare) {
+            compareEl.textContent = option.dataset.compare;
+            compareEl.hidden = false;
+            if (badgeEl) badgeEl.hidden = false;
+          } else {
+            compareEl.hidden = true;
+            if (badgeEl) badgeEl.hidden = true;
+          }
+        }
+        if (addBtn) {
+          var available = option.dataset.available === 'true';
+          addBtn.disabled = !available;
+          addBtn.textContent = available
+            ? addBtn.getAttribute('data-label-add')
+            : addBtn.getAttribute('data-label-soldout');
+        }
+      }
+
+      function onOptionChange(syncUrl) {
+        var variant = findVariant(selectedValues());
+        if (variant && select) select.value = variant.id;
+        if (variant && select) {
+          applyOption(select.selectedOptions[0]);
+          if (syncUrl) updateUrl(variant.id);
+        } else if (addBtn) {
+          addBtn.disabled = true;
+          addBtn.textContent = addBtn.getAttribute('data-label-unavailable');
+        }
+      }
+
+      if (optionInputs.length && select) {
+        if (selectWrapper) selectWrapper.hidden = true;
+        optionInputs.forEach(function (input) {
+          input.addEventListener('change', function () {
+            onOptionChange(true);
+          });
+        });
+        /* The URL is left untouched on load: Liquid already resolved the variant. */
+        onOptionChange(false);
+      } else if (select) {
+        select.addEventListener('change', function () {
+          applyOption(select.selectedOptions[0]);
+          updateUrl(select.value);
+        });
+      }
+
+      var qtyInput = root.querySelector('[data-qty-input]');
+      root.querySelectorAll('[data-qty-step]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          if (!qtyInput) return;
+          var step = parseInt(button.getAttribute('data-qty-step'), 10);
+          var next = (parseInt(qtyInput.value, 10) || 1) + step;
+          if (next < 1) next = 1;
+          qtyInput.value = next;
         });
       });
-      /* The URL is left untouched on load: Liquid already resolved the variant. */
-      onOptionChange(false);
-    } else if (select) {
-      select.addEventListener('change', function () {
-        applyOption(select.selectedOptions[0]);
-        updateUrl(select.value);
-      });
     }
 
-    var qtyInput = root.querySelector('[data-qty-input]');
-    root.querySelectorAll('[data-qty-step]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        if (!qtyInput) return;
-        var step = parseInt(button.getAttribute('data-qty-step'), 10);
-        var next = (parseInt(qtyInput.value, 10) || 1) + step;
-        if (next < 1) next = 1;
-        qtyInput.value = next;
-      });
+    /* Scope to the section that loaded so re-renders in the theme editor
+       (shopify:section:load) re-bind against the fresh DOM. */
+    function initFrom(scope) {
+      var root = scope.querySelector('[data-product]');
+      if (root) init(root);
+    }
+
+    initFrom(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      initFrom(event.target);
     });
   })();
 {% endjavascript %}

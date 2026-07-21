@@ -373,20 +373,26 @@
       document.documentElement.style.setProperty('--hero-offset', offset + 'px');
     }
 
-    measureOffset();
-    window.addEventListener('resize', measureOffset);
-    window.addEventListener('load', measureOffset);
-
-    document.querySelectorAll('[data-hero]').forEach(function (hero) {
+    function initCarousel(hero) {
       var slides = Array.prototype.slice.call(hero.querySelectorAll('[data-hero-slide]'));
       var dots = Array.prototype.slice.call(hero.querySelectorAll('[data-hero-dot]'));
-      if (slides.length < 2) return;
+      if (slides.length < 2) return null;
 
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
       var interval = parseInt(hero.getAttribute('data-interval'), 10) || 6000;
       var index = 0;
       var timer = null;
       var leaveTimer = null;
+
+      /* Track every listener we add so the section can be torn down cleanly
+         when the theme editor reloads it (shopify:section:unload). */
+      var teardown = [];
+      function on(target, type, handler) {
+        target.addEventListener(type, handler);
+        teardown.push(function () {
+          target.removeEventListener(type, handler);
+        });
+      }
 
       /* Read the crossfade length off the stylesheet so the two can't drift. */
       var fade = (parseFloat(getComputedStyle(slides[0]).transitionDuration) || 1.2) * 1000;
@@ -446,36 +452,75 @@
       var prev = hero.querySelector('[data-hero-prev]');
       var next = hero.querySelector('[data-hero-next]');
       if (prev) {
-        prev.addEventListener('click', function () {
+        on(prev, 'click', function () {
           goTo(index - 1);
         });
       }
       if (next) {
-        next.addEventListener('click', function () {
+        on(next, 'click', function () {
           goTo(index + 1);
         });
       }
       dots.forEach(function (dot, i) {
-        dot.addEventListener('click', function () {
+        on(dot, 'click', function () {
           goTo(i);
         });
       });
 
-      hero.addEventListener('mouseenter', stop);
-      hero.addEventListener('mouseleave', start);
-      hero.addEventListener('focusin', stop);
-      hero.addEventListener('focusout', function (event) {
+      on(hero, 'mouseenter', stop);
+      on(hero, 'mouseleave', start);
+      on(hero, 'focusin', stop);
+      on(hero, 'focusout', function (event) {
         if (!hero.contains(event.relatedTarget)) start();
       });
 
-      document.addEventListener('visibilitychange', function () {
+      on(document, 'visibilitychange', function () {
         if (document.hidden) stop();
         else start();
       });
 
-      if (reduced.addEventListener) reduced.addEventListener('change', start);
+      if (reduced.addEventListener) on(reduced, 'change', start);
 
       start();
+
+      return function cleanup() {
+        stop();
+        clearTimeout(leaveTimer);
+        teardown.forEach(function (off) {
+          off();
+        });
+        teardown = [];
+      };
+    }
+
+    function init(scope) {
+      measureOffset();
+      scope.querySelectorAll('[data-hero]').forEach(function (hero) {
+        if (hero.heroCleanup) hero.heroCleanup();
+        hero.heroCleanup = initCarousel(hero);
+      });
+    }
+
+    function destroy(scope) {
+      scope.querySelectorAll('[data-hero]').forEach(function (hero) {
+        if (hero.heroCleanup) {
+          hero.heroCleanup();
+          hero.heroCleanup = null;
+        }
+      });
+    }
+
+    /* Register the page-level measurement once; per-hero listeners live and
+       die with each carousel instance. */
+    window.addEventListener('resize', measureOffset);
+    window.addEventListener('load', measureOffset);
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
     });
   })();
 {% endjavascript %}

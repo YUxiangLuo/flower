@@ -391,10 +391,17 @@
 
 {% javascript %}
   (function () {
-    var form = document.querySelector('.facets__form');
-    if (!form) return;
-    form.addEventListener('change', function () {
-      form.submit();
+    function init(scope) {
+      var form = scope.querySelector('.facets__form');
+      if (!form) return;
+      form.addEventListener('change', function () {
+        form.submit();
+      });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
     });
   })();
 {% endjavascript %}
