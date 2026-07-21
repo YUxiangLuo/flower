@@ -634,6 +634,7 @@
 
     .product__media {
       flex-direction: row;
+      align-items: flex-start;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
@@ -645,9 +646,18 @@
       display: none;
     }
 
+    /* Uniform square slides so mixed aspect ratios (e.g. a portrait video
+       beside square photos) don't stretch shorter media and leave a blank
+       area below them. Media is shown in full, letterboxed on the surface. */
     .product__media-item {
       flex: 0 0 86%;
+      aspect-ratio: 1 / 1;
       scroll-snap-align: center;
+    }
+
+    .product__image {
+      height: 100%;
+      object-fit: contain;
     }
   }
 {% endstylesheet %}
