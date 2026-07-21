@@ -626,6 +626,9 @@
     .product {
       grid-template-columns: 1fr;
       gap: 2rem;
+      /* The media leads on mobile, so the full section spacing above it reads
+         as dead space under the header. Keep a small, deliberate gap instead. */
+      padding-top: 1.5rem;
     }
 
     .product__info {
