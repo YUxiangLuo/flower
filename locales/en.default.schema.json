@@ -64,6 +64,11 @@
       "title": "Title",
       "subtitle": "Subtitle",
       "normal": "Normal text"
+    },
+    "background": {
+      "page": "Page",
+      "surface": "Cream",
+      "surface_deep": "Deep cream"
     }
   },
   "sections": {
@@ -194,6 +199,48 @@
       "signature": "Signature",
       "button_label": "Button label",
       "button_link": "Button link"
+    },
+    "lasting_gift": {
+      "name": "The lasting gift",
+      "image": "Image",
+      "image_position": "Image position",
+      "position_left": "Left",
+      "position_right": "Right",
+      "background": "Background",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "body": "Body",
+      "button_label": "Button label",
+      "button_link": "Button link"
+    },
+    "gift_steps": {
+      "name": "Gifting made easy",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "background": "Background",
+      "block_name": "Step",
+      "title": "Title",
+      "text": "Text"
+    },
+    "gift_assurance": {
+      "name": "Gift assurance bar",
+      "block_name": "Point",
+      "icon": "Icon",
+      "label": "Label",
+      "background_color": "Background color",
+      "text_color": "Text color"
+    },
+    "gift_cta": {
+      "name": "Gift call to action",
+      "background_image": "Background image",
+      "overlay_opacity": "Overlay opacity",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "subheading": "Subheading",
+      "button_label": "Button label",
+      "button_link": "Button link",
+      "background_color": "Background color",
+      "text_color": "Text color"
     }
   }
 }

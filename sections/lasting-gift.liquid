@@ -1,0 +1,217 @@
+{% comment %}
+  A two-column value moment that frames the keepsake as a gift that lasts —
+  the emotional heart of a gifting-led homepage: a bouquet fades in days, this
+  is kept for years.
+{% endcomment %}
+
+<div class="lasting lasting--{{ section.settings.background }} full-width">
+  <div class="lasting__inner lasting--{{ section.settings.image_position }}">
+    <div class="lasting__media">
+      {% if section.settings.image %}
+        {{
+          section.settings.image
+          | image_url: width: 1200
+          | image_tag: loading: 'lazy', class: 'lasting__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200'
+        }}
+      {% else %}
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'lasting__image lasting__image--placeholder' }}
+      {% endif %}
+    </div>
+
+    <div class="lasting__content">
+      {% if section.settings.eyebrow != blank %}
+        <p class="lasting__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="lasting__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+      {% if section.settings.body != blank %}
+        <div class="lasting__body">{{ section.settings.body }}</div>
+      {% endif %}
+      {% if section.settings.button_label != blank %}
+        <a class="lasting__button" href="{{ section.settings.button_link | default: '#' }}">
+          {{ section.settings.button_label }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .lasting--page {
+    background-color: var(--color-background);
+  }
+  .lasting--surface {
+    background-color: var(--color-surface);
+  }
+  .lasting--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .lasting__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+    display: grid;
+    grid-template-columns: 6fr 5fr;
+    align-items: center;
+    gap: clamp(2rem, 6vw, 5.5rem);
+  }
+
+  .lasting--right .lasting__media {
+    order: 2;
+  }
+
+  .lasting__media {
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background-color: var(--color-surface-deep);
+  }
+
+  .lasting__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lasting__image--placeholder {
+    opacity: 0.4;
+  }
+
+  .lasting__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 34rem;
+  }
+
+  .lasting__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent-strong);
+  }
+
+  .lasting__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2rem, 3.8vw, 3.3rem);
+    line-height: 1.12;
+  }
+
+  .lasting__body {
+    line-height: 1.75;
+    color: var(--color-muted);
+  }
+
+  .lasting__body > * + * {
+    margin-top: 1rem;
+  }
+
+  .lasting__button {
+    align-self: flex-start;
+    margin-top: 1rem;
+    padding: 0.9rem 2.4rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border: 1px solid var(--color-foreground);
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  .lasting__button:hover,
+  .lasting__button:focus-visible {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  @media (max-width: 749px) {
+    .lasting__inner {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .lasting--right .lasting__media {
+      order: 0;
+    }
+
+    .lasting__media {
+      aspect-ratio: 4 / 3;
+    }
+
+    .lasting__content {
+      max-width: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.lasting_gift.name",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.lasting_gift.image"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "t:sections.lasting_gift.image_position",
+      "options": [
+        { "value": "left", "label": "t:sections.lasting_gift.position_left" },
+        { "value": "right", "label": "t:sections.lasting_gift.position_right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.lasting_gift.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "surface"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.lasting_gift.eyebrow",
+      "default": "A keepsake, not a bouquet"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.lasting_gift.heading",
+      "default": "The gift that never wilts"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "t:sections.lasting_gift.body",
+      "default": "<p>Fresh flowers fade within the week. A pressed-flower keepsake holds the colour and meaning of the moment for years — a gift they'll keep on the wall long after the occasion has passed.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.lasting_gift.button_label",
+      "default": "Shop keepsakes"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.lasting_gift.button_link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.lasting_gift.name"
+    }
+  ]
+}
+{% endschema %}
