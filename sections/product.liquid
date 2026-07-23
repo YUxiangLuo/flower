@@ -350,24 +350,22 @@
 
   .product__top {
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: 1.15fr 0.85fr;
     align-items: start;
     gap: clamp(2rem, 5vw, 4.5rem);
   }
 
-  /* Gallery */
+  /* Gallery — main stage with a horizontal thumbnail strip below it. */
   .product__gallery {
     position: sticky;
     top: 6.5rem;
-    display: grid;
-    grid-template-columns: 4.5rem 1fr;
-    gap: 1rem;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .product__stage {
     position: relative;
-    order: 2;
   }
 
   .product__stage-item {
@@ -402,15 +400,11 @@
   }
 
   .product__thumbs {
-    order: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.6rem;
-    /* Fallback cap; JS narrows this to the main image's exact height so the
-       rail never grows taller than the stage beside it. Extra thumbnails
-       scroll normally. */
-    max-height: 34rem;
-    overflow-y: auto;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
   }
 
   .product__thumb {
@@ -979,16 +973,6 @@
 
     .product__gallery {
       position: static;
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-
-    .product__thumbs {
-      order: 2;
-      flex-direction: row;
-      max-height: none;
-      overflow-x: auto;
-      padding-bottom: 0.25rem;
     }
 
     .product__story {
@@ -1016,21 +1000,7 @@
       var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-thumb]'));
       var lightbox = root.querySelector('[data-lightbox]');
       var lightboxImg = lightbox ? lightbox.querySelector('[data-lightbox-image]') : null;
-      var scroller = gallery.querySelector('[data-thumbs]');
-      var stage = gallery.querySelector('.product__stage');
       var index = 0;
-
-      /* Cap the vertical rail to the main image's height so a long list of
-         thumbnails scrolls within the stage instead of towering beside it.
-         On mobile the rail is a horizontal strip, so leave it uncapped. */
-      function syncRailHeight() {
-        if (!scroller || !stage) return;
-        if (window.matchMedia('(max-width: 989px)').matches) {
-          scroller.style.maxHeight = '';
-        } else {
-          scroller.style.maxHeight = stage.offsetHeight + 'px';
-        }
-      }
 
       /* Cache a high-resolution source for each image so the lightbox shows
          full detail. Only image media carry a zoom button; video/model media
@@ -1086,13 +1056,6 @@
         }
       });
 
-      if (scroller) {
-        /* One page-level resize/load listener (registered below) syncs every
-           gallery, so re-inits in the theme editor don't stack duplicate
-           window listeners. */
-        gallery.railSync = syncRailHeight;
-        syncRailHeight();
-      }
 
       if (lightbox && lightboxImg && typeof lightbox.showModal === 'function') {
         function openLightbox(i) {
@@ -1270,16 +1233,6 @@
       initBuyBox(root);
       initGallery(root);
     }
-
-    /* Registered once: re-syncs every gallery's rail height on resize/load,
-       so no per-instance window listeners accumulate across editor re-inits. */
-    function syncAllRails() {
-      document.querySelectorAll('[data-gallery]').forEach(function (gallery) {
-        if (gallery.railSync) gallery.railSync();
-      });
-    }
-    window.addEventListener('resize', syncAllRails);
-    window.addEventListener('load', syncAllRails);
 
     initFrom(document);
     document.addEventListener('shopify:section:load', function (event) {
