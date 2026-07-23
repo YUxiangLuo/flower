@@ -120,6 +120,10 @@
     },
     "product": {
       "show_vendor": "Show vendor",
+      "show_rating": "Show rating link",
+      "spec": "Specification",
+      "spec_label": "Label",
+      "spec_value": "Value",
       "lead_time": "Lead time",
       "personalization_heading": "Personalization heading",
       "personalization_field": "Personalization field",
@@ -133,6 +137,28 @@
       "collapsible": "Collapsible row",
       "collapsible_heading": "Heading",
       "collapsible_content": "Content"
+    },
+    "product_reviews": {
+      "name": "Product reviews",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "rating": "Overall rating",
+      "rating_info": "Shown as a summary above the reviews.",
+      "review_count": "Review count",
+      "background": "Background",
+      "block_name": "Review",
+      "review_rating": "Rating",
+      "quote": "Quote",
+      "author": "Author",
+      "date": "Date",
+      "image": "Photo"
+    },
+    "product_recommendations": {
+      "name": "You may also like",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "products_to_show": "Products to show",
+      "columns": "Columns"
     },
     "hero": {
       "name": "Hero",

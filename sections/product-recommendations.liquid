@@ -1,0 +1,129 @@
+{% comment %}
+  "You may also like" — other products from a collection this product belongs to,
+  excluding the current one. Renders nothing when there are no siblings, so it
+  never leaves an empty band.
+{% endcomment %}
+
+{% liquid
+  assign rec_collection = null
+  for collection in product.collections
+    if collection.all_products_count > 1
+      assign rec_collection = collection
+      break
+    endif
+  endfor
+%}
+
+{% if rec_collection %}
+  <div class="recommend full-width">
+    <div class="recommend__inner">
+      <header class="recommend__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="recommend__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </header>
+
+      <div class="recommend__grid" style="--columns: {{ section.settings.columns }}">
+        {% assign shown = 0 %}
+        {% for card_product in rec_collection.products %}
+          {% if shown >= section.settings.products_to_show %}
+            {% break %}
+          {% endif %}
+          {% unless card_product.id == product.id %}
+            {% render 'product-card', product: card_product, image_size: 600 %}
+            {% assign shown = shown | plus: 1 %}
+          {% endunless %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .recommend {
+    background-color: var(--color-background);
+  }
+
+  .recommend__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+  }
+
+  .recommend__header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .recommend__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: var(--text-xl);
+    line-height: 1.1;
+  }
+
+  .recommend__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    gap: var(--content-gap);
+  }
+
+  @media (max-width: 989px) {
+    .recommend__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 549px) {
+    .recommend__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.product_recommendations.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.product_recommendations.eyebrow",
+      "default": "More to love"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.product_recommendations.heading",
+      "default": "You may also like"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "t:sections.product_recommendations.products_to_show",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "t:sections.product_recommendations.columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.product_recommendations.name"
+    }
+  ]
+}
+{% endschema %}
