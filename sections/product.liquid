@@ -442,7 +442,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    max-height: calc(100vh - 9rem);
+    /* Fallback cap; JS narrows this to the main image's exact height so the
+       rail never grows taller than the stage beside it. */
+    max-height: 34rem;
     overflow-y: auto;
     scrollbar-width: none;
   }
@@ -1065,7 +1067,22 @@
       var lightboxImg = lightbox ? lightbox.querySelector('[data-lightbox-image]') : null;
       var rail = gallery.querySelector('[data-thumb-rail]');
       var scroller = gallery.querySelector('[data-thumbs]');
+      var stage = gallery.querySelector('.product__stage');
       var index = 0;
+
+      /* Cap the vertical rail to the main image's height so a long list of
+         thumbnails scrolls within the stage instead of towering beside it.
+         On mobile the rail is a horizontal strip, so leave it uncapped. */
+      function syncRailHeight() {
+        if (scroller && stage) {
+          if (window.matchMedia('(max-width: 989px)').matches) {
+            scroller.style.maxHeight = '';
+          } else {
+            scroller.style.maxHeight = stage.offsetHeight + 'px';
+          }
+        }
+        updateFades();
+      }
 
       /* Show a soft fade on whichever edge still has thumbnails to scroll to,
          so a long rail reads as scrollable. Axis follows the layout: vertical
@@ -1134,8 +1151,9 @@
 
       if (scroller) {
         scroller.addEventListener('scroll', updateFades);
-        window.addEventListener('resize', updateFades);
-        updateFades();
+        window.addEventListener('resize', syncRailHeight);
+        window.addEventListener('load', syncRailHeight);
+        syncRailHeight();
       }
 
       if (lightbox && lightboxImg && typeof lightbox.showModal === 'function') {
