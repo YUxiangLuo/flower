@@ -880,13 +880,25 @@
   }
 
   /* Lightbox */
+  /* Fill the viewport and centre the image with flexbox, rather than relying
+     on the browser's default dialog centring (which left it pinned top-left). */
   .product__lightbox {
-    width: min(92vw, 60rem);
-    max-width: 92vw;
-    max-height: 92vh;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product__lightbox[open] {
+    display: flex;
   }
 
   .product__lightbox::backdrop {
@@ -895,7 +907,9 @@
 
   .product__lightbox-image {
     display: block;
-    width: 100%;
+    width: auto;
+    height: auto;
+    max-width: 92vw;
     max-height: 92vh;
     object-fit: contain;
   }
