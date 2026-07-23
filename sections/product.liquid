@@ -29,6 +29,7 @@
                   type="button"
                   class="product__zoom"
                   data-zoom-open="{{ forloop.index0 }}"
+                  data-full="{{ media.preview_image | image_url: width: 2048 }}"
                   aria-label="{{ 'sections.product.zoom' | t }}"
                 >
                   {% if forloop.first %}
@@ -1031,11 +1032,19 @@
         }
       }
 
-      /* Cache the largest source for each image so the lightbox shows full detail. */
+      /* Cache a high-resolution source for each image so the lightbox shows
+         full detail. Only image media carry a zoom button; video/model media
+         render a poster <img> too, so key off the button, not the <img>, and
+         map non-image media to null. */
       var sources = items.map(function (item) {
+        var btn = item.querySelector('[data-zoom-open]');
+        if (!btn) return null;
         var img = item.querySelector('img');
-        if (!img) return null;
-        return { src: img.currentSrc || img.src, alt: img.getAttribute('alt') || '' };
+        var full = btn.getAttribute('data-full');
+        return {
+          src: full || (img && (img.currentSrc || img.src)) || '',
+          alt: (img && img.getAttribute('alt')) || ''
+        };
       });
 
       function show(next) {
@@ -1050,7 +1059,8 @@
           thumb.classList.toggle('is-active', active);
           thumb.setAttribute('aria-current', active ? 'true' : 'false');
         });
-        if (thumbs[index]) {
+        /* Don't scroll the page behind an open lightbox. */
+        if (thumbs[index] && (!lightbox || !lightbox.open)) {
           thumbs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
         }
       }
@@ -1077,19 +1087,21 @@
       });
 
       if (scroller) {
-        window.addEventListener('resize', syncRailHeight);
-        window.addEventListener('load', syncRailHeight);
+        /* One page-level resize/load listener (registered below) syncs every
+           gallery, so re-inits in the theme editor don't stack duplicate
+           window listeners. */
+        gallery.railSync = syncRailHeight;
         syncRailHeight();
       }
 
       if (lightbox && lightboxImg && typeof lightbox.showModal === 'function') {
         function openLightbox(i) {
-          show(i);
           var source = sources[i];
           if (!source) return;
+          show(i);
           lightboxImg.src = source.src;
           lightboxImg.alt = source.alt;
-          lightbox.showModal();
+          if (!lightbox.open) lightbox.showModal();
         }
 
         gallery.querySelectorAll('[data-zoom-open]').forEach(function (btn) {
@@ -1098,11 +1110,18 @@
           });
         });
 
+        /* Step to the next/previous image, skipping non-image media (video,
+           model) whose cached source is null. */
         function move(step) {
-          var next = index + step;
-          if (next < 0) next = items.length - 1;
-          if (next >= items.length) next = 0;
-          openLightbox(next);
+          var n = items.length;
+          var i = index;
+          for (var k = 0; k < n; k++) {
+            i = (i + step + n) % n;
+            if (sources[i]) {
+              openLightbox(i);
+              return;
+            }
+          }
         }
 
         var prev = lightbox.querySelector('[data-lightbox-prev]');
@@ -1251,6 +1270,16 @@
       initBuyBox(root);
       initGallery(root);
     }
+
+    /* Registered once: re-syncs every gallery's rail height on resize/load,
+       so no per-instance window listeners accumulate across editor re-inits. */
+    function syncAllRails() {
+      document.querySelectorAll('[data-gallery]').forEach(function (gallery) {
+        if (gallery.railSync) gallery.railSync();
+      });
+    }
+    window.addEventListener('resize', syncAllRails);
+    window.addEventListener('load', syncAllRails);
 
     initFrom(document);
     document.addEventListener('shopify:section:load', function (event) {

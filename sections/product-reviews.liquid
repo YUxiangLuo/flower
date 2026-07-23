@@ -14,8 +14,14 @@
         <h2 class="reviews__heading">{{ section.settings.heading }}</h2>
       {% endif %}
       {% if section.settings.rating != blank %}
+        {% assign rating_value = section.settings.rating | times: 1 %}
+        {% assign filled_stars = rating_value | round %}
         <div class="reviews__summary">
-          <span class="reviews__summary-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <span class="reviews__summary-stars" aria-hidden="true">
+            {%- for i in (1..5) -%}
+              {%- if i <= filled_stars -%}&#9733;{%- else -%}&#9734;{%- endif -%}
+            {%- endfor -%}
+          </span>
           <span class="reviews__summary-score">{{ section.settings.rating }}</span>
           {% if section.settings.review_count != blank %}
             <span class="reviews__summary-count">
