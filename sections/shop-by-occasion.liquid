@@ -6,7 +6,7 @@
 <div class="occasion">
   <header class="occasion__header">
     {% if section.settings.eyebrow != blank %}
-      <p class="occasion__eyebrow">{{ section.settings.eyebrow }}</p>
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
     {% endif %}
     {% if section.settings.heading != blank %}
       <h2 class="occasion__heading">{{ section.settings.heading }}</h2>
@@ -50,18 +50,10 @@
     margin-bottom: clamp(2rem, 4vw, 3.5rem);
   }
 
-  .occasion__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
-    margin-bottom: 0.9rem;
-  }
-
   .occasion__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    font-size: var(--text-xl);
     line-height: 1.1;
   }
 
@@ -89,7 +81,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--duration-media) var(--ease-out);
   }
 
   .occasion__card:hover .occasion__image,
@@ -104,17 +96,23 @@
     gap: 1rem;
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: 1.25rem;
+    font-size: var(--text-lg);
   }
 
   .occasion__arrow {
     color: var(--color-accent);
-    transition: transform 0.4s ease;
+    transition: transform var(--duration-ui) ease;
   }
 
   .occasion__card:hover .occasion__arrow,
   .occasion__card:focus-visible .occasion__arrow {
     transform: translateX(0.35rem);
+  }
+
+  @media (max-width: 989px) {
+    .occasion__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 749px) {

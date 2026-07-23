@@ -91,6 +91,15 @@
       "view_all": "View all",
       "sale": "Sale"
     },
+    "testimonials": {
+      "rating": "{{ rating }} out of 5 stars"
+    },
+    "newsletter": {
+      "email_label": "Email address",
+      "email_placeholder": "Enter your email",
+      "button": "Subscribe",
+      "success": "Thanks for subscribing."
+    },
     "footer": {
       "email_placeholder": "Email",
       "subscribe": "Subscribe",

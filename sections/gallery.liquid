@@ -7,7 +7,7 @@
   <div class="gallery__inner">
     <header class="gallery__header">
       {% if section.settings.eyebrow != blank %}
-        <p class="gallery__eyebrow">{{ section.settings.eyebrow }}</p>
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
       {% endif %}
       {% if section.settings.heading != blank %}
         <h2 class="gallery__heading">{{ section.settings.heading }}</h2>
@@ -52,18 +52,10 @@
     margin-bottom: clamp(2rem, 4vw, 3.5rem);
   }
 
-  .gallery__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
-    margin-bottom: 0.9rem;
-  }
-
   .gallery__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    font-size: var(--text-xl);
     line-height: 1.1;
   }
 
@@ -71,6 +63,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-auto-rows: 1fr;
+    grid-auto-flow: dense;
     gap: clamp(0.5rem, 1.2vw, 1rem);
   }
 
@@ -89,7 +82,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--duration-media) var(--ease-out);
   }
 
   .gallery__item:hover .gallery__image {

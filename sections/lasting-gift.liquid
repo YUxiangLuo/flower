@@ -11,7 +11,7 @@
         {{
           section.settings.image
           | image_url: width: 1200
-          | image_tag: loading: 'lazy', class: 'lasting__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200'
+          | image_tag: loading: 'lazy', class: 'lasting__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: section.settings.image.alt | default: section.settings.heading
         }}
       {% else %}
         {{ 'lifestyle-1' | placeholder_svg_tag: 'lasting__image lasting__image--placeholder' }}
@@ -20,7 +20,7 @@
 
     <div class="lasting__content">
       {% if section.settings.eyebrow != blank %}
-        <p class="lasting__eyebrow">{{ section.settings.eyebrow }}</p>
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
       {% endif %}
       {% if section.settings.heading != blank %}
         <h2 class="lasting__heading">{{ section.settings.heading }}</h2>
@@ -29,7 +29,7 @@
         <div class="lasting__body">{{ section.settings.body }}</div>
       {% endif %}
       {% if section.settings.button_label != blank %}
-        <a class="lasting__button" href="{{ section.settings.button_link | default: '#' }}">
+        <a class="button button--outline lasting__button" href="{{ section.settings.button_link | default: '#' }}">
           {{ section.settings.button_label }}
         </a>
       {% endif %}
@@ -86,17 +86,15 @@
     max-width: 34rem;
   }
 
-  .lasting__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
+  /* The flex gap handles spacing, so drop the shared eyebrow's margin here. */
+  .lasting__content .eyebrow {
+    margin-bottom: 0;
   }
 
   .lasting__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(2rem, 3.8vw, 3.3rem);
+    font-size: var(--text-2xl);
     line-height: 1.12;
   }
 
@@ -106,26 +104,12 @@
   }
 
   .lasting__body > * + * {
-    margin-top: 1rem;
+    margin-top: var(--space-sm);
   }
 
   .lasting__button {
     align-self: flex-start;
-    margin-top: 1rem;
-    padding: 0.9rem 2.4rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-foreground);
-    text-decoration: none;
-    border: 1px solid var(--color-foreground);
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  .lasting__button:hover,
-  .lasting__button:focus-visible {
-    background-color: var(--color-foreground);
-    color: var(--color-background);
+    margin-top: var(--space-sm);
   }
 
   @media (max-width: 749px) {

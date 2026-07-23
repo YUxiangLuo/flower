@@ -12,7 +12,7 @@
       {{
         section.settings.background_image
         | image_url: width: 2200
-        | image_tag: loading: 'lazy', class: 'giftcta__image', sizes: '100vw', widths: '900, 1400, 1800, 2200'
+        | image_tag: loading: 'lazy', class: 'giftcta__image', sizes: '100vw', widths: '900, 1400, 1800, 2200', alt: ''
       }}
       <div class="giftcta__scrim" aria-hidden="true"></div>
     </div>
@@ -20,7 +20,7 @@
 
   <div class="giftcta__inner">
     {% if section.settings.eyebrow != blank %}
-      <p class="giftcta__eyebrow">{{ section.settings.eyebrow }}</p>
+      <p class="eyebrow giftcta__eyebrow">{{ section.settings.eyebrow }}</p>
     {% endif %}
     {% if section.settings.heading != blank %}
       <h2 class="giftcta__heading">{{ section.settings.heading }}</h2>
@@ -29,7 +29,7 @@
       <p class="giftcta__subheading">{{ section.settings.subheading }}</p>
     {% endif %}
     {% if section.settings.button_label != blank %}
-      <a class="giftcta__button" href="{{ section.settings.button_link | default: '#' }}">
+      <a class="button button--on-dark giftcta__button" href="{{ section.settings.button_link | default: '#' }}">
         {{ section.settings.button_label }}
       </a>
     {% endif %}
@@ -75,17 +75,16 @@
     gap: 1.15rem;
   }
 
+  /* Inherit the merchant's text colour so it stays legible on any band. */
   .giftcta__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
+    color: var(--giftcta-text);
+    margin-bottom: 0;
   }
 
   .giftcta__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(2.1rem, 4.5vw, 3.4rem);
+    font-size: var(--text-2xl);
     line-height: 1.1;
   }
 
@@ -96,22 +95,9 @@
   }
 
   .giftcta__button {
-    margin-top: 0.75rem;
-    padding: 0.95rem 2.6rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--giftcta-bg);
-    background-color: var(--giftcta-text);
-    text-decoration: none;
-    border: 1px solid var(--giftcta-text);
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  .giftcta__button:hover,
-  .giftcta__button:focus-visible {
-    background-color: transparent;
-    color: var(--giftcta-text);
+    --button-bg: var(--giftcta-text);
+    --button-text: var(--giftcta-bg);
+    margin-top: var(--space-xs);
   }
 {% endstylesheet %}
 

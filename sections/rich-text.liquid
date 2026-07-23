@@ -1,0 +1,146 @@
+{% comment %}
+  A flexible editorial block — eyebrow, heading, body and an optional button —
+  that merchants can drop onto any page and align as they like.
+{% endcomment %}
+
+<div class="richtext richtext--{{ section.settings.background }} full-width">
+  <div
+    class="richtext__inner richtext--{{ section.settings.content_width }}"
+    style="--align: {{ section.settings.alignment }};"
+  >
+    {% if section.settings.eyebrow != blank %}
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h2 class="richtext__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+    {% if section.settings.body != blank %}
+      <div class="richtext__body">{{ section.settings.body }}</div>
+    {% endif %}
+    {% if section.settings.button_label != blank %}
+      <a class="button button--outline richtext__button" href="{{ section.settings.button_link | default: '#' }}">
+        {{ section.settings.button_label }}
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .richtext--page {
+    background-color: var(--color-background);
+  }
+  .richtext--surface {
+    background-color: var(--color-surface);
+  }
+  .richtext--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .richtext__inner {
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    text-align: var(--align);
+    align-items: var(--align);
+  }
+
+  .richtext--narrow {
+    max-width: 44rem;
+  }
+
+  .richtext--wide {
+    max-width: var(--page-width);
+  }
+
+  /* The flex gap handles spacing, so drop the shared eyebrow's margin here. */
+  .richtext__inner .eyebrow {
+    margin-bottom: 0;
+  }
+
+  .richtext__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: var(--text-2xl);
+    line-height: 1.1;
+  }
+
+  .richtext__body {
+    line-height: 1.75;
+    color: var(--color-muted);
+  }
+
+  .richtext__body > * + * {
+    margin-top: var(--space-sm);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.rich_text.name",
+  "settings": [
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.rich_text.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "label": "t:sections.rich_text.content_width",
+      "options": [
+        { "value": "narrow", "label": "t:options.page_width.narrow" },
+        { "value": "wide", "label": "t:options.page_width.wide" }
+      ],
+      "default": "narrow"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "default": "center"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.rich_text.eyebrow",
+      "default": "Our promise"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.rich_text.heading",
+      "default": "Made by hand, made to last"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "t:sections.rich_text.body",
+      "default": "<p>Every keepsake begins with real flowers, pressed and arranged by hand. We take our time so the piece you give holds its colour and meaning for years to come.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.rich_text.button_label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.rich_text.button_link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.rich_text.name"
+    }
+  ]
+}
+{% endschema %}

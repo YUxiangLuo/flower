@@ -153,9 +153,48 @@
       "type": "creator-story",
       "settings": {}
     },
+    "richtext": {
+      "type": "rich-text",
+      "settings": { "background": "surface" }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "How long does a keepsake take to make?",
+            "answer": "<p>Each piece is pressed and framed by hand, so orders typically ship within 2–3 weeks. We'll email you the moment yours is on its way.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "Can I send my own flowers to be pressed?",
+            "answer": "<p>Absolutely. Choose a bespoke keepsake at checkout and we'll send you simple instructions for posting the flowers that mean the most.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "How do I care for my pressed-flower art?",
+            "answer": "<p>Keep it out of direct sunlight and wipe the glass with a dry cloth. Your keepsake is made to hold its colour for years.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3"],
+      "settings": { "background": "page" }
+    },
     "giftcta": {
       "type": "gift-cta",
-      "settings": {}
+      "settings": {
+        "background_color": "#2a3320",
+        "text_color": "#fcfaf4"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": { "background": "surface" }
     }
   },
   "order": [
@@ -168,6 +207,9 @@
     "lookbook",
     "assurance",
     "creator",
-    "giftcta"
+    "richtext",
+    "faq",
+    "giftcta",
+    "newsletter"
   ]
 }

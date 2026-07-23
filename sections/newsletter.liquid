@@ -1,0 +1,170 @@
+{% comment %}
+  A full-width email-capture band. Uses Shopify's customer form so signups are
+  tagged and collected in the admin. Merchants pick the background and copy.
+{% endcomment %}
+
+<div class="newsletter newsletter--{{ section.settings.background }} full-width">
+  <div class="newsletter__inner">
+    {% if section.settings.eyebrow != blank %}
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+    {% endif %}
+    {% if section.settings.heading != blank %}
+      <h2 class="newsletter__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+    {% if section.settings.subheading != blank %}
+      <p class="newsletter__subheading">{{ section.settings.subheading }}</p>
+    {% endif %}
+
+    {% form 'customer', class: 'newsletter__form' %}
+      {% if form.posted_successfully? %}
+        <p class="newsletter__success">{{ 'sections.newsletter.success' | t }}</p>
+      {% else %}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <div class="newsletter__field">
+          <label class="visually-hidden" for="newsletter-email-{{ section.id }}">
+            {{ 'sections.newsletter.email_label' | t }}
+          </label>
+          <input
+            id="newsletter-email-{{ section.id }}"
+            type="email"
+            name="contact[email]"
+            placeholder="{{ 'sections.newsletter.email_placeholder' | t }}"
+            autocomplete="email"
+            required
+          >
+          <button class="button button--solid" type="submit">
+            {{ 'sections.newsletter.button' | t }}
+          </button>
+        </div>
+        {% if form.errors %}
+          <p class="newsletter__error">{{ form.errors | default_errors }}</p>
+        {% endif %}
+      {% endif %}
+    {% endform %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .newsletter--page {
+    background-color: var(--color-background);
+  }
+  .newsletter--surface {
+    background-color: var(--color-surface);
+  }
+  .newsletter--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .newsletter__inner {
+    max-width: 44rem;
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+    text-align: center;
+  }
+
+  .newsletter__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: var(--text-xl);
+    line-height: 1.1;
+  }
+
+  .newsletter__subheading {
+    margin-top: var(--space-sm);
+    line-height: 1.7;
+    color: var(--color-muted);
+  }
+
+  .newsletter__form {
+    margin-top: var(--space-lg);
+  }
+
+  .newsletter__field {
+    display: flex;
+    gap: var(--space-2xs);
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  .newsletter__field input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  .newsletter__field input::placeholder {
+    color: var(--color-muted);
+  }
+
+  .newsletter__field input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+
+  .newsletter__field .button {
+    flex-shrink: 0;
+  }
+
+  .newsletter__success {
+    color: var(--color-accent-strong);
+    font-size: 0.95rem;
+  }
+
+  .newsletter__error {
+    margin-top: var(--space-sm);
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 749px) {
+    .newsletter__field {
+      flex-direction: column;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.newsletter.name",
+  "settings": [
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.newsletter.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "surface"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.newsletter.eyebrow",
+      "default": "Stay in bloom"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.newsletter.heading",
+      "default": "Join our list for early access and gifting ideas"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "t:sections.newsletter.subheading",
+      "default": "New keepsakes, seasonal collections and the occasional offer — straight to your inbox."
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.newsletter.name"
+    }
+  ]
+}
+{% endschema %}

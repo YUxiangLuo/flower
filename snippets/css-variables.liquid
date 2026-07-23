@@ -39,6 +39,28 @@
     --section-spacing: clamp(3.5rem, 8vw, 7rem);
     --content-gap: clamp(1.25rem, 3vw, 2.5rem);
 
+    {% # Heading type ramp — one shared scale so every section matches %}
+    --text-hero: clamp(2.5rem, 6vw, 4.75rem);
+    --text-2xl: clamp(2.1rem, 4.5vw, 3.4rem);
+    --text-xl: clamp(1.9rem, 3.5vw, 2.9rem);
+    --text-lg: 1.3rem;
+    --text-md: 1.05rem;
+
+    {% # Spacing scale for consistent rhythm inside sections %}
+    --space-2xs: 0.5rem;
+    --space-xs: 0.75rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2.5rem;
+    --space-xl: 4rem;
+
+    {% # Shared motion + tracking so transitions and letter-spacing stay in sync %}
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --duration-media: 0.8s;
+    --duration-ui: 0.4s;
+    --tracking-eyebrow: 0.28em;
+    --tracking-button: 0.18em;
+
     {% # Stroke weight for the inline SVG icons in assets/ %}
     --icon-stroke-width: 1.2;
   }

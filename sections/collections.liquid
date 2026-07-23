@@ -7,7 +7,7 @@
 <div class="collections">
   <header class="collections__header">
     {% if section.settings.eyebrow != blank %}
-      <p class="collections__eyebrow">{{ section.settings.eyebrow }}</p>
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
     {% endif %}
     <h1 class="collections__heading">{{ section.settings.heading }}</h1>
   </header>
@@ -54,18 +54,10 @@
     margin-bottom: clamp(2rem, 4vw, 3.5rem);
   }
 
-  .collections__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
-    margin-bottom: 0.9rem;
-  }
-
   .collections__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(2rem, 4vw, 3.25rem);
+    font-size: var(--text-2xl);
     line-height: 1.1;
   }
 
@@ -93,7 +85,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--duration-media) var(--ease-out);
   }
 
   .collections__card:hover .collections__image,
@@ -108,12 +100,12 @@
     gap: 1rem;
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: 1.25rem;
+    font-size: var(--text-lg);
   }
 
   .collections__arrow {
     color: var(--color-accent);
-    transition: transform 0.4s ease;
+    transition: transform var(--duration-ui) ease;
   }
 
   .collections__card:hover .collections__arrow,

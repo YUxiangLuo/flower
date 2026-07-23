@@ -8,7 +8,7 @@
   <div class="giftsteps__inner">
     <header class="giftsteps__header">
       {% if section.settings.eyebrow != blank %}
-        <p class="giftsteps__eyebrow">{{ section.settings.eyebrow }}</p>
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
       {% endif %}
       {% if section.settings.heading != blank %}
         <h2 class="giftsteps__heading">{{ section.settings.heading }}</h2>
@@ -55,18 +55,10 @@
     margin: 0 auto clamp(2.5rem, 5vw, 4rem);
   }
 
-  .giftsteps__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
-    margin-bottom: 0.9rem;
-  }
-
   .giftsteps__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    font-size: var(--text-xl);
     line-height: 1.15;
   }
 
@@ -77,7 +69,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    counter-reset: none;
   }
 
   .giftsteps__step {
@@ -104,7 +95,7 @@
   .giftsteps__step-title {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: 1.3rem;
+    font-size: var(--text-lg);
     line-height: 1.2;
   }
 
@@ -114,10 +105,17 @@
     max-width: 22rem;
   }
 
+  @media (max-width: 989px) {
+    .giftsteps__list {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-lg);
+    }
+  }
+
   @media (max-width: 749px) {
     .giftsteps__list {
       grid-template-columns: 1fr;
-      gap: 2rem;
+      gap: var(--space-lg);
     }
   }
 {% endstylesheet %}
