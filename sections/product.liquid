@@ -58,27 +58,25 @@
       </div>
 
       {% if product.media.size > 1 %}
-        <div class="product__thumb-rail" data-thumb-rail>
-          <div class="product__thumbs" data-thumbs role="group" aria-label="{{ 'sections.product.thumbnails' | t }}">
-            {% for media in product.media %}
-              <button
-                type="button"
-                class="product__thumb{% if forloop.first %} is-active{% endif %}"
-                data-thumb="{{ forloop.index0 }}"
-                aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
-                aria-label="{{ 'sections.product.go_to_media' | t: index: forloop.index }}"
-              >
-                {{
-                  media.preview_image
-                  | image_url: width: 200, height: 200, crop: 'center'
-                  | image_tag: loading: 'lazy', class: 'product__thumb-image', alt: ''
-                }}
-                {% if media.media_type != 'image' %}
-                  <span class="product__thumb-badge" aria-hidden="true">&#9658;</span>
-                {% endif %}
-              </button>
-            {% endfor %}
-          </div>
+        <div class="product__thumbs" data-thumbs role="group" aria-label="{{ 'sections.product.thumbnails' | t }}">
+          {% for media in product.media %}
+            <button
+              type="button"
+              class="product__thumb{% if forloop.first %} is-active{% endif %}"
+              data-thumb="{{ forloop.index0 }}"
+              aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-label="{{ 'sections.product.go_to_media' | t: index: forloop.index }}"
+            >
+              {{
+                media.preview_image
+                | image_url: width: 200, height: 200, crop: 'center'
+                | image_tag: loading: 'lazy', class: 'product__thumb-image', alt: ''
+              }}
+              {% if media.media_type != 'image' %}
+                <span class="product__thumb-badge" aria-hidden="true">&#9658;</span>
+              {% endif %}
+            </button>
+          {% endfor %}
         </div>
       {% endif %}
     </div>
@@ -402,55 +400,16 @@
     object-fit: contain;
   }
 
-  /* Wrapper carries the edge fades; the inner rail is what actually scrolls,
-     so the fades stay pinned while thumbnails move under them. */
-  .product__thumb-rail {
-    order: 1;
-    position: relative;
-    min-height: 0;
-  }
-
-  .product__thumb-rail::before,
-  .product__thumb-rail::after {
-    content: '';
-    position: absolute;
-    inset-inline: 0;
-    height: 2.25rem;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity var(--duration-ui) ease;
-    z-index: 1;
-  }
-
-  .product__thumb-rail::before {
-    top: 0;
-    background: linear-gradient(to bottom, var(--color-background), transparent);
-  }
-
-  .product__thumb-rail::after {
-    bottom: 0;
-    background: linear-gradient(to top, var(--color-background), transparent);
-  }
-
-  /* JS sets these when there is more to scroll in that direction. */
-  .product__thumb-rail[data-fade-start]::before,
-  .product__thumb-rail[data-fade-end]::after {
-    opacity: 1;
-  }
-
   .product__thumbs {
+    order: 1;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
     /* Fallback cap; JS narrows this to the main image's exact height so the
-       rail never grows taller than the stage beside it. */
+       rail never grows taller than the stage beside it. Extra thumbnails
+       scroll normally. */
     max-height: 34rem;
     overflow-y: auto;
-    scrollbar-width: none;
-  }
-
-  .product__thumbs::-webkit-scrollbar {
-    display: none;
   }
 
   .product__thumb {
@@ -1009,31 +968,8 @@
       gap: 0.75rem;
     }
 
-    .product__thumb-rail {
-      order: 2;
-    }
-
-    /* Horizontal rail on mobile — fade the left/right edges instead. */
-    .product__thumb-rail::before,
-    .product__thumb-rail::after {
-      inset-inline: auto;
-      top: 0;
-      bottom: 0;
-      width: 2.25rem;
-      height: auto;
-    }
-
-    .product__thumb-rail::before {
-      left: 0;
-      background: linear-gradient(to right, var(--color-background), transparent);
-    }
-
-    .product__thumb-rail::after {
-      right: 0;
-      background: linear-gradient(to left, var(--color-background), transparent);
-    }
-
     .product__thumbs {
+      order: 2;
       flex-direction: row;
       max-height: none;
       overflow-x: auto;
@@ -1065,7 +1001,6 @@
       var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-thumb]'));
       var lightbox = root.querySelector('[data-lightbox]');
       var lightboxImg = lightbox ? lightbox.querySelector('[data-lightbox-image]') : null;
-      var rail = gallery.querySelector('[data-thumb-rail]');
       var scroller = gallery.querySelector('[data-thumbs]');
       var stage = gallery.querySelector('.product__stage');
       var index = 0;
@@ -1074,33 +1009,12 @@
          thumbnails scrolls within the stage instead of towering beside it.
          On mobile the rail is a horizontal strip, so leave it uncapped. */
       function syncRailHeight() {
-        if (scroller && stage) {
-          if (window.matchMedia('(max-width: 989px)').matches) {
-            scroller.style.maxHeight = '';
-          } else {
-            scroller.style.maxHeight = stage.offsetHeight + 'px';
-          }
-        }
-        updateFades();
-      }
-
-      /* Show a soft fade on whichever edge still has thumbnails to scroll to,
-         so a long rail reads as scrollable. Axis follows the layout: vertical
-         on desktop, horizontal on mobile. */
-      function updateFades() {
-        if (!rail || !scroller) return;
-        var vertical = scroller.scrollHeight > scroller.clientHeight + 1;
-        var start;
-        var end;
-        if (vertical) {
-          start = scroller.scrollTop > 1;
-          end = scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 1;
+        if (!scroller || !stage) return;
+        if (window.matchMedia('(max-width: 989px)').matches) {
+          scroller.style.maxHeight = '';
         } else {
-          start = scroller.scrollLeft > 1;
-          end = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1;
+          scroller.style.maxHeight = stage.offsetHeight + 'px';
         }
-        rail.toggleAttribute('data-fade-start', start);
-        rail.toggleAttribute('data-fade-end', end);
       }
 
       /* Cache the largest source for each image so the lightbox shows full detail. */
@@ -1125,7 +1039,6 @@
         if (thumbs[index]) {
           thumbs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
         }
-        updateFades();
       }
 
       thumbs.forEach(function (thumb, i) {
@@ -1150,7 +1063,6 @@
       });
 
       if (scroller) {
-        scroller.addEventListener('scroll', updateFades);
         window.addEventListener('resize', syncRailHeight);
         window.addEventListener('load', syncRailHeight);
         syncRailHeight();
