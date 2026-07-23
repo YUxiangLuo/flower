@@ -116,9 +116,7 @@
       "slides": "Slides",
       "previous_slide": "Previous slide",
       "next_slide": "Next slide",
-      "go_to_slide": "Go to slide {{ index }}",
-      "pause": "Pause slideshow",
-      "play": "Play slideshow"
+      "go_to_slide": "Go to slide {{ index }}"
     }
   }
 }

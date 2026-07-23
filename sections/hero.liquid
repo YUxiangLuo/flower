@@ -96,25 +96,6 @@
 
   {% if slide_count > 1 %}
     <div class="hero__controls">
-      {% if autoplay %}
-        <button
-          class="hero__toggle"
-          type="button"
-          data-hero-toggle
-          data-label-pause="{{ 'sections.hero.pause' | t }}"
-          data-label-play="{{ 'sections.hero.play' | t }}"
-          aria-label="{{ 'sections.hero.pause' | t }}"
-        >
-          <svg class="hero__toggle-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <rect x="3" y="2" width="3.5" height="12" rx="1" />
-            <rect x="9.5" y="2" width="3.5" height="12" rx="1" />
-          </svg>
-          <svg class="hero__toggle-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M4 2.5v11l9-5.5z" />
-          </svg>
-        </button>
-      {% endif %}
-
       <button
         class="hero__arrow hero__arrow--prev"
         type="button"
@@ -367,40 +348,6 @@
     background-color: #fff;
   }
 
-  .hero__toggle {
-    display: flex;
-    padding: 0.5rem;
-    background: transparent;
-    border: 0;
-    color: #fff;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-  }
-
-  .hero__toggle:hover,
-  .hero__toggle:focus-visible {
-    opacity: 1;
-  }
-
-  .hero__toggle svg {
-    width: 1rem;
-    height: 1rem;
-  }
-
-  /* Playing by default: show the pause mark. When paused, show play. */
-  .hero__toggle-play {
-    display: none;
-  }
-
-  .hero__toggle[data-paused] .hero__toggle-pause {
-    display: none;
-  }
-
-  .hero__toggle[data-paused] .hero__toggle-play {
-    display: block;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .hero__slide,
     .hero__slide[data-active] {
@@ -440,7 +387,6 @@
       var timer = null;
       var leaveTimer = null;
       var hovering = false;
-      var userPaused = false;
 
       /* Track every listener we add so the section can be torn down cleanly
          when the theme editor reloads it (shopify:section:unload). */
@@ -497,7 +443,6 @@
 
       function start() {
         stop();
-        if (userPaused) return;
         if (hovering) return;
         if (hero.getAttribute('data-autoplay') !== 'true') return;
         if (reduced.matches) return;
@@ -529,21 +474,6 @@
           goTo(i);
         });
       });
-
-      /* Explicit play/pause. A user's choice here outranks the hover/focus
-         pause, so start() checks userPaused before ever setting a timer. */
-      var toggle = hero.querySelector('[data-hero-toggle]');
-      if (toggle) {
-        var pauseLabel = toggle.getAttribute('data-label-pause');
-        var playLabel = toggle.getAttribute('data-label-play');
-        on(toggle, 'click', function () {
-          userPaused = !userPaused;
-          toggle.toggleAttribute('data-paused', userPaused);
-          toggle.setAttribute('aria-label', userPaused ? playLabel : pauseLabel);
-          if (userPaused) stop();
-          else start();
-        });
-      }
 
       /* Pause while the pointer is genuinely moving over the hero. We key off
          mousemove rather than mouseenter because a browser fires a synthetic
