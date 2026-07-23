@@ -34,6 +34,7 @@
           data-active
         {% else %}
           aria-hidden="true"
+          inert
         {% endif %}
         {{ block.shopify_attributes }}
       >
@@ -95,6 +96,25 @@
 
   {% if slide_count > 1 %}
     <div class="hero__controls">
+      {% if autoplay %}
+        <button
+          class="hero__toggle"
+          type="button"
+          data-hero-toggle
+          data-label-pause="{{ 'sections.hero.pause' | t }}"
+          data-label-play="{{ 'sections.hero.play' | t }}"
+          aria-label="{{ 'sections.hero.pause' | t }}"
+        >
+          <svg class="hero__toggle-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <rect x="3" y="2" width="3.5" height="12" rx="1" />
+            <rect x="9.5" y="2" width="3.5" height="12" rx="1" />
+          </svg>
+          <svg class="hero__toggle-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M4 2.5v11l9-5.5z" />
+          </svg>
+        </button>
+      {% endif %}
+
       <button
         class="hero__arrow hero__arrow--prev"
         type="button"
@@ -104,15 +124,14 @@
         {{- 'icon-chevron.svg' | inline_asset_content -}}
       </button>
 
-      <div class="hero__dots" role="tablist">
+      <div class="hero__dots" role="group" aria-label="{{ 'sections.hero.slides' | t }}">
         {% for block in section.blocks %}
           <button
             class="hero__dot"
             type="button"
-            role="tab"
-            data-hero-dot="{{ forloop.index0 }}"
+            data-hero-dot
             aria-label="{{ 'sections.hero.go_to_slide' | t: index: forloop.index }}"
-            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            {% if forloop.first %}aria-current="true"{% endif %}
           ></button>
         {% endfor %}
       </div>
@@ -344,8 +363,42 @@
     margin-top: -1.375rem;
   }
 
-  .hero__dot[aria-selected='true'] {
+  .hero__dot[aria-current='true'] {
     background-color: #fff;
+  }
+
+  .hero__toggle {
+    display: flex;
+    padding: 0.5rem;
+    background: transparent;
+    border: 0;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+
+  .hero__toggle:hover,
+  .hero__toggle:focus-visible {
+    opacity: 1;
+  }
+
+  .hero__toggle svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Playing by default: show the pause mark. When paused, show play. */
+  .hero__toggle-play {
+    display: none;
+  }
+
+  .hero__toggle[data-paused] .hero__toggle-pause {
+    display: none;
+  }
+
+  .hero__toggle[data-paused] .hero__toggle-play {
+    display: block;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -362,15 +415,18 @@
 
 {% javascript %}
   (function () {
-    /* Everything stacked above the hero — announcement bar, header — adds up
-       to its offset from the top of the document, so one measurement covers
-       whatever the merchant has enabled. */
-    function measureOffset() {
-      var hero = document.querySelector('.hero');
-      if (!hero) return;
+    /* Everything stacked above a hero — announcement bar, header — sets how
+       much of the viewport is left for it to fill. Measure per hero and store
+       the offset on that element, so multiple heroes on one page each get their
+       own value instead of sharing a single document-level one. */
+    function measureOffset(hero) {
       var section = hero.closest('.shopify-section') || hero;
       var offset = section.getBoundingClientRect().top + window.pageYOffset;
-      document.documentElement.style.setProperty('--hero-offset', offset + 'px');
+      hero.style.setProperty('--hero-offset', offset + 'px');
+    }
+
+    function measureAll() {
+      Array.prototype.forEach.call(document.querySelectorAll('.hero'), measureOffset);
     }
 
     function initCarousel(hero) {
@@ -384,6 +440,7 @@
       var timer = null;
       var leaveTimer = null;
       var hovering = false;
+      var userPaused = false;
 
       /* Track every listener we add so the section can be torn down cleanly
          when the theme editor reloads it (shopify:section:unload). */
@@ -409,9 +466,11 @@
           if (i === index) {
             slide.setAttribute('data-active', '');
             slide.removeAttribute('aria-hidden');
+            slide.removeAttribute('inert');
           } else {
             slide.removeAttribute('data-active');
             slide.setAttribute('aria-hidden', 'true');
+            slide.setAttribute('inert', '');
           }
         });
 
@@ -424,7 +483,8 @@
         }, fade);
 
         dots.forEach(function (dot, i) {
-          dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+          if (i === index) dot.setAttribute('aria-current', 'true');
+          else dot.removeAttribute('aria-current');
         });
       }
 
@@ -437,6 +497,7 @@
 
       function start() {
         stop();
+        if (userPaused) return;
         if (hovering) return;
         if (hero.getAttribute('data-autoplay') !== 'true') return;
         if (reduced.matches) return;
@@ -468,6 +529,21 @@
           goTo(i);
         });
       });
+
+      /* Explicit play/pause. A user's choice here outranks the hover/focus
+         pause, so start() checks userPaused before ever setting a timer. */
+      var toggle = hero.querySelector('[data-hero-toggle]');
+      if (toggle) {
+        var pauseLabel = toggle.getAttribute('data-label-pause');
+        var playLabel = toggle.getAttribute('data-label-play');
+        on(toggle, 'click', function () {
+          userPaused = !userPaused;
+          toggle.toggleAttribute('data-paused', userPaused);
+          toggle.setAttribute('aria-label', userPaused ? playLabel : pauseLabel);
+          if (userPaused) stop();
+          else start();
+        });
+      }
 
       /* Pause while the pointer is genuinely moving over the hero. We key off
          mousemove rather than mouseenter because a browser fires a synthetic
@@ -507,7 +583,7 @@
     }
 
     function init(scope) {
-      measureOffset();
+      measureAll();
       scope.querySelectorAll('[data-hero]').forEach(function (hero) {
         if (hero.heroCleanup) hero.heroCleanup();
         hero.heroCleanup = initCarousel(hero);
@@ -525,8 +601,8 @@
 
     /* Register the page-level measurement once; per-hero listeners live and
        die with each carousel instance. */
-    window.addEventListener('resize', measureOffset);
-    window.addEventListener('load', measureOffset);
+    window.addEventListener('resize', measureAll);
+    window.addEventListener('load', measureAll);
 
     init(document);
     document.addEventListener('shopify:section:load', function (event) {
