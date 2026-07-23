@@ -11,6 +11,7 @@
   assign detail_blocks = section.blocks | where: 'type', 'collapsible_row'
   assign personalization_blocks = section.blocks | where: 'type', 'personalization_field'
   assign spec_blocks = section.blocks | where: 'type', 'spec'
+  assign image_media = product.media | where: 'media_type', 'image'
 %}
 
 <div class="product" data-product>
@@ -23,6 +24,7 @@
               class="product__stage-item{% if forloop.first %} is-active{% endif %}"
               data-stage-item
               data-media-index="{{ forloop.index0 }}"
+              data-media-id="{{ media.id }}"
             >
               {% if media.media_type == 'image' %}
                 <button
@@ -304,7 +306,7 @@
     </div>
   {% endif %}
 
-  {% if product.media.size > 1 %}
+  {% if image_media.size > 0 %}
     <dialog class="product__lightbox" data-lightbox aria-label="{{ 'sections.product.gallery' | t }}">
       <button
         type="button"
@@ -314,29 +316,49 @@
       >
         {{- 'icon-close.svg' | inline_asset_content -}}
       </button>
-      <button
-        type="button"
-        class="product__lightbox-nav product__lightbox-nav--prev"
-        data-lightbox-prev
-        aria-label="{{ 'sections.product.previous_media' | t }}"
-      >
-        {{- 'icon-chevron.svg' | inline_asset_content -}}
-      </button>
+      {% if image_media.size > 1 %}
+        <button
+          type="button"
+          class="product__lightbox-nav product__lightbox-nav--prev"
+          data-lightbox-prev
+          aria-label="{{ 'sections.product.previous_media' | t }}"
+        >
+          {{- 'icon-chevron.svg' | inline_asset_content -}}
+        </button>
+      {% endif %}
       {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
       <img class="product__lightbox-image" data-lightbox-image alt="">
       {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
-      <button
-        type="button"
-        class="product__lightbox-nav product__lightbox-nav--next"
-        data-lightbox-next
-        aria-label="{{ 'sections.product.next_media' | t }}"
-      >
-        {{- 'icon-chevron.svg' | inline_asset_content -}}
-      </button>
+      {% if image_media.size > 1 %}
+        <button
+          type="button"
+          class="product__lightbox-nav product__lightbox-nav--next"
+          data-lightbox-next
+          aria-label="{{ 'sections.product.next_media' | t }}"
+        >
+          {{- 'icon-chevron.svg' | inline_asset_content -}}
+        </button>
+      {% endif %}
     </dialog>
   {% endif %}
 
   <script type="application/json" data-variants>{{ product.variants | json }}</script>
+
+  {%- comment -%}
+    variant id -> featured media id. Built in Liquid because `variant | json`
+    doesn't include featured_media. Lets the buy box sync the gallery image.
+  {%- endcomment -%}
+  <script type="application/json" data-variant-media>
+    {
+      {%- assign media_sep = '' -%}
+      {%- for variant in product.variants -%}
+        {%- if variant.featured_media -%}
+          {{ media_sep }}"{{ variant.id }}": {{ variant.featured_media.id }}
+          {%- assign media_sep = ',' -%}
+        {%- endif -%}
+      {%- endfor -%}
+    }
+  </script>
 </div>
 
 <script type="application/ld+json">
@@ -1035,6 +1057,16 @@
         }
       }
 
+      /* Let the buy box switch the gallery to a variant's featured media. */
+      root.selectMedia = function (mediaId) {
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].getAttribute('data-media-id') === String(mediaId)) {
+            show(i);
+            return;
+          }
+        }
+      };
+
       thumbs.forEach(function (thumb, i) {
         thumb.addEventListener('click', function () {
           show(i);
@@ -1137,6 +1169,16 @@
         }
       }
 
+      var variantMedia = {};
+      var mediaMapEl = root.querySelector('[data-variant-media]');
+      if (mediaMapEl) {
+        try {
+          variantMedia = JSON.parse(mediaMapEl.textContent);
+        } catch (e) {
+          variantMedia = {};
+        }
+      }
+
       function selectedValues() {
         var values = [];
         root.querySelectorAll('[data-option-position]').forEach(function (group) {
@@ -1186,12 +1228,22 @@
         }
       }
 
+      /* Switch the gallery to the variant's featured media (when the merchant
+         has assigned one). No-op on first load: the gallery inits after the
+         buy box and already shows the first media. */
+      function selectVariantMedia(variantId) {
+        if (typeof root.selectMedia !== 'function') return;
+        var mediaId = variantMedia[variantId];
+        if (mediaId) root.selectMedia(mediaId);
+      }
+
       function onOptionChange(syncUrl) {
         var variant = findVariant(selectedValues());
         if (variant && select) select.value = variant.id;
         if (variant && select) {
           applyOption(select.selectedOptions[0]);
           if (syncUrl) updateUrl(variant.id);
+          selectVariantMedia(variant.id);
         } else if (addBtn) {
           addBtn.disabled = true;
           addBtn.textContent = addBtn.getAttribute('data-label-unavailable');
@@ -1211,6 +1263,7 @@
         select.addEventListener('change', function () {
           applyOption(select.selectedOptions[0]);
           updateUrl(select.value);
+          selectVariantMedia(select.value);
         });
       }
 
