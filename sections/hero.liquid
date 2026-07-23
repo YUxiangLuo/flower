@@ -383,6 +383,7 @@
       var index = 0;
       var timer = null;
       var leaveTimer = null;
+      var hovering = false;
 
       /* Track every listener we add so the section can be torn down cleanly
          when the theme editor reloads it (shopify:section:unload). */
@@ -436,6 +437,7 @@
 
       function start() {
         stop();
+        if (hovering) return;
         if (hero.getAttribute('data-autoplay') !== 'true') return;
         if (reduced.matches) return;
         timer = setInterval(function () {
@@ -467,8 +469,19 @@
         });
       });
 
-      on(hero, 'mouseenter', stop);
-      on(hero, 'mouseleave', start);
+      /* Pause while the pointer is genuinely moving over the hero. We key off
+         mousemove rather than mouseenter because a browser fires a synthetic
+         mouseenter on whatever element sits under a stationary cursor when the
+         page loads; with plain mouseenter that spurious event would pause
+         autoplay on load and leave it stuck until the pointer moved. */
+      on(hero, 'mousemove', function () {
+        hovering = true;
+        stop();
+      });
+      on(hero, 'mouseleave', function () {
+        hovering = false;
+        start();
+      });
       on(hero, 'focusin', stop);
       on(hero, 'focusout', function (event) {
         if (!hero.contains(event.relatedTarget)) start();
