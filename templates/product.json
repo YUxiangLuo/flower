@@ -62,7 +62,39 @@
         "care"
       ],
       "settings": {}
+    },
+    "reviews": {
+      "type": "product-reviews",
+      "blocks": {
+        "r1": {
+          "type": "review",
+          "settings": {
+            "quote": "This pressed flower frame is absolutely breathtaking. Even more beautiful in person.",
+            "author": "Sarah M."
+          }
+        },
+        "r2": {
+          "type": "review",
+          "settings": {
+            "quote": "It's great, very beautiful — the colours are so vivid and it arrived perfectly packed.",
+            "author": "Odysseas M."
+          }
+        },
+        "r3": {
+          "type": "review",
+          "settings": {
+            "quote": "So pleased with my order. Will definitely be purchasing more as gifts.",
+            "author": "Miss E."
+          }
+        }
+      },
+      "block_order": ["r1", "r2", "r3"],
+      "settings": {}
+    },
+    "related": {
+      "type": "product-recommendations",
+      "settings": {}
     }
   },
-  "order": ["main"]
+  "order": ["main", "reviews", "related"]
 }
