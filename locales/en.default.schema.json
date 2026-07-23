@@ -183,7 +183,7 @@
       "name": "Gallery",
       "eyebrow": "Eyebrow",
       "heading": "Heading",
-      "feature_first": "Feature first image",
+      "columns": "Columns",
       "block_name": "Image",
       "image": "Image"
     },
