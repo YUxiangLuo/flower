@@ -68,8 +68,19 @@
   }
 
   @media (max-width: 749px) {
+    /* Stack into a single left-aligned checklist so the letter-spaced labels
+       aren't forced to wrap in a cramped two-column layout. The block is
+       centered while the items align left, keeping the dots in one column. */
     .giftassure__list {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .giftassure__item {
+      justify-content: flex-start;
+      text-align: left;
     }
   }
 {% endstylesheet %}
