@@ -1,0 +1,203 @@
+{% comment %}
+  A block-driven FAQ built on native <details>/<summary> elements, so it's
+  keyboard-accessible and needs no JavaScript. Each block is one question.
+{% endcomment %}
+
+<div class="faq faq--{{ section.settings.background }} full-width">
+  <div class="faq__inner">
+    <header class="faq__header">
+      {% if section.settings.eyebrow != blank %}
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="faq__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+    </header>
+
+    <div class="faq__list">
+      {% for block in section.blocks %}
+        <details class="faq__item" {{ block.shopify_attributes }}>
+          <summary class="faq__question">
+            <span>{{ block.settings.question }}</span>
+            <svg class="faq__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="var(--icon-stroke-width)"
+                d="M4.5 7.5 10 13l5.5-5.5"
+              />
+            </svg>
+          </summary>
+          <div class="faq__answer">{{ block.settings.answer }}</div>
+        </details>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .faq--page {
+    background-color: var(--color-background);
+  }
+  .faq--surface {
+    background-color: var(--color-surface);
+  }
+  .faq--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .faq__inner {
+    max-width: 48rem;
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+  }
+
+  .faq__header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .faq__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: var(--text-xl);
+    line-height: 1.1;
+  }
+
+  .faq__item {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .faq__item:last-child {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .faq__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding-block: var(--space-md);
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-heading--family);
+    font-size: var(--text-md);
+    line-height: 1.4;
+  }
+
+  /* Hide the default disclosure triangle across browsers. */
+  .faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__icon {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-accent);
+    transition: transform var(--duration-ui) var(--ease-out);
+  }
+
+  .faq__item[open] .faq__icon {
+    transform: rotate(180deg);
+  }
+
+  .faq__answer {
+    padding-bottom: var(--space-md);
+    max-width: 42rem;
+    line-height: 1.75;
+    color: var(--color-muted);
+  }
+
+  .faq__answer > * + * {
+    margin-top: var(--space-sm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq__icon {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.faq.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.faq.eyebrow",
+      "default": "Good to know"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.faq.heading",
+      "default": "Frequently asked questions"
+    },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.faq.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "page"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "t:sections.faq.block_name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "t:sections.faq.question",
+          "default": "How long does a keepsake take to make?"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "t:sections.faq.answer",
+          "default": "<p>Each piece is pressed and framed by hand, so orders typically ship within 2–3 weeks. We'll email you the moment yours is on its way.</p>"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "t:sections.faq.name",
+      "blocks": [
+        {
+          "type": "question",
+          "settings": {
+            "question": "How long does a keepsake take to make?",
+            "answer": "<p>Each piece is pressed and framed by hand, so orders typically ship within 2–3 weeks. We'll email you the moment yours is on its way.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "Can I send my own flowers to be pressed?",
+            "answer": "<p>Absolutely. Choose a bespoke keepsake at checkout and we'll send you simple instructions for posting the flowers that mean the most.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "How do I care for my pressed-flower art?",
+            "answer": "<p>Keep it out of direct sunlight and wipe the glass with a dry cloth. Your keepsake is made to hold its colour for years.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

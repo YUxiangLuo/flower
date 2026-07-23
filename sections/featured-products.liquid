@@ -13,7 +13,7 @@
     <header class="featured__header">
       <div>
         {% if section.settings.eyebrow != blank %}
-          <p class="featured__eyebrow">{{ section.settings.eyebrow }}</p>
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
         {% endif %}
         {% if section.settings.heading != blank %}
           <h2 class="featured__heading">{{ section.settings.heading }}</h2>
@@ -65,18 +65,10 @@
     margin-bottom: clamp(2rem, 4vw, 3.5rem);
   }
 
-  .featured__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
-    margin-bottom: 0.9rem;
-  }
-
   .featured__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    font-size: var(--text-xl);
     line-height: 1.1;
   }
 
@@ -91,7 +83,7 @@
     text-decoration: none;
     padding-bottom: 0.2rem;
     border-bottom: 1px solid var(--color-line);
-    transition: border-color 0.4s ease;
+    transition: border-color var(--duration-ui) ease;
   }
 
   .featured__view-all:hover,

@@ -7,7 +7,7 @@
   <div class="testimonials__inner">
     <header class="testimonials__header">
       {% if section.settings.eyebrow != blank %}
-        <p class="testimonials__eyebrow">{{ section.settings.eyebrow }}</p>
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
       {% endif %}
       {% if section.settings.heading != blank %}
         <h2 class="testimonials__heading">{{ section.settings.heading }}</h2>
@@ -18,7 +18,7 @@
       {% for block in section.blocks %}
         <figure class="testimonial" {{ block.shopify_attributes }}>
           {% if block.settings.rating > 0 %}
-            <div class="testimonial__stars" aria-label="{{ block.settings.rating }}">
+            <div class="testimonial__stars" aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating }}">
               {% for i in (1..block.settings.rating) %}
                 <span aria-hidden="true">&#9733;</span>
               {% endfor %}
@@ -51,18 +51,10 @@
     margin-bottom: clamp(2rem, 4vw, 3.5rem);
   }
 
-  .testimonials__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
-    margin-bottom: 0.9rem;
-  }
-
   .testimonials__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+    font-size: var(--text-xl);
     line-height: 1.1;
   }
 

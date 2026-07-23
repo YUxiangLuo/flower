@@ -193,6 +193,7 @@
       "image_position": "Image position",
       "position_left": "Left",
       "position_right": "Right",
+      "background": "Background",
       "eyebrow": "Eyebrow",
       "heading": "Heading",
       "body": "Body",
@@ -241,6 +242,32 @@
       "button_link": "Button link",
       "background_color": "Background color",
       "text_color": "Text color"
+    },
+    "newsletter": {
+      "name": "Newsletter",
+      "background": "Background",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "subheading": "Subheading"
+    },
+    "faq": {
+      "name": "FAQ",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "background": "Background",
+      "block_name": "Question",
+      "question": "Question",
+      "answer": "Answer"
+    },
+    "rich_text": {
+      "name": "Rich text",
+      "background": "Background",
+      "content_width": "Content width",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "body": "Body",
+      "button_label": "Button label",
+      "button_link": "Button link"
     }
   }
 }

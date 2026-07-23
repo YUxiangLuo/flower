@@ -115,3 +115,81 @@ body {
 .shopify-section > .full-width {
   grid-column: 1 / -1;
 }
+
+/** Shared components
+ *
+ * Buttons and the eyebrow label recur across sections, blocks and pages, so
+ * they live here once instead of being redefined per section. Drive colour on
+ * the dark/overlay variant with the local `--button-bg` / `--button-text`
+ * custom properties.
+ */
+
+.eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  margin-bottom: var(--space-sm);
+}
+
+.button {
+  display: inline-block;
+  padding: 0.9rem 2.4rem;
+  font-size: 0.8rem;
+  letter-spacing: var(--tracking-button);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background-color: transparent;
+  transition: background-color var(--duration-ui) ease, color var(--duration-ui) ease,
+    border-color var(--duration-ui) ease;
+}
+
+/* Outline button for light bands: foreground border that fills on hover. */
+.button--outline {
+  color: var(--color-foreground);
+  border-color: var(--color-foreground);
+}
+
+.button--outline:hover,
+.button--outline:focus-visible {
+  background-color: var(--color-foreground);
+  color: var(--color-background);
+}
+
+/* Solid button: filled with foreground, inverts on hover. */
+.button--solid {
+  background-color: var(--color-foreground);
+  color: var(--color-background);
+  border-color: var(--color-foreground);
+}
+
+.button--solid:hover,
+.button--solid:focus-visible {
+  background-color: transparent;
+  color: var(--color-foreground);
+}
+
+/* On-dark / overlay button, coloured via local custom properties. */
+.button--on-dark {
+  background-color: var(--button-bg, #fff);
+  color: var(--button-text, #1a1a1a);
+  border-color: var(--button-bg, #fff);
+}
+
+.button--on-dark:hover,
+.button--on-dark:focus-visible {
+  background-color: transparent;
+  color: var(--button-bg, #fff);
+}
+
+/* Visually hide content while keeping it available to screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

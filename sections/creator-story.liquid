@@ -4,47 +4,62 @@
   editorial composition.
 {% endcomment %}
 
-<div class="creator creator--{{ section.settings.image_position }}">
-  <div class="creator__media">
-    {% if section.settings.image %}
-      {{
-        section.settings.image
-        | image_url: width: 1200
-        | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200'
-      }}
-    {% else %}
-      {{ 'image' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}
-    {% endif %}
-  </div>
+<div class="creator creator--{{ section.settings.background }} full-width">
+  <div class="creator__inner creator--{{ section.settings.image_position }}">
+    <div class="creator__media">
+      {% if section.settings.image %}
+        {{
+          section.settings.image
+          | image_url: width: 1200
+          | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: section.settings.image.alt | default: section.settings.heading
+        }}
+      {% else %}
+        {{ 'image' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}
+      {% endif %}
+    </div>
 
-  <div class="creator__content">
-    {% if section.settings.eyebrow != blank %}
-      <p class="creator__eyebrow">{{ section.settings.eyebrow }}</p>
-    {% endif %}
-    {% if section.settings.heading != blank %}
-      <h2 class="creator__heading">{{ section.settings.heading }}</h2>
-    {% endif %}
-    {% if section.settings.body != blank %}
-      <div class="creator__body">{{ section.settings.body }}</div>
-    {% endif %}
-    {% if section.settings.signature != blank %}
-      <p class="creator__signature">{{ section.settings.signature }}</p>
-    {% endif %}
-    {% if section.settings.button_label != blank %}
-      <a class="creator__button" href="{{ section.settings.button_link | default: '#' }}">
-        {{ section.settings.button_label }}
-      </a>
-    {% endif %}
+    <div class="creator__content">
+      {% if section.settings.eyebrow != blank %}
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="creator__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+      {% if section.settings.body != blank %}
+        <div class="creator__body">{{ section.settings.body }}</div>
+      {% endif %}
+      {% if section.settings.signature != blank %}
+        <p class="creator__signature">{{ section.settings.signature }}</p>
+      {% endif %}
+      {% if section.settings.button_label != blank %}
+        <a class="button button--outline creator__button" href="{{ section.settings.button_link | default: '#' }}">
+          {{ section.settings.button_label }}
+        </a>
+      {% endif %}
+    </div>
   </div>
 </div>
 
 {% stylesheet %}
-  .creator {
+  .creator--page {
+    background-color: var(--color-background);
+  }
+  .creator--surface {
+    background-color: var(--color-surface);
+  }
+  .creator--surface-deep {
+    background-color: var(--color-surface-deep);
+  }
+
+  .creator__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
     display: grid;
     grid-template-columns: 5fr 6fr;
     align-items: center;
     gap: clamp(2rem, 6vw, 5.5rem);
-    padding-block: var(--section-spacing);
   }
 
   .creator--right .creator__media {
@@ -74,17 +89,15 @@
     max-width: 34rem;
   }
 
-  .creator__eyebrow {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent-strong);
+  /* The flex gap handles spacing, so drop the shared eyebrow's margin here. */
+  .creator__content .eyebrow {
+    margin-bottom: 0;
   }
 
   .creator__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(2rem, 3.5vw, 3.1rem);
+    font-size: var(--text-2xl);
     line-height: 1.15;
   }
 
@@ -94,7 +107,7 @@
   }
 
   .creator__body > * + * {
-    margin-top: 1rem;
+    margin-top: var(--space-sm);
   }
 
   .creator__signature {
@@ -106,25 +119,11 @@
 
   .creator__button {
     align-self: flex-start;
-    margin-top: 1rem;
-    padding: 0.9rem 2.4rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-foreground);
-    text-decoration: none;
-    border: 1px solid var(--color-foreground);
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  .creator__button:hover,
-  .creator__button:focus-visible {
-    background-color: var(--color-foreground);
-    color: var(--color-background);
+    margin-top: var(--space-sm);
   }
 
   @media (max-width: 749px) {
-    .creator {
+    .creator__inner {
       grid-template-columns: 1fr;
       gap: 2rem;
     }
@@ -161,6 +160,17 @@
         { "value": "right", "label": "t:sections.creator.position_right" }
       ],
       "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "t:sections.creator.background",
+      "options": [
+        { "value": "page", "label": "t:options.background.page" },
+        { "value": "surface", "label": "t:options.background.surface" },
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+      ],
+      "default": "page"
     },
     {
       "type": "text",

@@ -61,7 +61,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--duration-media) var(--ease-out);
   }
 
   .product-card:hover .product-card__image,
@@ -90,7 +90,7 @@
   .product-card__title {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: 1.05rem;
+    font-size: var(--text-md);
     line-height: 1.3;
   }
 
