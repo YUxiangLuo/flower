@@ -384,6 +384,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    /* Let the grid track shrink to its fr share instead of being widened by
+       the thumbnail strip's intrinsic width (default min-width is auto). */
+    min-width: 0;
   }
 
   .product__stage {
@@ -427,6 +430,8 @@
     gap: 0.6rem;
     overflow-x: auto;
     padding-bottom: 0.25rem;
+    /* Scroll the strip horizontally rather than letting it widen the column. */
+    min-width: 0;
   }
 
   .product__thumb {
