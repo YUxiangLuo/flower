@@ -157,7 +157,7 @@
       "type": "rich-text",
       "settings": { "background": "surface" }
     },
-    "faq": {
+    "questions": {
       "type": "faq",
       "blocks": {
         "q1": {
@@ -192,7 +192,7 @@
         "text_color": "#fcfaf4"
       }
     },
-    "newsletter": {
+    "signup": {
       "type": "newsletter",
       "settings": { "background": "surface" }
     }
@@ -208,8 +208,8 @@
     "assurance",
     "creator",
     "richtext",
-    "faq",
+    "questions",
     "giftcta",
-    "newsletter"
+    "signup"
   ]
 }
