@@ -1062,8 +1062,20 @@
           var source = sources[i];
           if (!source) return;
           show(i);
-          lightboxImg.src = source.src;
           lightboxImg.alt = source.alt;
+          /* Show the already-loaded gallery image immediately so switching
+             feels instant, then upgrade to the full-resolution source once it
+             downloads. Guard the swap so it's ignored if the user navigated on
+             before it finished. */
+          var stageImg = items[i].querySelector('img');
+          lightboxImg.src = (stageImg && (stageImg.currentSrc || stageImg.src)) || source.src;
+          if (source.src) {
+            var full = new Image();
+            full.onload = function () {
+              if (index === i) lightboxImg.src = source.src;
+            };
+            full.src = source.src;
+          }
           if (!lightbox.open) lightbox.showModal();
         }
 
