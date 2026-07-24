@@ -30,6 +30,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install validation dependencies
+        run: sudo apt-get update && sudo apt-get install --yes ripgrep
+
       - name: Install Shopify CLI
         run: npm install --global @shopify/cli@4.5.2
 
