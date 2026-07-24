@@ -1,0 +1,27 @@
+{% doc %}
+  Renders the product description and merchant-configured specifications.
+
+  @param {product} product - The product whose description is displayed.
+  @param {block[]} spec_blocks - Specification blocks from the product section.
+
+  @example
+  {% render 'product-story', product: product, spec_blocks: spec_blocks %}
+{% enddoc %}
+
+{% if product.description != blank or spec_blocks.size > 0 %}
+  <div class="product__story{% if spec_blocks.size > 0 and product.description != blank %} product__story--split{% endif %}">
+    {% if product.description != blank %}
+      <div class="product__story-body">{{ product.description }}</div>
+    {% endif %}
+    {% if spec_blocks.size > 0 %}
+      <dl class="product__specs">
+        {% for block in spec_blocks %}
+          <div class="product__spec" {{ block.shopify_attributes }}>
+            <dt class="product__spec-label">{{ block.settings.label | escape }}</dt>
+            <dd class="product__spec-value">{{ block.settings.value | escape }}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+    {% endif %}
+  </div>
+{% endif %}

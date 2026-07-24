@@ -1,3 +1,17 @@
+{% liquid
+  assign show_country_selector = false
+  assign show_language_selector = false
+
+  if section.settings.show_localization
+    if localization.available_countries.size > 1
+      assign show_country_selector = true
+    endif
+    if localization.available_languages.size > 1
+      assign show_language_selector = true
+    endif
+  endif
+%}
+
 <footer
   class="footer full-width"
   style="--footer-bg: {{ section.settings.background_color }}; --footer-text: {{ section.settings.text_color }};"
@@ -5,7 +19,9 @@
   <div class="footer__inner">
     <div class="footer__top">
       <div class="footer__brand">
-        <a class="footer__logo" href="{{ routes.root_url }}">{{ shop.name }}</a>
+        <a class="footer__logo" href="{{ routes.root_url }}" style="--logo-width: {{ settings.logo_width }}px">
+          {% render 'brand-mark', css_class: 'footer__logo-mark', width: settings.logo_width %}
+        </a>
         {% if section.settings.tagline != blank %}
           <p class="footer__tagline">{{ section.settings.tagline }}</p>
         {% endif %}
@@ -43,7 +59,7 @@
       {% for block in section.blocks %}
         <div class="footer__column" {{ block.shopify_attributes }}>
           {% if block.settings.heading != blank %}
-            <h3 class="footer__column-title">{{ block.settings.heading }}</h3>
+            <h2 class="footer__column-title">{{ block.settings.heading }}</h2>
           {% endif %}
 
           {% case block.type %}
@@ -64,18 +80,21 @@
       {% if section.settings.show_newsletter %}
         <div class="footer__column footer__newsletter">
           {% if section.settings.newsletter_heading != blank %}
-            <h3 class="footer__column-title">{{ section.settings.newsletter_heading }}</h3>
+            <h2 class="footer__column-title">{{ section.settings.newsletter_heading }}</h2>
           {% endif %}
 
-          {% form 'customer' %}
+          {% assign footer_newsletter_form_id = 'FooterNewsletterForm-' | append: section.id %}
+          {% form 'customer', id: footer_newsletter_form_id %}
             {% if form.posted_successfully? %}
               <p class="footer__newsletter-success">{{ 'sections.footer.newsletter_success' | t }}</p>
             {% else %}
               <input type="hidden" name="contact[tags]" value="newsletter">
               <div class="footer__newsletter-field">
-                <label class="visually-hidden" for="footer-email">{{ 'sections.footer.email_placeholder' | t }}</label>
+                <label class="visually-hidden" for="FooterEmail-{{ section.id }}">
+                  {{- 'sections.footer.email_placeholder' | t -}}
+                </label>
                 <input
-                  id="footer-email"
+                  id="FooterEmail-{{ section.id }}"
                   type="email"
                   name="contact[email]"
                   placeholder="{{ 'sections.footer.email_placeholder' | t }}"
@@ -84,6 +103,9 @@
                 >
                 <button type="submit" aria-label="{{ 'sections.footer.subscribe' | t }}">&rarr;</button>
               </div>
+              {% if form.errors %}
+                <div class="footer__newsletter-error">{{ form.errors | default_errors }}</div>
+              {% endif %}
             {% endif %}
           {% endform %}
         </div>
@@ -91,6 +113,42 @@
     </div>
 
     <div class="footer__bottom">
+      {% if show_country_selector or show_language_selector %}
+        {% assign footer_localization_form_id = 'FooterLocalizationForm-' | append: section.id %}
+        {% form 'localization', id: footer_localization_form_id, class: 'footer__localization' %}
+          {% if show_country_selector %}
+            <label for="FooterCountry-{{ section.id }}">{{ 'sections.footer.country' | t }}</label>
+            <select id="FooterCountry-{{ section.id }}" name="country_code">
+              {% for available_country in localization.available_countries %}
+                <option
+                  value="{{ available_country.iso_code }}"
+                  {% if available_country.iso_code == localization.country.iso_code %}selected{% endif %}
+                >
+                  {{ available_country.name | escape }}
+                  ({{ available_country.currency.iso_code }} {{ available_country.currency.symbol }})
+                </option>
+              {% endfor %}
+            </select>
+          {% endif %}
+
+          {% if show_language_selector %}
+            <label for="FooterLanguage-{{ section.id }}">{{ 'sections.footer.language' | t }}</label>
+            <select id="FooterLanguage-{{ section.id }}" name="locale_code">
+              {% for available_language in localization.available_languages %}
+                <option
+                  value="{{ available_language.iso_code }}"
+                  {% if available_language.iso_code == localization.language.iso_code %}selected{% endif %}
+                >
+                  {{ available_language.endonym_name | capitalize | escape }}
+                </option>
+              {% endfor %}
+            </select>
+          {% endif %}
+
+          <button type="submit">{{ 'sections.footer.update_localization' | t }}</button>
+        {% endform %}
+      {% endif %}
+
       <p class="footer__copyright">
         &copy; {{ 'now' | date: '%Y' }} {{ shop.name }} · {{ powered_by_link }}
       </p>
@@ -130,6 +188,14 @@
     font-size: 1.4rem;
     color: inherit;
     text-decoration: none;
+  }
+
+  .footer__logo-mark {
+    display: block;
+    width: min(var(--logo-width), 100%);
+    max-height: 3.5rem;
+    object-fit: contain;
+    object-position: left center;
   }
 
   .footer__tagline {
@@ -231,6 +297,11 @@
     outline: none;
   }
 
+  .footer__newsletter-field:focus-within {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
   .footer__newsletter-field button {
     background: transparent;
     border: 0;
@@ -245,6 +316,11 @@
     opacity: 0.85;
   }
 
+  .footer__newsletter-error {
+    margin-top: var(--space-xs);
+    font-size: 0.85rem;
+  }
+
   .footer__bottom {
     display: flex;
     align-items: center;
@@ -253,6 +329,31 @@
     gap: 1rem;
     padding-top: 2rem;
     border-top: 1px solid rgb(255 255 255 / 0.12);
+  }
+
+  .footer__localization {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .footer__localization label {
+    font-size: 0.75rem;
+  }
+
+  .footer__localization select,
+  .footer__localization button {
+    padding: 0.45rem 0.65rem;
+    border: 1px solid currentColor;
+    border-radius: var(--style-border-radius-inputs);
+    color: inherit;
+    background-color: var(--footer-bg);
+  }
+
+  .footer__localization button {
+    cursor: pointer;
   }
 
   .footer__copyright {
@@ -345,6 +446,12 @@
       "type": "checkbox",
       "id": "show_payment_icons",
       "label": "t:labels.show_payment_icons",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_localization",
+      "label": "t:sections.footer.show_localization",
       "default": true
     },
     {

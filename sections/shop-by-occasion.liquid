@@ -3,29 +3,42 @@
   Uses section blocks so merchants can add, remove and reorder occasions.
 {% endcomment %}
 
-<div class="occasion">
-  <header class="occasion__header">
-    {% if section.settings.eyebrow != blank %}
-      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-    {% endif %}
-    {% if section.settings.heading != blank %}
-      <h2 class="occasion__heading">{{ section.settings.heading }}</h2>
-    {% endif %}
-  </header>
+{% liquid
+  assign visible_card_count = 0
+  for block in section.blocks
+    if block.settings.link != blank
+      assign visible_card_count = visible_card_count | plus: 1
+    elsif request.design_mode
+      assign visible_card_count = visible_card_count | plus: 1
+    endif
+  endfor
+%}
 
-  <div class="occasion__grid" style="--columns: {{ section.blocks.size }}">
-    {% for block in section.blocks %}
-      <a
-        class="occasion__card"
-        href="{{ block.settings.link | default: '#' }}"
-        {{ block.shopify_attributes }}
-      >
+{% if visible_card_count > 0 %}
+  {% capture occasion_image_sizes %}
+    {%- render 'grid-image-sizes', columns: visible_card_count, two_column_breakpoint: 750 -%}
+  {% endcapture %}
+  {% assign occasion_image_sizes = occasion_image_sizes | strip %}
+
+  <div class="occasion">
+    <header class="occasion__header">
+      {% if section.settings.eyebrow != blank %}
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="occasion__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+    </header>
+
+    <div class="occasion__grid" style="--columns: {{ visible_card_count }}">
+      {% for block in section.blocks %}
+        {% capture occasion_card_content %}
         <div class="occasion__media">
           {% if block.settings.image %}
             {{
               block.settings.image
               | image_url: width: 900, height: 1100, crop: 'center'
-              | image_tag: loading: 'lazy', class: 'occasion__image', alt: block.settings.title
+              | image_tag: loading: 'lazy', class: 'occasion__image', sizes: occasion_image_sizes, widths: '360, 540, 720, 900', alt: block.settings.title
             }}
           {% else %}
             {{ 'lifestyle-2' | placeholder_svg_tag: 'occasion__image occasion__image--placeholder' }}
@@ -35,10 +48,21 @@
           <span>{{ block.settings.title }}</span>
           <span class="occasion__arrow" aria-hidden="true">&rarr;</span>
         </h3>
-      </a>
-    {% endfor %}
+        {% endcapture %}
+
+        {% if block.settings.link != blank %}
+          <a class="occasion__card" href="{{ block.settings.link }}" {{ block.shopify_attributes }}>
+            {{ occasion_card_content }}
+          </a>
+        {% elsif request.design_mode %}
+          <div class="occasion__card" {{ block.shopify_attributes }}>
+            {{ occasion_card_content }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .occasion {

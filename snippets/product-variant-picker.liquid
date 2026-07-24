@@ -1,0 +1,74 @@
+{% doc %}
+  Renders product option controls and the canonical variant id select.
+
+  @param {product} product - The product whose variants are selectable.
+  @param {variant} current_variant - The initially selected variant.
+  @param {string} section_id - A unique section id used for form control ids.
+
+  @example
+  {% render 'product-variant-picker', product: product, current_variant: product.selected_or_first_available_variant, section_id: section.id %}
+{% enddoc %}
+
+{% unless product.has_only_default_variant %}
+  <div class="product__options">
+    {% for option in product.options_with_values %}
+      <fieldset class="product__option" data-option-position="{{ option.position }}">
+        <legend class="product__option-name">{{ option.name | escape }}</legend>
+        <div class="product__swatches">
+          {% for value in option.values %}
+            <label class="product__swatch">
+              <input
+                type="radio"
+                name="option-{{ option.position }}"
+                value="{{ value | escape }}"
+                data-option-input
+                {% if option.selected_value == value %}checked{% endif %}
+              >
+              {% if value.swatch.image %}
+                <span
+                  class="product__swatch-chip"
+                  style="background-image: url({{ value.swatch.image | image_url: width: 80 }})"
+                ></span>
+                <span class="visually-hidden">{{ value | escape }}</span>
+              {% elsif value.swatch.color %}
+                <span
+                  class="product__swatch-chip"
+                  style="background-color: {{ value.swatch.color }}"
+                ></span>
+                <span class="visually-hidden">{{ value | escape }}</span>
+              {% else %}
+                <span class="product__swatch-label">{{ value | escape }}</span>
+              {% endif %}
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+  </div>
+{% endunless %}
+
+<div
+  class="product__variant-select"
+  data-variant-select-wrapper
+  {% if product.has_only_default_variant %}hidden{% endif %}
+>
+  <label class="visually-hidden" for="VariantSelect-{{ section_id }}">{{ 'product.variant' | t }}</label>
+  <select name="id" id="VariantSelect-{{ section_id }}" data-variant-select>
+    {% for variant in product.variants %}
+      <option
+        value="{{ variant.id }}"
+        {% if variant == current_variant %}selected{% endif %}
+        {% unless variant.available %}disabled{% endunless %}
+        data-price="{{ variant.price | money | escape }}"
+        {% if variant.compare_at_price > variant.price %}data-compare="{{ variant.compare_at_price | money | escape }}"{% endif %}
+        data-available="{{ variant.available }}"
+      >
+        {% if variant.available %}
+          {{ variant.title | escape }} &middot; {{ variant.price | money }}
+        {% else %}
+          {{ variant.title | escape }} &middot; {{ 'product.sold_out' | t }}
+        {% endif %}
+      </option>
+    {% endfor %}
+  </select>
+</div>

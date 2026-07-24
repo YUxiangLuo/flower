@@ -26,7 +26,13 @@
       </details>
     {% endif %}
 
-    <a class="header__logo" href="{{ routes.root_url }}">{{ shop.name }}</a>
+    <a class="header__logo" href="{{ routes.root_url }}" style="--logo-width: {{ settings.logo_width }}px">
+      {% render 'brand-mark',
+        css_class: 'header__logo-mark',
+        width: settings.logo_width,
+        loading: 'eager'
+      %}
+    </a>
 
     {% if section.settings.menu.links.size > 0 %}
       <nav class="header__nav">
@@ -45,7 +51,11 @@
         </shopify-account>
       {% endif %}
 
-      <a class="header__action" href="{{ routes.cart_url }}">
+      <a
+        class="header__action"
+        href="{{ routes.cart_url }}"
+        aria-label="{{ 'sections.header.cart' | t: count: cart.item_count }}"
+      >
         {{ 'icon-cart.svg' | inline_asset_content }}
         {% if cart.item_count > 0 %}
           <sup class="header__cart-count">{{ cart.item_count }}</sup>
@@ -89,6 +99,14 @@
     color: var(--color-foreground);
     text-decoration: none;
     white-space: nowrap;
+  }
+
+  .header__logo-mark {
+    display: block;
+    width: min(var(--logo-width), 100%);
+    max-height: 3rem;
+    object-fit: contain;
+    object-position: left center;
   }
 
   .header__nav {

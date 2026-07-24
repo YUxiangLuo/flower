@@ -4,6 +4,11 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
+{% capture collection_image_sizes %}
+  {%- render 'grid-image-sizes', columns: section.settings.columns -%}
+{% endcapture %}
+{% assign collection_image_sizes = collection_image_sizes | strip %}
+
 <div class="collections">
   <header class="collections__header">
     {% if section.settings.eyebrow != blank %}
@@ -20,7 +25,7 @@
             {{
               collection.featured_image
               | image_url: width: 900, height: 1100, crop: 'center'
-              | image_tag: loading: 'lazy', class: 'collections__image', alt: collection.title
+              | image_tag: loading: 'lazy', class: 'collections__image', sizes: collection_image_sizes, widths: '360, 540, 720, 900', alt: collection.title
             }}
           {% else %}
             {{ 'collection-1' | placeholder_svg_tag: 'collections__image collections__image--placeholder' }}

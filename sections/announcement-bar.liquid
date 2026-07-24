@@ -3,8 +3,9 @@
   Ideal for promotions, shipping notices, or seasonal messages.
 {% endcomment %}
 
-<div
+<aside
   class="announcement full-width"
+  aria-label="{{ 'sections.announcement_bar.label' | t }}"
   style="--bar-bg: {{ section.settings.background_color }}; --bar-text: {{ section.settings.text_color }};"
 >
   {% if section.settings.link != blank %}
@@ -17,7 +18,7 @@
   {% else %}
     <p class="announcement__inner">{{ section.settings.text }}</p>
   {% endif %}
-</div>
+</aside>
 
 {% stylesheet %}
   .announcement {

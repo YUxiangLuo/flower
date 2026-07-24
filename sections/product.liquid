@@ -16,73 +16,7 @@
 
 <div class="product" data-product>
   <div class="product__top">
-    <div class="product__gallery" data-gallery>
-      <div class="product__stage">
-        {% if product.media.size > 0 %}
-          {% for media in product.media %}
-            <div
-              class="product__stage-item{% if forloop.first %} is-active{% endif %}"
-              data-stage-item
-              data-media-index="{{ forloop.index0 }}"
-              data-media-id="{{ media.id }}"
-            >
-              {% if media.media_type == 'image' %}
-                <button
-                  type="button"
-                  class="product__zoom"
-                  data-zoom-open="{{ forloop.index0 }}"
-                  data-full="{{ media.preview_image | image_url: width: 2048 }}"
-                  aria-label="{{ 'sections.product.zoom' | t }}"
-                >
-                  {% if forloop.first %}
-                    {{
-                      media.preview_image
-                      | image_url: width: 1600
-                      | image_tag: loading: 'eager', fetchpriority: 'high', class: 'product__image', sizes: '(min-width: 750px) 50vw, 100vw', widths: '400, 600, 800, 1200, 1600', alt: media.preview_image.alt | default: product.title
-                    }}
-                  {% else %}
-                    {{
-                      media.preview_image
-                      | image_url: width: 1600
-                      | image_tag: loading: 'lazy', class: 'product__image', sizes: '(min-width: 750px) 50vw, 100vw', widths: '400, 600, 800, 1200, 1600', alt: media.preview_image.alt | default: product.title
-                    }}
-                  {% endif %}
-                </button>
-              {% else %}
-                {{ media | media_tag: class: 'product__image', image_size: '1600x' }}
-              {% endif %}
-            </div>
-          {% endfor %}
-        {% else %}
-          <div class="product__stage-item is-active" data-stage-item data-media-index="0">
-            {{ 'product-1' | placeholder_svg_tag: 'product__image product__image--placeholder' }}
-          </div>
-        {% endif %}
-      </div>
-
-      {% if product.media.size > 1 %}
-        <div class="product__thumbs" data-thumbs role="group" aria-label="{{ 'sections.product.thumbnails' | t }}">
-          {% for media in product.media %}
-            <button
-              type="button"
-              class="product__thumb{% if forloop.first %} is-active{% endif %}"
-              data-thumb="{{ forloop.index0 }}"
-              aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
-              aria-label="{{ 'sections.product.go_to_media' | t: index: forloop.index }}"
-            >
-              {{
-                media.preview_image
-                | image_url: width: 200, height: 200, crop: 'center'
-                | image_tag: loading: 'lazy', class: 'product__thumb-image', alt: ''
-              }}
-              {% if media.media_type != 'image' %}
-                <span class="product__thumb-badge" aria-hidden="true">&#9658;</span>
-              {% endif %}
-            </button>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
+    {% render 'product-media-gallery', product: product %}
 
     <div class="product__info">
       {% if section.settings.show_vendor and product.vendor != blank %}
@@ -124,142 +58,29 @@
       {% endif %}
 
       {% form 'product', product, class: 'product__form' %}
-        {% unless product.has_only_default_variant %}
-          <div class="product__options">
-            {% for option in product.options_with_values %}
-              <fieldset class="product__option" data-option-position="{{ option.position }}">
-                <legend class="product__option-name">{{ option.name }}</legend>
-                <div class="product__swatches">
-                  {% for value in option.values %}
-                    <label class="product__swatch">
-                      <input
-                        type="radio"
-                        name="option-{{ option.position }}"
-                        value="{{ value | escape }}"
-                        data-option-input
-                        {% if option.selected_value == value %}checked{% endif %}
-                      >
-                      {% if value.swatch.image %}
-                        <span
-                          class="product__swatch-chip"
-                          style="background-image: url({{ value.swatch.image | image_url: width: 80 }})"
-                        ></span>
-                        <span class="visually-hidden">{{ value }}</span>
-                      {% elsif value.swatch.color %}
-                        <span
-                          class="product__swatch-chip"
-                          style="background-color: {{ value.swatch.color }}"
-                        ></span>
-                        <span class="visually-hidden">{{ value }}</span>
-                      {% else %}
-                        <span class="product__swatch-label">{{ value }}</span>
-                      {% endif %}
-                    </label>
-                  {% endfor %}
-                </div>
-              </fieldset>
-            {% endfor %}
-          </div>
-        {% endunless %}
+        {% render 'product-variant-picker',
+          product: product,
+          current_variant: current_variant,
+          section_id: section.id
+        %}
+        {% render 'product-personalization-fields',
+          blocks: personalization_blocks,
+          heading: section.settings.personalization_heading
+        %}
+        {% render 'product-purchase-actions',
+          form: form,
+          current_variant: current_variant,
+          section_id: section.id
+        %}
+      {% endform %}
 
-        <div
-          class="product__variant-select"
-          data-variant-select-wrapper
-          {% if product.has_only_default_variant %}hidden{% endif %}
-        >
-          <label class="visually-hidden" for="variant-id">{{ 'product.variant' | t }}</label>
-          <select name="id" id="variant-id" data-variant-select>
-            {% for variant in product.variants %}
-              <option
-                value="{{ variant.id }}"
-                {% if variant == current_variant %}selected{% endif %}
-                {% unless variant.available %}disabled{% endunless %}
-                data-price="{{ variant.price | money }}"
-                {% if variant.compare_at_price > variant.price %}data-compare="{{ variant.compare_at_price | money }}"{% endif %}
-                data-available="{{ variant.available }}"
-              >
-                {% if variant.available %}
-                  {{ variant.title }} &middot; {{ variant.price | money }}
-                {% else %}
-                  {{ variant.title }} &middot; {{ 'product.sold_out' | t }}
-                {% endif %}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        {% if personalization_blocks.size > 0 %}
-          <div class="product__personalization">
-            {% if section.settings.personalization_heading != blank %}
-              <p class="product__personalization-title">{{ section.settings.personalization_heading }}</p>
-            {% endif %}
-            {% for block in personalization_blocks %}
-              <div class="product__field" {{ block.shopify_attributes }}>
-                <label class="product__field-label" for="prop-{{ block.id }}">
-                  {{ block.settings.label }}
-                  {% unless block.settings.required %}
-                    <span class="product__field-optional">{{ 'product.optional' | t }}</span>
-                  {% endunless %}
-                </label>
-                {% if block.settings.field_type == 'textarea' %}
-                  <textarea
-                    class="product__field-input"
-                    id="prop-{{ block.id }}"
-                    name="properties[{{ block.settings.label | escape }}]"
-                    rows="3"
-                    {% if block.settings.required %}required{% else %}data-property-optional{% endif %}
-                  ></textarea>
-                {% else %}
-                  <input
-                    class="product__field-input"
-                    type="text"
-                    id="prop-{{ block.id }}"
-                    name="properties[{{ block.settings.label | escape }}]"
-                    {% if block.settings.required %}required{% else %}data-property-optional{% endif %}
-                  >
-                {% endif %}
-              </div>
-            {% endfor %}
+      {% for block in section.blocks %}
+        {% if block.type == '@app' %}
+          <div class="product__app-block">
+            {% render block %}
           </div>
         {% endif %}
-
-        <div class="product__purchase">
-          <div class="product__quantity">
-            <span class="product__quantity-label">{{ 'product.quantity' | t }}</span>
-            <div class="product__stepper">
-              <button type="button" data-qty-step="-1" aria-label="{{ 'product.decrease_quantity' | t }}">&minus;</button>
-              <input
-                class="product__quantity-input"
-                type="number"
-                name="quantity"
-                value="1"
-                min="1"
-                data-qty-input
-              >
-              <button type="button" data-qty-step="1" aria-label="{{ 'product.increase_quantity' | t }}">+</button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            name="add"
-            class="product__add"
-            data-add-button
-            data-label-add="{{ 'product.add_to_cart' | t }}"
-            data-label-soldout="{{ 'product.sold_out' | t }}"
-            data-label-unavailable="{{ 'product.unavailable' | t }}"
-            {% unless current_variant.available %}disabled{% endunless %}
-          >
-            {% if current_variant.available %}
-              {{ 'product.add_to_cart' | t }}
-            {% else %}
-              {{ 'product.sold_out' | t }}
-            {% endif %}
-          </button>
-
-          {{ form | payment_button }}
-        </div>
-      {% endform %}
+      {% endfor %}
 
       {% if highlight_blocks.size > 0 %}
         <ul class="product__highlights">
@@ -288,59 +109,8 @@
     </div>
   </div>
 
-  {% if product.description != blank or spec_blocks.size > 0 %}
-    <div class="product__story{% if spec_blocks.size > 0 and product.description != blank %} product__story--split{% endif %}">
-      {% if product.description != blank %}
-        <div class="product__story-body">{{ product.description }}</div>
-      {% endif %}
-      {% if spec_blocks.size > 0 %}
-        <dl class="product__specs">
-          {% for block in spec_blocks %}
-            <div class="product__spec" {{ block.shopify_attributes }}>
-              <dt class="product__spec-label">{{ block.settings.label }}</dt>
-              <dd class="product__spec-value">{{ block.settings.value }}</dd>
-            </div>
-          {% endfor %}
-        </dl>
-      {% endif %}
-    </div>
-  {% endif %}
-
-  {% if image_media.size > 0 %}
-    <dialog class="product__lightbox" data-lightbox aria-label="{{ 'sections.product.gallery' | t }}">
-      <button
-        type="button"
-        class="product__lightbox-close"
-        data-lightbox-close
-        aria-label="{{ 'sections.product.close' | t }}"
-      >
-        {{- 'icon-close.svg' | inline_asset_content -}}
-      </button>
-      {% if image_media.size > 1 %}
-        <button
-          type="button"
-          class="product__lightbox-nav product__lightbox-nav--prev"
-          data-lightbox-prev
-          aria-label="{{ 'sections.product.previous_media' | t }}"
-        >
-          {{- 'icon-chevron.svg' | inline_asset_content -}}
-        </button>
-      {% endif %}
-      {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
-      <img class="product__lightbox-image" data-lightbox-image alt="">
-      {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
-      {% if image_media.size > 1 %}
-        <button
-          type="button"
-          class="product__lightbox-nav product__lightbox-nav--next"
-          data-lightbox-next
-          aria-label="{{ 'sections.product.next_media' | t }}"
-        >
-          {{- 'icon-chevron.svg' | inline_asset_content -}}
-        </button>
-      {% endif %}
-    </dialog>
-  {% endif %}
+  {% render 'product-story', product: product, spec_blocks: spec_blocks %}
+  {% render 'product-lightbox', image_media: image_media %}
 
   <script type="application/json" data-variants>{{ product.variants | json }}</script>
 
@@ -360,10 +130,6 @@
     }
   </script>
 </div>
-
-<script type="application/ld+json">
-  {{ product | structured_data }}
-</script>
 
 {% stylesheet %}
   .product {
@@ -1029,6 +795,23 @@
       var lightboxImg = lightbox ? lightbox.querySelector('[data-lightbox-image]') : null;
       var index = 0;
 
+      function pauseMedia(item) {
+        item.querySelectorAll('video').forEach(function (video) {
+          video.pause();
+        });
+        item.querySelectorAll('model-viewer').forEach(function (model) {
+          if (typeof model.pause === 'function') model.pause();
+        });
+        item.querySelectorAll('iframe').forEach(function (frame) {
+          if (!frame.contentWindow) return;
+          frame.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
+            '*'
+          );
+          frame.contentWindow.postMessage({ method: 'pause' }, '*');
+        });
+      }
+
       /* Cache a high-resolution source for each image so the lightbox shows
          full detail. Only image media carry a zoom button; video/model media
          render a poster <img> too, so key off the button, not the <img>, and
@@ -1049,7 +832,9 @@
         if (next >= items.length) next = 0;
         index = next;
         items.forEach(function (item, i) {
-          item.classList.toggle('is-active', i === index);
+          var active = i === index;
+          item.classList.toggle('is-active', active);
+          if (!active) pauseMedia(item);
         });
         thumbs.forEach(function (thumb, i) {
           var active = i === index;
@@ -1163,6 +948,7 @@
       var compareEl = root.querySelector('[data-compare]');
       var badgeEl = root.querySelector('[data-badge]');
       var addBtn = root.querySelector('[data-add-button]');
+      var paymentButton = root.querySelector('[data-payment-button]');
 
       var variants = [];
       var dataEl = root.querySelector('[data-variants]');
@@ -1196,8 +982,9 @@
 
       function findVariant(values) {
         return variants.find(function (variant) {
-          return values.every(function (value, index) {
-            return variant.options[index] === value;
+          if (values.length !== variant.options.length) return false;
+          return variant.options.every(function (value, index) {
+            return values[index] === value;
           });
         });
       }
@@ -1205,17 +992,23 @@
       /* Keeps ?variant= in the address bar in sync so the selection survives a
          refresh and can be shared. Uses replaceState to avoid filling up history. */
       function updateUrl(variantId) {
-        if (!variantId || !window.history || !window.history.replaceState) return;
+        if (!window.history || !window.history.replaceState) return;
         var url = new URL(window.location.href);
-        url.searchParams.set('variant', variantId);
+        if (variantId) {
+          url.searchParams.set('variant', variantId);
+        } else {
+          url.searchParams.delete('variant');
+        }
         window.history.replaceState({}, '', url.toString());
       }
 
       function applyOption(option) {
-        if (!option) return;
-        if (priceEl && option.dataset.price) priceEl.textContent = option.dataset.price;
+        if (priceEl) {
+          priceEl.hidden = !option;
+          if (option && option.dataset.price) priceEl.textContent = option.dataset.price;
+        }
         if (compareEl) {
-          if (option.dataset.compare) {
+          if (option && option.dataset.compare) {
             compareEl.textContent = option.dataset.compare;
             compareEl.hidden = false;
             if (badgeEl) badgeEl.hidden = false;
@@ -1225,17 +1018,20 @@
           }
         }
         if (addBtn) {
-          var available = option.dataset.available === 'true';
+          var available = Boolean(option && option.dataset.available === 'true');
           addBtn.disabled = !available;
-          addBtn.textContent = available
-            ? addBtn.getAttribute('data-label-add')
-            : addBtn.getAttribute('data-label-soldout');
+          if (!option) {
+            addBtn.textContent = addBtn.getAttribute('data-label-unavailable');
+          } else {
+            addBtn.textContent = available
+              ? addBtn.getAttribute('data-label-add')
+              : addBtn.getAttribute('data-label-soldout');
+          }
         }
+        if (paymentButton) paymentButton.hidden = !(option && option.dataset.available === 'true');
       }
 
-      /* Switch the gallery to the variant's featured media (when the merchant
-         has assigned one). No-op on first load: the gallery inits after the
-         buy box and already shows the first media. */
+      /* Switch the gallery to the variant's featured media when assigned. */
       function selectVariantMedia(variantId) {
         if (typeof root.selectMedia !== 'function') return;
         var mediaId = variantMedia[variantId];
@@ -1244,14 +1040,19 @@
 
       function onOptionChange(syncUrl) {
         var variant = findVariant(selectedValues());
-        if (variant && select) select.value = variant.id;
         if (variant && select) {
+          select.value = String(variant.id);
           applyOption(select.selectedOptions[0]);
           if (syncUrl) updateUrl(variant.id);
           selectVariantMedia(variant.id);
-        } else if (addBtn) {
-          addBtn.disabled = true;
-          addBtn.textContent = addBtn.getAttribute('data-label-unavailable');
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (select) {
+          /* Clear the previously valid id so accelerated checkout and any app
+             listeners cannot submit a stale variant for an invalid option set. */
+          select.value = '';
+          applyOption(null);
+          if (syncUrl) updateUrl(null);
+          select.dispatchEvent(new Event('change', { bubbles: true }));
         }
       }
 
@@ -1300,8 +1101,8 @@
     function initFrom(scope) {
       var root = scope.querySelector('[data-product]');
       if (!root) return;
-      initBuyBox(root);
       initGallery(root);
+      initBuyBox(root);
     }
 
     initFrom(document);
@@ -1325,7 +1126,7 @@
       "type": "checkbox",
       "id": "show_rating",
       "label": "t:sections.product.show_rating",
-      "default": true
+      "default": false
     },
     {
       "type": "text",
@@ -1341,6 +1142,9 @@
     }
   ],
   "blocks": [
+    {
+      "type": "@app"
+    },
     {
       "type": "personalization_field",
       "name": "t:sections.product.personalization_field",

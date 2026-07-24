@@ -54,7 +54,7 @@
                 | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: block.settings.image.alt | default: block.settings.heading
               }}
             {% endif %}
-          {% else %}
+          {% elsif request.design_mode %}
             {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
           {% endif %}
           <span class="hero__scrim" style="--scrim: {{ block.settings.overlay_opacity }}%"></span>
@@ -77,20 +77,22 @@
             <p class="hero__subheading">{{ block.settings.subheading }}</p>
           {% endif %}
 
-          {% if block.settings.button_label != blank %}
-            <a class="hero__button" href="{{ block.settings.button_link | default: '#' }}">
+          {% if block.settings.button_label != blank and block.settings.button_link != blank %}
+            <a class="hero__button" href="{{ block.settings.button_link }}">
               {{ block.settings.button_label }}
             </a>
           {% endif %}
         </div>
       </div>
     {% else %}
-      <div class="hero__slide" data-active>
-        <div class="hero__media">
-          {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
-          <span class="hero__scrim" style="--scrim: 30%"></span>
+      {% if request.design_mode %}
+        <div class="hero__slide" data-active>
+          <div class="hero__media">
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
+            <span class="hero__scrim" style="--scrim: 30%"></span>
+          </div>
         </div>
-      </div>
+      {% endif %}
     {% endfor %}
   </div>
 

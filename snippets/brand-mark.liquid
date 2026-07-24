@@ -1,0 +1,27 @@
+{% doc %}
+  Renders the configured store logo, falling back to the escaped shop name.
+
+  @param {string} css_class - Class applied to the image or fallback text.
+  @param {number} [width] - Display width in pixels. Defaults to the global logo width.
+  @param {string} [loading] - Image loading strategy. Defaults to lazy.
+
+  @example
+  {% render 'brand-mark', css_class: 'header__logo-mark', width: settings.logo_width, loading: 'eager' %}
+{% enddoc %}
+
+{% liquid
+  assign rendered_width = width | default: settings.logo_width
+  assign rendered_sizes = rendered_width | append: 'px'
+  assign loading = loading | default: 'lazy'
+  assign logo_alt = settings.logo.alt | default: shop.name | escape
+%}
+
+{% if settings.logo != blank %}
+  {{
+    settings.logo
+    | image_url: width: 600
+    | image_tag: class: css_class, width: rendered_width, widths: '80, 120, 160, 200, 240, 320, 400, 600', sizes: rendered_sizes, loading: loading, alt: logo_alt
+  }}
+{% else %}
+  <span class="{{ css_class }}">{{ shop.name | escape }}</span>
+{% endif %}

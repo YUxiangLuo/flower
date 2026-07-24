@@ -3,36 +3,60 @@
   Each testimonial is a block so merchants can manage social proof.
 {% endcomment %}
 
-<div class="testimonials full-width">
-  <div class="testimonials__inner">
-    <header class="testimonials__header">
-      {% if section.settings.eyebrow != blank %}
-        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="testimonials__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-    </header>
+{% liquid
+  assign testimonial_count = 0
+  for block in section.blocks
+    if block.settings.quote != blank
+      assign testimonial_count = testimonial_count | plus: 1
+    elsif request.design_mode
+      assign testimonial_count = testimonial_count | plus: 1
+    endif
+  endfor
+%}
 
-    <div class="testimonials__grid">
-      {% for block in section.blocks %}
-        <figure class="testimonial" {{ block.shopify_attributes }}>
-          {% if block.settings.rating > 0 %}
-            <div class="testimonial__stars" aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating }}">
-              {% for i in (1..block.settings.rating) %}
-                <span aria-hidden="true">&#9733;</span>
-              {% endfor %}
+{% if testimonial_count > 0 %}
+  <div class="testimonials full-width">
+    <div class="testimonials__inner">
+      <header class="testimonials__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="testimonials__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </header>
+
+      <div class="testimonials__grid">
+        {% for block in section.blocks %}
+          {% if block.settings.quote != blank %}
+            <figure class="testimonial" {{ block.shopify_attributes }}>
+              {% if block.settings.rating > 0 %}
+                <div
+                  class="testimonial__stars"
+                  aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating }}"
+                >
+                  {% for i in (1..block.settings.rating) %}
+                    <span aria-hidden="true">&#9733;</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <blockquote class="testimonial__quote">{{ block.settings.quote | escape }}</blockquote>
+
+              {% if block.settings.author != blank %}
+                <figcaption class="testimonial__author">{{ block.settings.author | escape }}</figcaption>
+              {% endif %}
+            </figure>
+          {% elsif request.design_mode %}
+            <div class="testimonial testimonial--empty" {{ block.shopify_attributes }}>
+              {{ 'sections.testimonials.add_review' | t }}
             </div>
           {% endif %}
-
-          <blockquote class="testimonial__quote">{{ block.settings.quote }}</blockquote>
-
-          <figcaption class="testimonial__author">{{ block.settings.author }}</figcaption>
-        </figure>
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .testimonials {
@@ -96,6 +120,11 @@
     text-transform: uppercase;
     color: var(--color-muted);
   }
+
+  .testimonial--empty {
+    color: var(--color-muted);
+    font-style: italic;
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -105,14 +134,13 @@
     {
       "type": "text",
       "id": "eyebrow",
-      "label": "t:sections.testimonials.eyebrow",
-      "default": "Loved by 290+ customers worldwide"
+      "label": "t:sections.testimonials.eyebrow"
     },
     {
       "type": "text",
       "id": "heading",
       "label": "t:sections.testimonials.heading",
-      "default": "Kind words from our clients"
+      "default": "Customer testimonials"
     }
   ],
   "blocks": [
@@ -127,19 +155,17 @@
           "min": 0,
           "max": 5,
           "step": 1,
-          "default": 5
+          "default": 0
         },
         {
           "type": "textarea",
           "id": "quote",
-          "label": "t:sections.testimonials.quote",
-          "default": "So pleased with my order. Will definitely be purchasing more."
+          "label": "t:sections.testimonials.quote"
         },
         {
           "type": "text",
           "id": "author",
-          "label": "t:sections.testimonials.author",
-          "default": "Miss E."
+          "label": "t:sections.testimonials.author"
         }
       ]
     }

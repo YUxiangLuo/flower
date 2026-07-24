@@ -9,7 +9,11 @@
     <h1 class="search__title">{{ 'search.title' | t }}</h1>
 
     <form class="search__form" action="{{ routes.search_url }}" method="get" role="search">
+      <label class="visually-hidden" for="SearchInput-{{ section.id }}">
+        {{- 'search.label' | t -}}
+      </label>
       <input
+        id="SearchInput-{{ section.id }}"
         class="search__input"
         type="search"
         name="q"
@@ -22,16 +26,19 @@
   </header>
 
   {% if search.performed %}
+    {% assign escaped_search_terms = search.terms | escape %}
     {% if search.results_count == 0 %}
-      <p class="search__meta">{{ 'search.no_results_html' | t: terms: search.terms }}</p>
+      <p class="search__meta">{{ 'search.no_results_html' | t: terms: escaped_search_terms }}</p>
     {% else %}
-      <p class="search__meta">{{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}</p>
+      <p class="search__meta">
+        {{- 'search.results_for_html' | t: terms: escaped_search_terms, count: search.results_count -}}
+      </p>
 
       {% paginate search.results by 12 %}
         <div class="search__grid">
           {% for result in search.results %}
             {% if result.object_type == 'product' %}
-              {% render 'product-card', product: result, image_size: 700 %}
+              {% render 'product-card', product: result, image_size: 700, columns: 4 %}
             {% else %}
               <a class="search__card" href="{{ result.url }}">
                 <div class="search__card-media">
@@ -39,7 +46,7 @@
                     {{
                       result.image
                       | image_url: width: 700, height: 875, crop: 'center'
-                      | image_tag: loading: 'lazy', class: 'search__card-image', alt: result.title
+                      | image_tag: loading: 'lazy', class: 'search__card-image', sizes: '(min-width: 990px) 25vw, (min-width: 550px) 50vw, 100vw', widths: '240, 360, 480, 600, 700', alt: result.title
                     }}
                   {% else %}
                     {{ 'image' | placeholder_svg_tag: 'search__card-image search__card-image--placeholder' }}
@@ -85,6 +92,11 @@
     gap: 0.75rem;
     border-bottom: 1px solid var(--color-foreground);
     padding-bottom: 0.5rem;
+  }
+
+  .search__form:focus-within {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 4px;
   }
 
   .search__input {

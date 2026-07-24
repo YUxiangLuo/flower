@@ -6,43 +6,64 @@
 {% liquid
   assign collection = section.settings.collection
   assign limit = section.settings.products_to_show
+  assign show_section = false
+  assign show_placeholders = false
+
+  if collection != blank
+    if collection.products.size > 0
+      assign show_section = true
+    elsif request.design_mode
+      assign show_section = true
+      assign show_placeholders = true
+    endif
+  elsif request.design_mode
+    assign show_section = true
+    assign show_placeholders = true
+  endif
 %}
 
-<div class="featured full-width">
-  <div class="featured__inner">
-    <header class="featured__header">
-      <div>
-        {% if section.settings.eyebrow != blank %}
-          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+{% if show_section %}
+  <div class="featured full-width">
+    <div class="featured__inner">
+      <header class="featured__header">
+        <div>
+          {% if section.settings.eyebrow != blank %}
+            <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+          {% endif %}
+          {% if section.settings.heading != blank %}
+            <h2 class="featured__heading">{{ section.settings.heading }}</h2>
+          {% endif %}
+        </div>
+
+        {% if section.settings.show_view_all and collection != blank %}
+          <a class="featured__view-all" href="{{ collection.url }}">
+            {{ 'sections.featured_products.view_all' | t }}
+            <span aria-hidden="true">&rarr;</span>
+          </a>
         {% endif %}
-        {% if section.settings.heading != blank %}
-          <h2 class="featured__heading">{{ section.settings.heading }}</h2>
+      </header>
+
+      <div class="featured__grid" style="--columns: {{ section.settings.columns }}">
+        {% if show_placeholders %}
+          {% for i in (1..section.settings.columns) %}
+            <div class="featured__placeholder">
+              {{ 'product-1' | placeholder_svg_tag: 'featured__placeholder-image' }}
+            </div>
+          {% endfor %}
+        {% else %}
+          {% for product in collection.products limit: limit %}
+            {% render 'product-card',
+              product: product,
+              image_size: 700,
+              heading_level: 'h3',
+              columns: section.settings.columns
+            %}
+          {% endfor %}
         {% endif %}
       </div>
-
-      {% if section.settings.show_view_all and collection != blank %}
-        <a class="featured__view-all" href="{{ collection.url }}">
-          {{ 'sections.featured_products.view_all' | t }}
-          <span aria-hidden="true">&rarr;</span>
-        </a>
-      {% endif %}
-    </header>
-
-    <div class="featured__grid" style="--columns: {{ section.settings.columns }}">
-      {% if collection != blank and collection.products.size > 0 %}
-        {% for product in collection.products limit: limit %}
-          {% render 'product-card', product: product, image_size: 700 %}
-        {% endfor %}
-      {% else %}
-        {% for i in (1..section.settings.columns) %}
-          <div class="featured__placeholder">
-            {{ 'product-1' | placeholder_svg_tag: 'featured__placeholder-image' }}
-          </div>
-        {% endfor %}
-      {% endif %}
     </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .featured {

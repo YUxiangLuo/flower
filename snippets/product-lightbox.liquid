@@ -1,0 +1,45 @@
+{% doc %}
+  Renders the image-only product media lightbox.
+
+  @param {media[]} image_media - Product media filtered to image media.
+
+  @example
+  {% assign image_media = product.media | where: 'media_type', 'image' %}
+  {% render 'product-lightbox', image_media: image_media %}
+{% enddoc %}
+
+{% if image_media.size > 0 %}
+  <dialog class="product__lightbox" data-lightbox aria-label="{{ 'sections.product.gallery' | t }}">
+    <button
+      type="button"
+      class="product__lightbox-close"
+      data-lightbox-close
+      aria-label="{{ 'sections.product.close' | t }}"
+    >
+      {{- 'icon-close.svg' | inline_asset_content -}}
+    </button>
+    {% if image_media.size > 1 %}
+      <button
+        type="button"
+        class="product__lightbox-nav product__lightbox-nav--prev"
+        data-lightbox-prev
+        aria-label="{{ 'sections.product.previous_media' | t }}"
+      >
+        {{- 'icon-chevron.svg' | inline_asset_content -}}
+      </button>
+    {% endif %}
+    {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
+    <img class="product__lightbox-image" data-lightbox-image alt="">
+    {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
+    {% if image_media.size > 1 %}
+      <button
+        type="button"
+        class="product__lightbox-nav product__lightbox-nav--next"
+        data-lightbox-next
+        aria-label="{{ 'sections.product.next_media' | t }}"
+      >
+        {{- 'icon-chevron.svg' | inline_asset_content -}}
+      </button>
+    {% endif %}
+  </dialog>
+{% endif %}

@@ -1,22 +1,27 @@
-{% comment %}
-  A two-column "meet the creator" feature: a portrait image paired with the
-  brand's founder story. Constrained to the page width for a balanced,
-  editorial composition.
-{% endcomment %}
+{% liquid
+  assign show_media = false
+  if section.settings.image != blank
+    assign show_media = true
+  elsif request.design_mode
+    assign show_media = true
+  endif
+%}
 
-<div class="creator creator--{{ section.settings.background }} full-width">
+<div class="creator creator--{{ section.settings.background }}{% unless show_media %} creator--no-media{% endunless %} full-width">
   <div class="creator__inner creator--{{ section.settings.image_position }}">
-    <div class="creator__media">
-      {% if section.settings.image %}
-        {{
-          section.settings.image
-          | image_url: width: 1200
-          | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: section.settings.image.alt | default: section.settings.heading
-        }}
-      {% else %}
-        {{ 'image' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}
-      {% endif %}
-    </div>
+    {% if show_media %}
+      <div class="creator__media">
+        {% if section.settings.image != blank %}
+          {{
+            section.settings.image
+            | image_url: width: 1200
+            | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: section.settings.image.alt | default: section.settings.heading
+          }}
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}
+        {% endif %}
+      </div>
+    {% endif %}
 
     <div class="creator__content">
       {% if section.settings.eyebrow != blank %}
@@ -31,8 +36,8 @@
       {% if section.settings.signature != blank %}
         <p class="creator__signature">{{ section.settings.signature }}</p>
       {% endif %}
-      {% if section.settings.button_label != blank %}
-        <a class="button button--outline creator__button" href="{{ section.settings.button_link | default: '#' }}">
+      {% if section.settings.button_label != blank and section.settings.button_link != blank %}
+        <a class="button button--outline creator__button" href="{{ section.settings.button_link }}">
           {{ section.settings.button_label }}
         </a>
       {% endif %}
@@ -60,6 +65,11 @@
     grid-template-columns: 5fr 6fr;
     align-items: center;
     gap: clamp(2rem, 6vw, 5.5rem);
+  }
+
+  .creator--no-media .creator__inner {
+    grid-template-columns: minmax(0, 34rem);
+    justify-content: center;
   }
 
   .creator--right .creator__media {

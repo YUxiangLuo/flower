@@ -1,0 +1,20 @@
+{% doc %}
+  Emits a conservative responsive `sizes` value for cards in a configurable,
+  page-width grid. Grid gaps are intentionally not subtracted so browsers never
+  choose an image narrower than the rendered card.
+
+  @param {number} columns - Number of desktop grid columns
+  @param {number} [two_column_breakpoint] - Viewport width where the grid changes from one to two columns
+
+  @example
+  {% capture image_sizes %}
+    {% render 'grid-image-sizes', columns: section.settings.columns %}
+  {% endcapture %}
+{% enddoc %}
+
+{%- liquid
+  assign desktop_columns = columns | default: 4
+  assign two_column_breakpoint = two_column_breakpoint | default: 550
+  assign horizontal_page_margins = settings.min_page_margin | times: 2
+-%}
+(min-width: {{ settings.max_page_width }}) calc(({{ settings.max_page_width }} - {{ horizontal_page_margins }}px) / {{ desktop_columns }}), (min-width: 990px) calc((100vw - {{ horizontal_page_margins }}px) / {{ desktop_columns }}), (min-width: {{ two_column_breakpoint }}px) calc((100vw - {{ horizontal_page_margins }}px) / 2), calc(100vw - {{ horizontal_page_margins }}px)
