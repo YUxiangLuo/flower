@@ -29,7 +29,12 @@
     "taxes_included": "Taxes included. Shipping is calculated at checkout.",
     "duties_included": "Duties included. Taxes and shipping are calculated at checkout.",
     "duties_and_taxes_included": "Duties and taxes included. Shipping is calculated at checkout.",
-    "note": "Order note"
+    "note": "Order note",
+    "updating": "Updating cart…",
+    "updated": "Cart updated.",
+    "note_saved": "Order note saved.",
+    "update_error": "Unable to update your cart. Please try again.",
+    "quantity_invalid": "Enter a whole number of 0 or more."
   },
   "customers": {
     "login": {
@@ -137,7 +142,12 @@
     },
     "header": {
       "menu": "Menu",
-      "cart": "Cart, {{ count }} items"
+      "cart": {
+        "one": "Cart, {{ count }} item",
+        "other": "Cart, {{ count }} items"
+      },
+      "cart_label_one": "Cart, __COUNT__ item",
+      "cart_label_other": "Cart, __COUNT__ items"
     },
     "hero": {
       "label": "Featured",
