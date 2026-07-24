@@ -12,10 +12,16 @@
     {% if show_media %}
       <div class="creator__media">
         {% if section.settings.image != blank %}
+          {%- comment -%}
+            Resolve the alt text first. A `| default:` written inside an
+            `image_tag` argument binds to the tag's output, not to the argument,
+            so the fallback would silently never apply.
+          {%- endcomment -%}
+          {% assign creator_alt = section.settings.image.alt | default: section.settings.heading %}
           {{
             section.settings.image
             | image_url: width: 1200
-            | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: section.settings.image.alt | default: section.settings.heading
+            | image_tag: loading: 'lazy', class: 'creator__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: creator_alt
           }}
         {% else %}
           {{ 'image' | placeholder_svg_tag: 'creator__image creator__image--placeholder' }}

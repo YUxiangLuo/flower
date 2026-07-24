@@ -40,18 +40,24 @@
       >
         <div class="hero__media">
           {% if block.settings.image %}
+            {%- comment -%}
+              Resolve the alt text first. A `| default:` written inside an
+              `image_tag` argument binds to the tag's output, not to the
+              argument, so the fallback would silently never apply.
+            {%- endcomment -%}
+            {% assign hero_alt = block.settings.image.alt | default: block.settings.heading %}
             {% comment %} Only the first slide is above the fold. {% endcomment %}
             {% if forloop.first %}
               {{
                 block.settings.image
                 | image_url: width: 2400
-                | image_tag: loading: 'eager', fetchpriority: 'high', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: block.settings.image.alt | default: block.settings.heading
+                | image_tag: loading: 'eager', fetchpriority: 'high', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
               }}
             {% else %}
               {{
                 block.settings.image
                 | image_url: width: 2400
-                | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: block.settings.image.alt | default: block.settings.heading
+                | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
               }}
             {% endif %}
           {% elsif request.design_mode %}

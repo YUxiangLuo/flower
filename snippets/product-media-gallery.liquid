@@ -11,6 +11,12 @@
   <div class="product__stage">
     {% if product.media.size > 0 %}
       {% for media in product.media %}
+        {%- comment -%}
+          Resolve the alt text first. A `| default:` written inside an
+          `image_tag` argument binds to the tag's output, not to the argument,
+          so the fallback would silently never apply.
+        {%- endcomment -%}
+        {% assign media_alt = media.preview_image.alt | default: product.title %}
         <div
           class="product__stage-item{% if forloop.first %} is-active{% endif %}"
           data-stage-item
@@ -29,13 +35,13 @@
                 {{
                   media.preview_image
                   | image_url: width: 1600
-                  | image_tag: loading: 'eager', fetchpriority: 'high', class: 'product__image', sizes: '(min-width: 750px) 50vw, 100vw', widths: '400, 600, 800, 1200, 1600', alt: media.preview_image.alt | default: product.title
+                  | image_tag: loading: 'eager', fetchpriority: 'high', class: 'product__image', sizes: '(min-width: 750px) 50vw, 100vw', widths: '400, 600, 800, 1200, 1600', alt: media_alt
                 }}
               {% else %}
                 {{
                   media.preview_image
                   | image_url: width: 1600
-                  | image_tag: loading: 'lazy', class: 'product__image', sizes: '(min-width: 750px) 50vw, 100vw', widths: '400, 600, 800, 1200, 1600', alt: media.preview_image.alt | default: product.title
+                  | image_tag: loading: 'lazy', class: 'product__image', sizes: '(min-width: 750px) 50vw, 100vw', widths: '400, 600, 800, 1200, 1600', alt: media_alt
                 }}
               {% endif %}
             </button>

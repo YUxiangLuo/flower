@@ -30,13 +30,20 @@
 {% endcapture %}
 {% assign image_sizes = image_sizes | strip %}
 
+{%- comment -%}
+  Resolve the alt text first. A `| default:` written inside an `image_tag`
+  argument binds to the tag's output, not to the argument, so the fallback
+  would silently never apply.
+{%- endcomment -%}
+{% assign card_alt = product.featured_image.alt | default: product.title %}
+
 <a class="product-card" href="{{ product.url }}">
   <div class="product-card__media">
     {% if product.featured_image %}
       {{
         product.featured_image
         | image_url: width: image_size, height: image_size, crop: 'center'
-        | image_tag: loading: 'lazy', class: 'product-card__image', sizes: image_sizes, widths: image_widths, alt: product.featured_image.alt | default: product.title
+        | image_tag: loading: 'lazy', class: 'product-card__image', sizes: image_sizes, widths: image_widths, alt: card_alt
       }}
     {% else %}
       {{ 'product-1' | placeholder_svg_tag: 'product-card__image product-card__image--placeholder' }}

@@ -43,6 +43,14 @@ if ! rg -q 'id="MainContent"' layout/theme.liquid; then
   report_failure "The main layout must expose the skip-link target."
 fi
 
+# `{{ img | image_tag: alt: x | default: y }}` parses as
+# `(img | image_tag: alt: x) | default: y` — the fallback lands on the rendered
+# <img> string, which is never blank, so the alt silently stays empty. Resolve
+# the value into a variable first, then pass it.
+if rg -n --glob '*.liquid' 'alt:[^,]*\|\s*default:' .; then
+  report_failure "Resolve alt text into a variable before passing it to image_tag; a trailing '| default:' never reaches the alt argument."
+fi
+
 # Runtime behaviour is not checked here. Assertions that grep for a specific
 # source expression pass when the text survives in a comment and fail when a
 # variable is renamed, so they report on how a fix was written rather than on
