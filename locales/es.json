@@ -158,7 +158,6 @@
       "go_to_slide": "Ir a la diapositiva {{ index }}"
     },
     "product": {
-      "read_reviews": "Leer reseñas",
       "zoom": "Ampliar imagen",
       "gallery": "Galería del producto",
       "thumbnails": "Imágenes del producto",
@@ -166,10 +165,6 @@
       "close": "Cerrar",
       "previous_media": "Imagen anterior",
       "next_media": "Imagen siguiente"
-    },
-    "product_reviews": {
-      "based_on": "Basado en {{ count }} reseñas",
-      "add_review": "Añade una reseña de producto verificada en el editor de temas."
     }
   }
 }

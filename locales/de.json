@@ -158,7 +158,6 @@
       "go_to_slide": "Zu Folie {{ index }} springen"
     },
     "product": {
-      "read_reviews": "Bewertungen lesen",
       "zoom": "Bild vergrößern",
       "gallery": "Produktgalerie",
       "thumbnails": "Produktbilder",
@@ -166,10 +165,6 @@
       "close": "Schließen",
       "previous_media": "Vorheriges Bild",
       "next_media": "Nächstes Bild"
-    },
-    "product_reviews": {
-      "based_on": "Basierend auf {{ count }} Bewertungen",
-      "add_review": "Füge im Theme-Editor eine verifizierte Produktbewertung hinzu."
     }
   }
 }

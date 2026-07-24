@@ -158,7 +158,6 @@
       "go_to_slide": "Aller à la diapositive {{ index }}"
     },
     "product": {
-      "read_reviews": "Lire les avis",
       "zoom": "Agrandir l'image",
       "gallery": "Galerie du produit",
       "thumbnails": "Images du produit",
@@ -166,10 +165,6 @@
       "close": "Fermer",
       "previous_media": "Image précédente",
       "next_media": "Image suivante"
-    },
-    "product_reviews": {
-      "based_on": "Basé sur {{ count }} avis",
-      "add_review": "Ajoutez un avis produit vérifié dans l'éditeur de thème."
     }
   }
 }

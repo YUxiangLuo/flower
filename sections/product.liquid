@@ -25,13 +25,6 @@
 
       <h1 class="product__title">{{ product.title }}</h1>
 
-      {% if section.settings.show_rating %}
-        <a class="product__rating" href="#reviews">
-          <span class="product__rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          {{ 'sections.product.read_reviews' | t }}
-        </a>
-      {% endif %}
-
       <div class="product__price">
         <span class="product__price-current" data-price>{{ current_variant.price | money }}</span>
         <s
@@ -261,26 +254,6 @@
     font-size: var(--text-xl);
     line-height: 1.1;
     margin-top: -0.5rem;
-  }
-
-  .product__rating {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: -0.75rem;
-    font-size: 0.85rem;
-    color: var(--color-muted);
-    text-decoration: none;
-  }
-
-  .product__rating-stars {
-    color: var(--color-accent);
-    letter-spacing: 0.1em;
-  }
-
-  .product__rating:hover,
-  .product__rating:focus-visible {
-    color: var(--color-foreground);
   }
 
   .product__price {
@@ -1125,12 +1098,6 @@
       "id": "show_vendor",
       "label": "t:sections.product.show_vendor",
       "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_rating",
-      "label": "t:sections.product.show_rating",
-      "default": false
     },
     {
       "type": "text",

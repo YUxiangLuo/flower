@@ -158,7 +158,6 @@
       "go_to_slide": "Go to slide {{ index }}"
     },
     "product": {
-      "read_reviews": "Read reviews",
       "zoom": "Zoom image",
       "gallery": "Product gallery",
       "thumbnails": "Product images",
@@ -166,10 +165,6 @@
       "close": "Close",
       "previous_media": "Previous image",
       "next_media": "Next image"
-    },
-    "product_reviews": {
-      "based_on": "Based on {{ count }} reviews",
-      "add_review": "Add a verified product review in the theme editor."
     }
   }
 }
