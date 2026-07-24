@@ -622,6 +622,30 @@
       restoreFocus(nextCart, descriptor);
     }
 
+    function renderCartData(state, cartData, descriptor, message, isError) {
+      updateHeaderCount(cartData.item_count);
+      replaceCart(
+        state.cart,
+        cartData.sections && cartData.sections[state.sectionId],
+        descriptor,
+        message,
+        isError
+      );
+    }
+
+    function reconcileCart(state, descriptor, message) {
+      return requestCart(state.updateUrl, {
+        sections: [state.sectionId],
+        sections_url: state.cartPageUrl
+      }).then(function (cartData) {
+        try {
+          renderCartData(state, cartData, descriptor, message, true);
+        } catch (error) {
+          window.location.assign(state.cartPageUrl);
+        }
+      });
+    }
+
     function validQuantity(input) {
       var quantity = Number(input.value);
       if (input.value === '' || !Number.isInteger(quantity) || quantity < 0 || !input.checkValidity()) {
@@ -732,15 +756,8 @@
             return;
           }
 
-          updateHeaderCount(lastCart.item_count);
           try {
-            replaceCart(
-              state.cart,
-              lastCart.sections && lastCart.sections[state.sectionId],
-              descriptor,
-              state.cart.getAttribute('data-status-updated'),
-              false
-            );
+            renderCartData(state, lastCart, descriptor, state.cart.getAttribute('data-status-updated'), false);
           } catch (error) {
             window.location.assign(state.cartPageUrl);
           }
@@ -753,25 +770,26 @@
             message = error.message;
           }
 
-          if (lastCart) {
-            updateHeaderCount(lastCart.item_count);
-            try {
-              replaceCart(
-                state.cart,
-                lastCart.sections && lastCart.sections[state.sectionId],
-                descriptor,
-                message,
-                true
-              );
-            } catch (renderError) {
+          reconcileCart(state, descriptor, message).catch(function () {
+            if (error.isCartResponseError) {
               window.location.assign(state.cartPageUrl);
+              return;
             }
-            return;
-          }
 
-          resetQuantities(state.cart);
-          setBusy(state.cart, false);
-          setStatus(state.cart, message, true);
+            if (lastCart) {
+              try {
+                renderCartData(state, lastCart, descriptor, message, true);
+              } catch (renderError) {
+                window.location.assign(state.cartPageUrl);
+              }
+              return;
+            }
+
+            resetQuantities(state.cart);
+            setBusy(state.cart, false);
+            setStatus(state.cart, message, true);
+            restoreFocus(state.cart, descriptor);
+          });
         });
     }
 
