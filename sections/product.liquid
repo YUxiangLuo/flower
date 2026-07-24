@@ -1097,12 +1097,16 @@
     }
 
     /* Scope to the section that loaded so re-renders in the theme editor
-       (shopify:section:load) re-bind against the fresh DOM. */
+       (shopify:section:load) re-bind against the fresh DOM. Walk every match
+       rather than the first one, so a page carrying more than one product
+       section wires up all of them. */
     function initFrom(scope) {
-      var root = scope.querySelector('[data-product]');
-      if (!root) return;
-      initGallery(root);
-      initBuyBox(root);
+      scope.querySelectorAll('[data-product]').forEach(function (root) {
+        if (root.getAttribute('data-product-initialized') === 'true') return;
+        root.setAttribute('data-product-initialized', 'true');
+        initGallery(root);
+        initBuyBox(root);
+      });
     }
 
     initFrom(document);

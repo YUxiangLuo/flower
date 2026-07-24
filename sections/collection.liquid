@@ -439,9 +439,9 @@
       return Number(normalized);
     }
 
-    function init(scope) {
-      var form = scope.querySelector('.facets__form');
-      if (!form) return;
+    function initFacets(form) {
+      if (form.getAttribute('data-facets-initialized') === 'true') return;
+      form.setAttribute('data-facets-initialized', 'true');
 
       var priceInputs = Array.prototype.slice.call(form.querySelectorAll('.facet__price input'));
 
@@ -515,6 +515,12 @@
           }
         }
       });
+    }
+
+    /* Walk every facet form in scope rather than the first one, so a page
+       carrying more than one collection section wires up all of them. */
+    function init(scope) {
+      scope.querySelectorAll('.facets__form').forEach(initFacets);
     }
 
     init(document);

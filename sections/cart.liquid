@@ -605,6 +605,22 @@
       });
     }
 
+    /* The node a state was built around can be detached by the time its request
+       lands — the theme editor swaps the whole section on re-render. Fall back to
+       whichever cart is on the page so a late response still updates what the
+       customer sees; `replaceWith` on an orphaned node is a silent no-op, which
+       would leave the page showing quantities the server no longer holds. */
+    function liveCart(currentCart) {
+      if (currentCart.isConnected) return currentCart;
+      return document.querySelector('[data-cart-section]');
+    }
+
+    function teardownCart(cart) {
+      if (!cart || !cart.cartCleanup) return;
+      cart.cartCleanup();
+      cart.cartCleanup = null;
+    }
+
     function replaceCart(currentCart, sectionHtml, descriptor, message, isError) {
       if (typeof sectionHtml !== 'string') {
         throw new Error('Missing cart section HTML');
@@ -616,7 +632,13 @@
         throw new Error('Missing cart section root');
       }
 
-      currentCart.replaceWith(nextCart);
+      var target = liveCart(currentCart);
+      if (!target) return;
+
+      /* Retire the outgoing node's state before it leaves the DOM so a queued
+         flush can't fire against a cart nobody is looking at. */
+      teardownCart(target);
+      target.replaceWith(nextCart);
       initCart(nextCart);
       setStatus(nextCart, message, isError);
       restoreFocus(nextCart, descriptor);
@@ -697,6 +719,11 @@
     }
 
     function flush(state) {
+      /* A retired state may still hold an in-flight request — that one has to
+         finish and render, since the server already accepted it — but it must
+         never start new work. */
+      if (state.aborted) return;
+
       if (state.busy) {
         scheduleFlush(state, 100);
         return;
@@ -814,7 +841,14 @@
         note: '',
         focus: null,
         timer: null,
-        busy: false
+        busy: false,
+        aborted: false
+      };
+
+      cart.cartCleanup = function () {
+        window.clearTimeout(state.timer);
+        state.timer = null;
+        state.aborted = true;
       };
 
       cart.addEventListener('click', function (event) {
@@ -922,9 +956,17 @@
       scope.querySelectorAll('[data-cart-section]').forEach(initCart);
     }
 
+    function destroy(scope) {
+      if (scope.matches && scope.matches('[data-cart-section]')) teardownCart(scope);
+      scope.querySelectorAll('[data-cart-section]').forEach(teardownCart);
+    }
+
     init(document);
     document.addEventListener('shopify:section:load', function (event) {
       init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
     });
   })();
 {% endjavascript %}
