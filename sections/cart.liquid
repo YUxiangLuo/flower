@@ -34,7 +34,7 @@
                   {{
                     item.image
                     | image_url: width: 200, height: 250, crop: 'center'
-                    | image_tag: loading: 'lazy', class: 'cart__image', alt: item.title
+                    | image_tag: loading: 'lazy', class: 'cart__image', sizes: '112px', widths: '96, 144, 200', alt: item.title
                   }}
                 {% else %}
                   {{ 'product-1' | placeholder_svg_tag: 'cart__image' }}
@@ -50,7 +50,10 @@
                   {%- for property in item.properties -%}
                     {%- assign property_first_char = property.first | slice: 0 -%}
                     {%- unless property.last == blank or property_first_char == '_' -%}
-                      <li class="cart__property"><span class="cart__property-name">{{ property.first }}:</span> {{ property.last }}</li>
+                      <li class="cart__property">
+                        <span class="cart__property-name">{{ property.first | escape }}:</span>
+                        {{ property.last | escape }}
+                      </li>
                     {%- endunless -%}
                   {%- endfor -%}
                 {%- endcapture -%}
@@ -92,7 +95,7 @@
         {% if section.settings.show_note %}
           <div class="cart__note">
             <label for="cart-note">{{ 'cart.note' | t }}</label>
-            <textarea id="cart-note" name="note" rows="3">{{ cart.note }}</textarea>
+            <textarea id="cart-note" name="note" rows="3">{{ cart.note | escape }}</textarea>
           </div>
         {% endif %}
 
@@ -101,7 +104,19 @@
             <span>{{ 'cart.subtotal' | t }}</span>
             <span class="cart__subtotal-value">{{ cart.total_price | money }}</span>
           </div>
-          <p class="cart__taxes">{{ 'cart.taxes_note' | t }}</p>
+          <p class="cart__taxes">
+            {% if cart.duties_included %}
+              {% if cart.taxes_included %}
+                {{ 'cart.duties_and_taxes_included' | t }}
+              {% else %}
+                {{ 'cart.duties_included' | t }}
+              {% endif %}
+            {% elsif cart.taxes_included %}
+              {{ 'cart.taxes_included' | t }}
+            {% else %}
+              {{ 'cart.taxes_note' | t }}
+            {% endif %}
+          </p>
 
           <div class="cart__actions">
             <button type="submit" name="update" class="cart__button cart__button--ghost">

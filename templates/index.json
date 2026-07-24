@@ -99,32 +99,6 @@
         "heading": "Best-selling gifts"
       }
     },
-    "reviews": {
-      "type": "testimonials",
-      "blocks": {
-        "t-1": { "type": "testimonial", "settings": {} },
-        "t-2": {
-          "type": "testimonial",
-          "settings": { "quote": "It's great, very beautiful.", "author": "Odysseas M." }
-        },
-        "t-3": {
-          "type": "testimonial",
-          "settings": { "quote": "Love the vibrant colors!", "author": "Michele R." }
-        },
-        "t-4": {
-          "type": "testimonial",
-          "settings": {
-            "quote": "This pressed flower frame is absolutely breathtaking.",
-            "author": "Sarah M."
-          }
-        }
-      },
-      "block_order": ["t-1", "t-2", "t-3", "t-4"],
-      "settings": {
-        "eyebrow": "Loved by 290+ gift-givers",
-        "heading": "The gifts that made someone's day"
-      }
-    },
     "lookbook": {
       "type": "gallery",
       "blocks": {
@@ -203,7 +177,6 @@
     "lasting",
     "giftflow",
     "featured",
-    "reviews",
     "lookbook",
     "assurance",
     "creator",

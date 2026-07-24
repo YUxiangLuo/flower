@@ -3,34 +3,48 @@
   Each image is a block; the first item can be featured at double size.
 {% endcomment %}
 
-<div class="gallery full-width">
-  <div class="gallery__inner">
-    <header class="gallery__header">
-      {% if section.settings.eyebrow != blank %}
-        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="gallery__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-    </header>
+{% liquid
+  assign has_gallery_images = false
+  for block in section.blocks
+    if block.settings.image
+      assign has_gallery_images = true
+      break
+    endif
+  endfor
+%}
 
-    <div class="gallery__grid" style="--columns: {{ section.settings.columns }}">
-      {% for block in section.blocks %}
-        <figure class="gallery__item" {{ block.shopify_attributes }}>
+{% if has_gallery_images or request.design_mode %}
+  <div class="gallery full-width">
+    <div class="gallery__inner">
+      <header class="gallery__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="gallery__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </header>
+
+      <div class="gallery__grid" style="--columns: {{ section.settings.columns }}">
+        {% for block in section.blocks %}
           {% if block.settings.image %}
-            {{
-              block.settings.image
-              | image_url: width: 1000, height: 1000, crop: 'center'
-              | image_tag: loading: 'lazy', class: 'gallery__image', alt: block.settings.image.alt
-            }}
-          {% else %}
-            {{ 'lifestyle-1' | placeholder_svg_tag: 'gallery__image gallery__image--placeholder' }}
+            <figure class="gallery__item" {{ block.shopify_attributes }}>
+              {{
+                block.settings.image
+                | image_url: width: 1000, height: 1000, crop: 'center'
+                | image_tag: loading: 'lazy', class: 'gallery__image', sizes: '(min-width: 990px) 25vw, 50vw', widths: '320, 480, 640, 800, 1000', alt: block.settings.image.alt
+              }}
+            </figure>
+          {% elsif request.design_mode %}
+            <figure class="gallery__item" {{ block.shopify_attributes }}>
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'gallery__image gallery__image--placeholder' }}
+            </figure>
           {% endif %}
-        </figure>
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .gallery {

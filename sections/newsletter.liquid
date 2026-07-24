@@ -15,7 +15,8 @@
       <p class="newsletter__subheading">{{ section.settings.subheading }}</p>
     {% endif %}
 
-    {% form 'customer', class: 'newsletter__form' %}
+    {% assign newsletter_form_id = 'NewsletterForm-' | append: section.id %}
+    {% form 'customer', id: newsletter_form_id, class: 'newsletter__form' %}
       {% if form.posted_successfully? %}
         <p class="newsletter__success">{{ 'sections.newsletter.success' | t }}</p>
       {% else %}

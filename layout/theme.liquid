@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="{{ request.locale.iso_code }}">
   <head>
+    {% # Document metadata must appear before styles and resource hints. %}
+    {% render 'meta-tags' %}
+
     {% # Inlined CSS Variables %}
     {% render 'css-variables' %}
 
@@ -20,16 +23,19 @@
     {% # Load and preload the critical CSS %}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
 
-    {% # Social, title, etc. %}
-    {% render 'meta-tags' %}
-
     {{ content_for_header }}
   </head>
 
   <body>
+    <a class="skip-to-content-link" href="#MainContent">
+      {{- 'general.accessibility.skip_to_content' | t -}}
+    </a>
+
     {% sections 'header-group' %}
 
-    {{ content_for_layout }}
+    <main id="MainContent" class="content-for-layout" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
 
     {% sections 'footer-group' %}
   </body>

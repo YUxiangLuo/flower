@@ -57,27 +57,41 @@
                       </label>
                     {% endfor %}
                   {% when 'price_range' %}
+                    {% assign price_max = filter.range_max | money_without_currency %}
+                    {% assign price_max_value = filter.range_max | divided_by: 100.0 %}
                     <div class="facet__price">
                       <label>
-                        {{ 'collection.price_from' | t }}
+                        {{ 'collection.price_from_with_currency' | t: currency: cart.currency.iso_code }}
                         <input
-                          type="number"
-                          name="{{ filter.min_value.param_name }}"
-                          value="{{ filter.min_value.value }}"
-                          min="0"
-                          max="{{ filter.range_max | money_without_currency | remove: ',' }}"
+                          type="text"
+                          inputmode="decimal"
+                          name="{{ filter.min_value.param_name | escape }}"
+                          {% if filter.min_value.value != blank %}
+                            value="{{ filter.min_value.value | money_without_currency | escape }}"
+                          {% endif %}
                           placeholder="0"
+                          data-min="0"
+                          data-max="{{ price_max_value }}"
+                          data-invalid-message="{{ 'collection.price_invalid' | t | escape }}"
+                          data-range-message="{{ 'collection.price_out_of_range' | t: min: 0, max: price_max | escape }}"
+                          autocomplete="off"
                         >
                       </label>
                       <label>
-                        {{ 'collection.price_to' | t }}
+                        {{ 'collection.price_to_with_currency' | t: currency: cart.currency.iso_code }}
                         <input
-                          type="number"
-                          name="{{ filter.max_value.param_name }}"
-                          value="{{ filter.max_value.value }}"
-                          min="0"
-                          max="{{ filter.range_max | money_without_currency | remove: ',' }}"
-                          placeholder="{{ filter.range_max | money_without_currency }}"
+                          type="text"
+                          inputmode="decimal"
+                          name="{{ filter.max_value.param_name | escape }}"
+                          {% if filter.max_value.value != blank %}
+                            value="{{ filter.max_value.value | money_without_currency | escape }}"
+                          {% endif %}
+                          placeholder="{{ price_max | escape }}"
+                          data-min="0"
+                          data-max="{{ price_max_value }}"
+                          data-invalid-message="{{ 'collection.price_invalid' | t | escape }}"
+                          data-range-message="{{ 'collection.price_out_of_range' | t: min: 0, max: price_max | escape }}"
+                          autocomplete="off"
                         >
                       </label>
                     </div>
@@ -93,8 +107,8 @@
       <div class="collection__tools">
         {% if collection.sort_options.size > 0 %}
           <div class="collection__sort">
-            <label for="sort-by">{{ 'collection.sort_by' | t }}</label>
-            <select id="sort-by" name="sort_by">
+            <label for="SortBy-{{ section.id }}">{{ 'collection.sort_by' | t }}</label>
+            <select id="SortBy-{{ section.id }}" name="sort_by" data-auto-submit>
               {% for option in collection.sort_options %}
                 <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
                   {{ option.name }}
@@ -135,7 +149,7 @@
     {% if collection.products.size > 0 %}
       <div class="collection__grid" style="--columns: {{ section.settings.columns }}">
         {% for product in collection.products %}
-          {% render 'product-card', product: product, image_size: 700 %}
+          {% render 'product-card', product: product, image_size: 700, columns: section.settings.columns %}
         {% endfor %}
       </div>
 
@@ -391,11 +405,115 @@
 
 {% javascript %}
   (function () {
+    function escapeRegExp(value) {
+      return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function parseLocalizedNumber(value) {
+      var normalized = value.trim();
+      if (normalized === '') return null;
+
+      try {
+        var locale = document.documentElement.lang || 'en';
+        var parts = new Intl.NumberFormat(locale).formatToParts(12345.6);
+        var group = '';
+        var decimal = '.';
+
+        parts.forEach(function (part) {
+          if (part.type === 'group') group = part.value;
+          if (part.type === 'decimal') decimal = part.value;
+        });
+
+        normalized = normalized.replace(/\s/g, '');
+        if (group) {
+          normalized = normalized.replace(new RegExp(escapeRegExp(group), 'g'), '');
+        }
+        if (decimal !== '.') {
+          normalized = normalized.replace(new RegExp(escapeRegExp(decimal), 'g'), '.');
+        }
+      } catch (error) {
+        normalized = normalized.replace(/\s/g, '').replace(/,/g, '.');
+      }
+
+      if (!/^(?:\d+|\d*\.\d+)$/.test(normalized)) return NaN;
+      return Number(normalized);
+    }
+
     function init(scope) {
       var form = scope.querySelector('.facets__form');
       if (!form) return;
-      form.addEventListener('change', function () {
-        form.submit();
+
+      var priceInputs = Array.prototype.slice.call(form.querySelectorAll('.facet__price input'));
+
+      function validatePriceInputs() {
+        var firstInvalid = null;
+
+        priceInputs.forEach(function (input) {
+          input.setCustomValidity('');
+
+          var value = parseLocalizedNumber(input.value);
+          if (value === null) return;
+
+          var min = Number(input.dataset.min);
+          var max = Number(input.dataset.max);
+
+          if (value !== value) {
+            input.setCustomValidity(input.dataset.invalidMessage);
+          } else if (value < min || value > max) {
+            input.setCustomValidity(input.dataset.rangeMessage);
+          }
+
+          if (!input.validity.valid && !firstInvalid) {
+            firstInvalid = input;
+          }
+        });
+
+        return firstInvalid;
+      }
+
+      priceInputs.forEach(function (input) {
+        input.addEventListener('input', function () {
+          input.setCustomValidity('');
+        });
+      });
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var firstInvalid = validatePriceInputs();
+        if (firstInvalid) {
+          if (typeof firstInvalid.reportValidity === 'function') {
+            firstInvalid.reportValidity();
+          } else {
+            firstInvalid.focus();
+          }
+          return;
+        }
+
+        var formData = new FormData(form);
+        priceInputs.forEach(function (input) {
+          if (input.value.trim() === '') {
+            formData.delete(input.name);
+          }
+        });
+
+        var targetUrl = new URL(form.action, window.location.href);
+        targetUrl.search = new URLSearchParams(formData).toString();
+        window.location.assign(targetUrl.toString());
+      });
+
+      form.addEventListener('change', function (event) {
+        if (!event.target.matches('[data-auto-submit]')) return;
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+        } else {
+          var submitButton = form.querySelector('[type="submit"]');
+          if (submitButton) {
+            submitButton.click();
+          } else {
+            form.submit();
+          }
+        }
       });
     }
 

@@ -1,0 +1,52 @@
+{% doc %}
+  Renders quantity controls, the add-to-cart button and accelerated checkout.
+
+  @param {form} form - The active Shopify product form.
+  @param {variant} current_variant - The initially selected product variant.
+  @param {string} section_id - A unique section id used for form control ids.
+
+  @example
+  {% render 'product-purchase-actions', form: form, current_variant: current_variant, section_id: section.id %}
+{% enddoc %}
+
+<div class="product__purchase">
+  <div class="product__quantity">
+    <label class="product__quantity-label" for="Quantity-{{ section_id }}">
+      {{- 'product.quantity' | t -}}
+    </label>
+    <div class="product__stepper">
+      <button type="button" data-qty-step="-1" aria-label="{{ 'product.decrease_quantity' | t }}">&minus;</button>
+      <input
+        id="Quantity-{{ section_id }}"
+        class="product__quantity-input"
+        type="number"
+        name="quantity"
+        value="1"
+        min="1"
+        data-qty-input
+      >
+      <button type="button" data-qty-step="1" aria-label="{{ 'product.increase_quantity' | t }}">+</button>
+    </div>
+  </div>
+
+  <button
+    type="submit"
+    name="add"
+    class="product__add"
+    data-add-button
+    data-label-add="{{ 'product.add_to_cart' | t | escape }}"
+    data-label-soldout="{{ 'product.sold_out' | t | escape }}"
+    data-label-unavailable="{{ 'product.unavailable' | t | escape }}"
+    {% unless current_variant.available %}disabled{% endunless %}
+  >
+    {% if current_variant.available %}
+      {{ 'product.add_to_cart' | t }}
+    {% else %}
+      {{ 'product.sold_out' | t }}
+    {% endif %}
+  </button>
+
+  <div data-payment-button {% unless current_variant.available %}hidden{% endunless %}>
+    {{ form | payment_button }}
+  </div>
+</div>

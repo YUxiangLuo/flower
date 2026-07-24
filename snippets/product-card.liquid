@@ -3,6 +3,8 @@
 
   @param {product} product - The product to render
   @param {number} [image_size] - The rendered image width/height in pixels (defaults to 600)
+  @param {string} [heading_level] - Heading element for the product title (defaults to h2)
+  @param {number} [columns] - Number of desktop columns in the containing grid (defaults to 4)
 
   @example
   {% render 'product-card', product: product %}
@@ -11,7 +13,22 @@
 
 {% liquid
   assign image_size = image_size | default: 600
+  assign heading_level = heading_level | default: 'h2'
+  assign columns = columns | default: 4
+
+  if image_size > 700
+    assign image_widths = '240, 360, 480, 600, 700, 800'
+  elsif image_size > 600
+    assign image_widths = '240, 360, 480, 600, 700'
+  else
+    assign image_widths = '240, 360, 480, 600'
+  endif
 %}
+
+{% capture image_sizes %}
+  {%- render 'grid-image-sizes', columns: columns -%}
+{% endcapture %}
+{% assign image_sizes = image_sizes | strip %}
 
 <a class="product-card" href="{{ product.url }}">
   <div class="product-card__media">
@@ -19,7 +36,7 @@
       {{
         product.featured_image
         | image_url: width: image_size, height: image_size, crop: 'center'
-        | image_tag: loading: 'lazy', class: 'product-card__image', alt: product.featured_image.alt | default: product.title
+        | image_tag: loading: 'lazy', class: 'product-card__image', sizes: image_sizes, widths: image_widths, alt: product.featured_image.alt | default: product.title
       }}
     {% else %}
       {{ 'product-1' | placeholder_svg_tag: 'product-card__image product-card__image--placeholder' }}
@@ -31,7 +48,7 @@
   </div>
 
   <div class="product-card__info">
-    <h3 class="product-card__title">{{ product.title }}</h3>
+    <{{ heading_level }} class="product-card__title">{{ product.title | escape }}</{{ heading_level }}>
     <p class="product-card__price">
       {% if product.compare_at_price > product.price %}
         <s class="product-card__price-was">{{ product.compare_at_price | money }}</s>
@@ -104,6 +121,5 @@
 
   .product-card__price-was {
     color: var(--color-muted);
-    opacity: 0.7;
   }
 {% endstylesheet %}

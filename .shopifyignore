@@ -11,3 +11,17 @@
 #
 # Ignore templates and sections with a regular expression:
 #   /(templates|sections)/.*\.json/
+
+# Repository-only files.
+.github/*
+scripts/*
+old-design/*
+.gitignore
+.gitattributes
+.theme-check.yml
+AGENTS.md
+CLAUDE.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+LICENSE.md
+README.md

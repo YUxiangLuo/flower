@@ -33,7 +33,12 @@
             {% break %}
           {% endif %}
           {% unless card_product.id == product.id %}
-            {% render 'product-card', product: card_product, image_size: 600 %}
+            {% render 'product-card',
+              product: card_product,
+              image_size: 600,
+              heading_level: 'h3',
+              columns: section.settings.columns
+            %}
             {% assign shown = shown | plus: 1 %}
           {% endunless %}
         {% endfor %}

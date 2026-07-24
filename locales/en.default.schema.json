@@ -4,6 +4,7 @@
     "article": "Article",
     "block": "Block",
     "blog": "Blog",
+    "brand": "Brand",
     "cart": "Cart",
     "collection": "Collection",
     "collections": "Collections",
@@ -11,6 +12,7 @@
     "colors": "Colors",
     "column": "Column",
     "content": "Content",
+    "custom_content": "Custom content",
     "fonts": "Fonts",
     "footer": "Footer",
     "group": "Group",
@@ -37,6 +39,9 @@
     "foreground": "Foreground",
     "input_corner_radius": "Input corner radius",
     "layout_direction": "Layout direction",
+    "logo": "Logo",
+    "logo_width": "Logo width",
+    "favicon": "Favicon",
     "menu": "Menu",
     "customer_account_menu": "Customer account menu",
     "padding": "Padding",
@@ -58,7 +63,8 @@
     },
     "page_width": {
       "narrow": "Narrow",
-      "wide": "Wide"
+      "wide": "Wide",
+      "full": "Full width"
     },
     "text_style": {
       "title": "Title",
@@ -88,6 +94,7 @@
       "newsletter_header": "Newsletter",
       "show_newsletter": "Show email signup",
       "newsletter_heading": "Newsletter heading",
+      "show_localization": "Show country and language selectors",
       "bottom_header": "Bottom bar",
       "background_color": "Background color",
       "text_color": "Text color",
@@ -95,6 +102,18 @@
       "text_block": "Text column",
       "column_heading": "Column heading",
       "content": "Content"
+    },
+    "apps": {
+      "name": "Apps",
+      "include_margins": "Include page margins"
+    },
+    "custom_content": {
+      "name": "Custom content",
+      "background": "Background",
+      "content_width": "Content width",
+      "block_gap": "Space between blocks",
+      "padding_top": "Top padding",
+      "padding_bottom": "Bottom padding"
     },
     "cart": {
       "show_note": "Show order note"

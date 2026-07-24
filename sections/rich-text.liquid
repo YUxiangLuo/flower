@@ -17,8 +17,8 @@
     {% if section.settings.body != blank %}
       <div class="richtext__body">{{ section.settings.body }}</div>
     {% endif %}
-    {% if section.settings.button_label != blank %}
-      <a class="button button--outline richtext__button" href="{{ section.settings.button_link | default: '#' }}">
+    {% if section.settings.button_label != blank and section.settings.button_link != blank %}
+      <a class="button button--outline richtext__button" href="{{ section.settings.button_link }}">
         {{ section.settings.button_label }}
       </a>
     {% endif %}

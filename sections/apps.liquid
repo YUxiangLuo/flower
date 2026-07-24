@@ -1,0 +1,32 @@
+<div class="apps full-width{% if section.settings.include_margins %} apps--page-width{% endif %}">
+  {% for block in section.blocks %}
+    {% render block %}
+  {% endfor %}
+</div>
+
+{% stylesheet %}
+  .apps--page-width {
+    width: min(calc(100% - var(--page-margin) * 2), var(--page-width));
+    margin-inline: auto;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:sections.apps.name",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "include_margins",
+      "label": "t:sections.apps.include_margins",
+      "default": true
+    }
+  ],
+  "blocks": [{ "type": "@app" }],
+  "presets": [
+    {
+      "name": "t:sections.apps.name"
+    }
+  ]
+}
+{% endschema %}

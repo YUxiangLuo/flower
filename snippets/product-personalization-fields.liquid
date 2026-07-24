@@ -1,0 +1,44 @@
+{% doc %}
+  Renders line-item property fields configured by product section blocks.
+
+  @param {block[]} blocks - Personalization field blocks.
+  @param {string} [heading] - Optional heading shown above the fields.
+
+  @example
+  {% render 'product-personalization-fields', blocks: personalization_blocks, heading: section.settings.personalization_heading %}
+{% enddoc %}
+
+{% if blocks.size > 0 %}
+  <div class="product__personalization">
+    {% if heading != blank %}
+      <p class="product__personalization-title">{{ heading | escape }}</p>
+    {% endif %}
+    {% for block in blocks %}
+      <div class="product__field" {{ block.shopify_attributes }}>
+        <label class="product__field-label" for="prop-{{ block.id }}">
+          {{ block.settings.label | escape }}
+          {% unless block.settings.required %}
+            <span class="product__field-optional">{{ 'product.optional' | t }}</span>
+          {% endunless %}
+        </label>
+        {% if block.settings.field_type == 'textarea' %}
+          <textarea
+            class="product__field-input"
+            id="prop-{{ block.id }}"
+            name="properties[{{ block.settings.label | escape }}]"
+            rows="3"
+            {% if block.settings.required %}required{% else %}data-property-optional{% endif %}
+          ></textarea>
+        {% else %}
+          <input
+            class="product__field-input"
+            type="text"
+            id="prop-{{ block.id }}"
+            name="properties[{{ block.settings.label | escape }}]"
+            {% if block.settings.required %}required{% else %}data-property-optional{% endif %}
+          >
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

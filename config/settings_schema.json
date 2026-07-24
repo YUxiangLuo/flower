@@ -8,6 +8,31 @@
     "theme_support_url": "https://vesein.dev"
   },
   {
+    "name": "t:general.brand",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "t:labels.logo"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "min": 80,
+        "max": 300,
+        "step": 10,
+        "unit": "px",
+        "label": "t:labels.logo_width",
+        "default": 160
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "t:labels.favicon"
+      }
+    ]
+  },
+  {
     "name": "t:general.typography",
     "settings": [
       {

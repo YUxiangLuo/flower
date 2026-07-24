@@ -4,71 +4,102 @@
   section id is "reviews" so the product buy box can anchor to it.
 {% endcomment %}
 
-<div class="reviews reviews--{{ section.settings.background }} full-width" id="reviews">
-  <div class="reviews__inner">
-    <header class="reviews__header">
-      {% if section.settings.eyebrow != blank %}
-        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="reviews__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-      {% if section.settings.rating != blank %}
-        {% assign rating_value = section.settings.rating | times: 1 %}
-        {% assign filled_stars = rating_value | round %}
-        <div class="reviews__summary">
-          <span class="reviews__summary-stars" aria-hidden="true">
-            {%- for i in (1..5) -%}
-              {%- if i <= filled_stars -%}&#9733;{%- else -%}&#9734;{%- endif -%}
-            {%- endfor -%}
-          </span>
-          <span class="reviews__summary-score">{{ section.settings.rating }}</span>
-          {% if section.settings.review_count != blank %}
-            <span class="reviews__summary-count">
-              {{ 'sections.product_reviews.based_on' | t: count: section.settings.review_count }}
+{% liquid
+  assign visible_review_count = 0
+  for block in section.blocks
+    if block.settings.quote != blank
+      assign visible_review_count = visible_review_count | plus: 1
+    elsif request.design_mode
+      assign visible_review_count = visible_review_count | plus: 1
+    endif
+  endfor
+
+  assign show_reviews = false
+  if section.settings.rating != blank
+    assign show_reviews = true
+  elsif visible_review_count > 0
+    assign show_reviews = true
+  endif
+%}
+
+{% if show_reviews %}
+  <div class="reviews reviews--{{ section.settings.background }} full-width" id="reviews">
+    <div class="reviews__inner">
+      <header class="reviews__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="reviews__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+        {% if section.settings.rating != blank %}
+          {% assign rating_value = section.settings.rating | times: 1 | at_least: 0 | at_most: 5 %}
+          {% assign filled_stars = rating_value | round %}
+          <div class="reviews__summary">
+            <span class="reviews__summary-stars" aria-hidden="true">
+              {%- for i in (1..5) -%}
+                {%- if i <= filled_stars -%}&#9733;{%- else -%}&#9734;{%- endif -%}
+              {%- endfor -%}
             </span>
-          {% endif %}
-        </div>
-      {% endif %}
-    </header>
-
-    <div class="reviews__grid">
-      {% for block in section.blocks %}
-        <figure class="review" {{ block.shopify_attributes }}>
-          {% if block.settings.rating > 0 %}
-            <div
-              class="review__stars"
-              aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating }}"
-            >
-              {% for i in (1..block.settings.rating) %}
-                <span aria-hidden="true">&#9733;</span>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          {% if block.settings.image %}
-            <div class="review__media">
-              {{
-                block.settings.image
-                | image_url: width: 600, height: 600, crop: 'center'
-                | image_tag: loading: 'lazy', class: 'review__image', alt: ''
-              }}
-            </div>
-          {% endif %}
-
-          <blockquote class="review__quote">{{ block.settings.quote }}</blockquote>
-
-          <figcaption class="review__footer">
-            <span class="review__author">{{ block.settings.author }}</span>
-            {% if block.settings.date != blank %}
-              <span class="review__date">{{ block.settings.date }}</span>
+            <span class="reviews__summary-score">{{ rating_value }}</span>
+            {% if section.settings.review_count != blank %}
+              {% assign escaped_review_count = section.settings.review_count | escape %}
+              <span class="reviews__summary-count">
+                {{ 'sections.product_reviews.based_on' | t: count: escaped_review_count }}
+              </span>
             {% endif %}
-          </figcaption>
-        </figure>
-      {% endfor %}
+          </div>
+        {% endif %}
+      </header>
+
+      <div class="reviews__grid">
+        {% for block in section.blocks %}
+          {% if block.settings.quote != blank %}
+            <figure class="review" {{ block.shopify_attributes }}>
+              {% if block.settings.rating > 0 %}
+                <div
+                  class="review__stars"
+                  aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating }}"
+                >
+                  {% for i in (1..block.settings.rating) %}
+                    <span aria-hidden="true">&#9733;</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              {% if block.settings.image %}
+                <div class="review__media">
+                  {{
+                    block.settings.image
+                    | image_url: width: 600, height: 600, crop: 'center'
+                    | image_tag: loading: 'lazy', class: 'review__image', sizes: '(min-width: 990px) 33vw, (min-width: 550px) 50vw, 100vw', widths: '240, 360, 480, 600', alt: ''
+                  }}
+                </div>
+              {% endif %}
+
+              <blockquote class="review__quote">{{ block.settings.quote | escape }}</blockquote>
+
+              {% if block.settings.author != blank or block.settings.date != blank %}
+                <figcaption class="review__footer">
+                  {% if block.settings.author != blank %}
+                    <span class="review__author">{{ block.settings.author | escape }}</span>
+                  {% endif %}
+                  {% if block.settings.date != blank %}
+                    <span class="review__date">{{ block.settings.date | escape }}</span>
+                  {% endif %}
+                </figcaption>
+              {% endif %}
+            </figure>
+          {% elsif request.design_mode %}
+            <div class="review review--empty" {{ block.shopify_attributes }}>
+              {{ 'sections.product_reviews.add_review' | t }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
     </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .reviews--page {
@@ -186,6 +217,11 @@
     font-size: 0.78rem;
     color: var(--color-muted);
   }
+
+  .review--empty {
+    color: var(--color-muted);
+    font-style: italic;
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -208,14 +244,12 @@
       "type": "text",
       "id": "rating",
       "label": "t:sections.product_reviews.rating",
-      "info": "t:sections.product_reviews.rating_info",
-      "default": "4.9"
+      "info": "t:sections.product_reviews.rating_info"
     },
     {
       "type": "text",
       "id": "review_count",
-      "label": "t:sections.product_reviews.review_count",
-      "default": "290"
+      "label": "t:sections.product_reviews.review_count"
     },
     {
       "type": "select",
@@ -241,19 +275,17 @@
           "min": 0,
           "max": 5,
           "step": 1,
-          "default": 5
+          "default": 0
         },
         {
           "type": "textarea",
           "id": "quote",
-          "label": "t:sections.product_reviews.quote",
-          "default": "This pressed flower frame is absolutely breathtaking. Even better in person."
+          "label": "t:sections.product_reviews.quote"
         },
         {
           "type": "text",
           "id": "author",
-          "label": "t:sections.product_reviews.author",
-          "default": "Sarah M."
+          "label": "t:sections.product_reviews.author"
         },
         {
           "type": "text",
@@ -273,21 +305,7 @@
     {
       "name": "t:sections.product_reviews.name",
       "blocks": [
-        { "type": "review" },
-        {
-          "type": "review",
-          "settings": {
-            "quote": "It's great, very beautiful. The colours are so vivid.",
-            "author": "Odysseas M."
-          }
-        },
-        {
-          "type": "review",
-          "settings": {
-            "quote": "So pleased with my order. Will definitely be purchasing more.",
-            "author": "Miss E."
-          }
-        }
+        { "type": "review" }
       ]
     }
   ]

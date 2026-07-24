@@ -26,6 +26,9 @@
     "total": "Total",
     "subtotal": "Subtotal",
     "taxes_note": "Shipping and taxes are calculated at checkout.",
+    "taxes_included": "Taxes included. Shipping is calculated at checkout.",
+    "duties_included": "Duties included. Taxes and shipping are calculated at checkout.",
+    "duties_and_taxes_included": "Duties and taxes included. Shipping is calculated at checkout.",
     "note": "Order note"
   },
   "customers": {
@@ -45,11 +48,22 @@
     "clear_all": "Clear all",
     "price_from": "From",
     "price_to": "To",
+    "price_from_with_currency": "From ({{ currency }})",
+    "price_to_with_currency": "To ({{ currency }})",
+    "price_invalid": "Enter a valid price.",
+    "price_out_of_range": "Enter a price from {{ min }} to {{ max }}.",
     "sort_by": "Sort by",
     "products_count": "{{ count }} products",
     "empty": "No products found."
   },
   "general": {
+    "accessibility": {
+      "skip_to_content": "Skip to content"
+    },
+    "meta": {
+      "tagged": "Tagged {{ tags }}",
+      "page": "Page {{ page }}"
+    },
     "pagination": {
       "label": "Pagination",
       "previous": "Previous page",
@@ -58,9 +72,15 @@
   },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
+    "balance": "Gift card balance",
     "card": "Gift card",
+    "code_label": "Gift card code",
+    "copy_code": "Copy code",
+    "copy_success": "Code copied",
     "expired": "This gift card has expired",
     "expires_on": "Expires on {{ expires_on }}",
+    "qr_code": "Gift card QR code",
+    "shop": "Continue shopping",
     "use_at_checkout": "Use this gift card at checkout"
   },
   "password": {
@@ -81,18 +101,23 @@
   },
   "search": {
     "title": "Search",
+    "label": "Search the store",
     "placeholder": "Search articles, pages, or products",
     "submit": "Search",
     "no_results_html": "No results found for {{ terms }}",
     "results_for_html": "{{ count }} results found for {{ terms }}"
   },
   "sections": {
+    "announcement_bar": {
+      "label": "Announcement"
+    },
     "featured_products": {
       "view_all": "View all",
       "sale": "Sale"
     },
     "testimonials": {
-      "rating": "{{ rating }} out of 5 stars"
+      "rating": "{{ rating }} out of 5 stars",
+      "add_review": "Add a verified customer testimonial in the theme editor."
     },
     "newsletter": {
       "email_label": "Email address",
@@ -104,11 +129,15 @@
       "email_placeholder": "Email",
       "subscribe": "Subscribe",
       "newsletter_success": "Thanks for subscribing.",
+      "country": "Country/region",
+      "language": "Language",
+      "update_localization": "Update",
       "follow_facebook": "Follow us on Facebook",
       "follow_instagram": "Follow us on Instagram"
     },
     "header": {
-      "menu": "Menu"
+      "menu": "Menu",
+      "cart": "Cart, {{ count }} items"
     },
     "hero": {
       "label": "Featured",
@@ -129,7 +158,8 @@
       "next_media": "Next image"
     },
     "product_reviews": {
-      "based_on": "Based on {{ count }} reviews"
+      "based_on": "Based on {{ count }} reviews",
+      "add_review": "Add a verified product review in the theme editor."
     }
   }
 }

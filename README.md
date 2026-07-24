@@ -53,6 +53,7 @@ Homepage and storefront modules tailored to a handmade keepsake brand:
 - **Featured products**, **testimonials**, **gallery**, **creator story**
 - **Product page** – media gallery, variant picker, highlights, collapsible details
 - **Collection** – facet filters and sorting
+- **Theme and app blocks** – flexible content and app-host sections
 - Cart, search, blog, article, collections list, and 404 – styled to match
 
 Design tokens (cream paper background, serif headings, gold accent) live in `snippets/css-variables.liquid`.
@@ -113,7 +114,7 @@ When developing components defined by schema settings:
       "min": 0,
       "max": 100,
       "unit": "px",
-      "default": 0,
+      "default": 0
     }]
   }
   {% endschema %}
@@ -141,7 +142,7 @@ When developing components defined by schema settings:
       "type": "select",
       "id": "layout",
       "label": "layout",
-      "values": [
+      "options": [
         { "value": "collection--full-width", "label": "t:options.full" },
         { "value": "collection--narrow", "label": "t:options.narrow" }
       ]
@@ -152,11 +153,21 @@ When developing components defined by schema settings:
 
 ## CSS & JavaScript
 
-Prefer the [`{% stylesheet %}`](https://shopify.dev/docs/api/liquid/tags#stylesheet) and [`{% javascript %}`](https://shopify.dev/docs/api/liquid/tags/javascript) tags on sections, blocks, and snippets. They can appear multiple times; Shopify deduplicates the output.
+Prefer the [`{% stylesheet %}`](https://shopify.dev/docs/api/liquid/tags#stylesheet) and [`{% javascript %}`](https://shopify.dev/docs/api/liquid/tags/javascript) tags on sections, blocks, and snippets. Each file can contain at most one tag of each kind; Shopify deduplicates that file's output when the component appears more than once.
 
 ### `critical.css`
 
 Global essentials (reset, base layout) live in `assets/critical.css` and load on every page. Component styles stay co-located with their Liquid files.
+
+## Validation
+
+Run the same checks used in CI before opening a pull request:
+
+```bash
+bash scripts/check-theme.sh
+```
+
+This runs Shopify Theme Check and the repository's static regression checks. The GitHub Actions workflow pins Shopify CLI to `4.5.2` for reproducible results.
 
 ## License
 
