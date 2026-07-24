@@ -78,6 +78,9 @@
     }
   },
   "sections": {
+    "header": {
+      "show_language_selector": "Show language selector"
+    },
     "announcement": {
       "name": "Announcement bar",
       "text": "Text",

@@ -1,3 +1,10 @@
+{% liquid
+  assign show_language_selector = false
+  if section.settings.show_language_selector and localization.available_languages.size > 1
+    assign show_language_selector = true
+  endif
+%}
+
 <header class="header full-width">
   <div class="header__inner">
     {% comment %}
@@ -45,6 +52,35 @@
     {% endif %}
 
     <div class="header__actions">
+      {% if show_language_selector %}
+        {% assign header_localization_form_id = 'HeaderLocalizationForm-' | append: section.id %}
+        {% form 'localization', id: header_localization_form_id, class: 'header__localization' %}
+          <label class="visually-hidden" for="HeaderLanguage-{{ section.id }}">
+            {{- 'sections.footer.language' | t -}}
+          </label>
+          <select
+            id="HeaderLanguage-{{ section.id }}"
+            class="header__localization-select"
+            name="locale_code"
+            data-localization-select
+          >
+            {% for available_language in localization.available_languages %}
+              <option
+                value="{{ available_language.iso_code }}"
+                {% if available_language.iso_code == localization.language.iso_code %}selected{% endif %}
+              >
+                {{ available_language.endonym_name | capitalize | escape }}
+              </option>
+            {% endfor %}
+          </select>
+          <noscript>
+            <button type="submit" class="header__localization-submit">
+              {{- 'sections.footer.update_localization' | t -}}
+            </button>
+          </noscript>
+        {% endform %}
+      {% endif %}
+
       {% if shop.customer_accounts_enabled %}
         <shopify-account class="header__action" menu="{{ section.settings.customer_account_menu }}">
           {{ 'icon-account.svg' | inline_asset_content }}
@@ -142,6 +178,42 @@
     display: flex;
     align-items: center;
     gap: 1.25rem;
+  }
+
+  .header__localization {
+    display: flex;
+    align-items: center;
+  }
+
+  .header__localization-select {
+    font-family: inherit;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    background-color: transparent;
+    border: 1px solid var(--color-line);
+    border-radius: var(--input-corner-radius, 0);
+    padding: 0.3rem 1.75rem 0.3rem 0.6rem;
+    cursor: pointer;
+    /* Keep the native caret visible while trimming the platform chrome. */
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23000' stroke-width='1.5'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 0.6rem;
+  }
+
+  .header__localization-select:hover,
+  .header__localization-select:focus-visible {
+    border-color: var(--color-accent);
+  }
+
+  .header__localization-submit {
+    margin-left: 0.5rem;
+    font: inherit;
+    cursor: pointer;
   }
 
   .header__action {
@@ -282,6 +354,28 @@
   }
 {% endstylesheet %}
 
+{% javascript %}
+  (function () {
+    function init(scope) {
+      scope.querySelectorAll('[data-localization-select]').forEach(function (select) {
+        if (select.dataset.localizationBound) return;
+        select.dataset.localizationBound = 'true';
+        select.addEventListener('change', function () {
+          var form = select.closest('form');
+          if (form) {
+            form.submit();
+          }
+        });
+      });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+  })();
+{% endjavascript %}
+
 {% schema %}
 {
   "name": "t:general.header",
@@ -296,6 +390,12 @@
       "id": "customer_account_menu",
       "label": "t:labels.customer_account_menu",
       "default": "customer-account-main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_language_selector",
+      "label": "t:sections.header.show_language_selector",
+      "default": true
     }
   ]
 }

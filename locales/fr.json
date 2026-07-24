@@ -1,0 +1,175 @@
+{
+  "404": {
+    "title": "404",
+    "not_found": "Page introuvable.",
+    "back_to_shopping": "Retour à la boutique"
+  },
+  "blog": {
+    "article_comments": "Commentaires",
+    "article_metadata_html": "{{ date }} par {{ author }}",
+    "comment_form_body": "Commentaire",
+    "comment_form_email": "E-mail",
+    "comment_form_name": "Nom",
+    "comment_form_submit": "Publier",
+    "comment_form_title": "Ajouter un commentaire",
+    "read_more": "Lire la suite"
+  },
+  "cart": {
+    "checkout": "Paiement",
+    "title": "Panier",
+    "update": "Mettre à jour",
+    "remove": "Retirer",
+    "empty": "Votre panier est vide.",
+    "empty_cta": "Continuer mes achats",
+    "product": "Produit",
+    "quantity": "Quantité",
+    "total": "Total",
+    "subtotal": "Sous-total",
+    "taxes_note": "Les frais de livraison et les taxes sont calculés au moment du paiement.",
+    "taxes_included": "Taxes incluses. Les frais de livraison sont calculés au moment du paiement.",
+    "duties_included": "Droits de douane inclus. Les taxes et les frais de livraison sont calculés au moment du paiement.",
+    "duties_and_taxes_included": "Droits de douane et taxes inclus. Les frais de livraison sont calculés au moment du paiement.",
+    "note": "Note de commande",
+    "updating": "Mise à jour du panier…",
+    "updated": "Panier mis à jour.",
+    "note_saved": "Note de commande enregistrée.",
+    "update_error": "Impossible de mettre à jour votre panier. Veuillez réessayer.",
+    "quantity_invalid": "Saisissez un nombre entier égal ou supérieur à 0."
+  },
+  "customers": {
+    "login": {
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "title": "Connexion"
+    }
+  },
+  "collections": {
+    "title": "Collections"
+  },
+  "collection": {
+    "filter": "Filtrer",
+    "apply": "Appliquer",
+    "clear_all": "Tout effacer",
+    "price_from": "De",
+    "price_to": "À",
+    "price_from_with_currency": "De ({{ currency }})",
+    "price_to_with_currency": "À ({{ currency }})",
+    "price_invalid": "Saisissez un prix valide.",
+    "price_out_of_range": "Saisissez un prix entre {{ min }} et {{ max }}.",
+    "sort_by": "Trier par",
+    "products_count": "{{ count }} produits",
+    "empty": "Aucun produit trouvé."
+  },
+  "general": {
+    "accessibility": {
+      "skip_to_content": "Passer au contenu"
+    },
+    "meta": {
+      "tagged": "Étiqueté {{ tags }}",
+      "page": "Page {{ page }}"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "previous": "Page précédente",
+      "next": "Page suivante"
+    }
+  },
+  "gift_card": {
+    "add_to_apple_wallet": "Ajouter à Apple Wallet",
+    "balance": "Solde de la carte-cadeau",
+    "card": "Carte-cadeau",
+    "code_label": "Code de la carte-cadeau",
+    "copy_code": "Copier le code",
+    "copy_success": "Code copié",
+    "expired": "Cette carte-cadeau a expiré",
+    "expires_on": "Expire le {{ expires_on }}",
+    "qr_code": "Code QR de la carte-cadeau",
+    "shop": "Continuer mes achats",
+    "use_at_checkout": "Utilisez cette carte-cadeau au moment du paiement"
+  },
+  "password": {
+    "title": "Cette boutique est privée",
+    "password": "Mot de passe",
+    "enter": "Entrer"
+  },
+  "product": {
+    "add_to_cart": "Ajouter au panier",
+    "sold_out": "Épuisé",
+    "unavailable": "Indisponible",
+    "variant": "Variante",
+    "quantity": "Quantité",
+    "decrease_quantity": "Diminuer la quantité",
+    "increase_quantity": "Augmenter la quantité",
+    "sale": "Solde",
+    "optional": "Facultatif"
+  },
+  "search": {
+    "title": "Rechercher",
+    "label": "Rechercher dans la boutique",
+    "placeholder": "Rechercher des articles, des pages ou des produits",
+    "submit": "Rechercher",
+    "no_results_html": "Aucun résultat trouvé pour {{ terms }}",
+    "results_for_html": "{{ count }} résultats trouvés pour {{ terms }}"
+  },
+  "sections": {
+    "announcement_bar": {
+      "label": "Annonce"
+    },
+    "featured_products": {
+      "view_all": "Tout voir",
+      "sale": "Solde"
+    },
+    "testimonials": {
+      "rating": "{{ rating }} sur 5 étoiles",
+      "add_review": "Ajoutez un témoignage client vérifié dans l'éditeur de thème."
+    },
+    "newsletter": {
+      "email_label": "Adresse e-mail",
+      "email_placeholder": "Saisissez votre e-mail",
+      "button": "S'abonner",
+      "success": "Merci de votre inscription."
+    },
+    "footer": {
+      "email_placeholder": "E-mail",
+      "subscribe": "S'abonner",
+      "newsletter_success": "Merci de votre inscription.",
+      "country": "Pays/région",
+      "language": "Langue",
+      "update_localization": "Mettre à jour",
+      "follow_facebook": "Suivez-nous sur Facebook",
+      "follow_instagram": "Suivez-nous sur Instagram"
+    },
+    "header": {
+      "menu": "Menu",
+      "cart": {
+        "one": "Panier, {{ count }} article",
+        "other": "Panier, {{ count }} articles"
+      },
+      "cart_label_one": "Panier, __COUNT__ article",
+      "cart_label_other": "Panier, __COUNT__ articles"
+    },
+    "hero": {
+      "label": "En vedette",
+      "carousel": "Carrousel",
+      "slides": "Diapositives",
+      "previous_slide": "Diapositive précédente",
+      "next_slide": "Diapositive suivante",
+      "go_to_slide": "Aller à la diapositive {{ index }}"
+    },
+    "product": {
+      "read_reviews": "Lire les avis",
+      "zoom": "Agrandir l'image",
+      "gallery": "Galerie du produit",
+      "thumbnails": "Images du produit",
+      "go_to_media": "Afficher l'image {{ index }}",
+      "close": "Fermer",
+      "previous_media": "Image précédente",
+      "next_media": "Image suivante"
+    },
+    "product_reviews": {
+      "based_on": "Basé sur {{ count }} avis",
+      "add_review": "Ajoutez un avis produit vérifié dans l'éditeur de thème."
+    }
+  }
+}
