@@ -161,13 +161,34 @@ Global essentials (reset, base layout) live in `assets/critical.css` and load on
 
 ## Validation
 
-Run the same checks used in CI before opening a pull request:
+Install the test dependencies once, then run the same checks used in CI before opening a pull request:
 
 ```bash
+npm ci
 bash scripts/check-theme.sh
 ```
 
-This runs Shopify Theme Check and the repository's static regression checks. The GitHub Actions workflow pins Shopify CLI to `4.5.2` for reproducible results.
+This runs three things:
+
+1. **Shopify Theme Check** — the platform's own linter.
+2. **Static checks** (`scripts/theme-static-checks.sh`) — repository rules a grep can decide, such as "no placeholder `href="#"` links" and "every snippet opens with a LiquidDoc header". They apply to whole file globs, so new files are covered automatically.
+3. **Regression tests** (`npm test`) — behavioural tests for section JavaScript.
+
+The GitHub Actions workflow pins Shopify CLI to `4.5.2` for reproducible results.
+
+### Regression tests
+
+The theme has no build step; `package.json` exists only to carry the test suite, and everything in it is excluded from theme uploads via `.shopifyignore`.
+
+Tests run on Node's built-in runner with [jsdom](https://github.com/jsdom/jsdom) as the only dependency:
+
+```bash
+npm test
+```
+
+Each test boots a section's `{% javascript %}` block in jsdom and drives it through real events. Shopify concatenates section JavaScript into one file that loads once per page and is *not* re-executed when a section re-renders, so the tests evaluate it once and dispatch `shopify:section:load` and `shopify:section:unload` by hand, the way the theme editor does.
+
+Rules about runtime behaviour belong here rather than in the static checks. An assertion that greps for a specific source expression passes when that text survives in a comment and fails when a variable is renamed — it pins how a fix was written, not what it guarantees. Helpers live in `tests/helpers/`; `fixtures.js` carries the minimal markup each section reads, so a markup change that drops a hook surfaces as a failing test.
 
 ## License
 

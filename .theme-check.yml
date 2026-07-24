@@ -1,1 +1,9 @@
 extends: theme-check:recommended
+
+# Development tooling, not theme files. `.shopifyignore` governs uploads;
+# Theme Check needs to be told separately.
+ignore:
+  - node_modules/**
+  - tests/**
+  - package.json
+  - package-lock.json

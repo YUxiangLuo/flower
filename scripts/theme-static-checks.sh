@@ -43,17 +43,15 @@ if ! rg -q 'id="MainContent"' layout/theme.liquid; then
   report_failure "The main layout must expose the skip-link target."
 fi
 
-if ! rg -q "select\.value = '';" sections/product.liquid; then
-  report_failure "Invalid option combinations must clear the stale variant id."
-fi
-
-if ! rg -q -U 'initGallery\(root\);\s+initBuyBox\(root\);' sections/product.liquid; then
-  report_failure "The product gallery must initialize before the buy box."
-fi
-
-if ! rg -q "event\.target\.matches\('\[data-auto-submit\]'\)" sections/collection.liquid; then
-  report_failure "Collection filters must not auto-submit on every field change."
-fi
+# Runtime behaviour is not checked here. Assertions that grep for a specific
+# source expression pass when the text survives in a comment and fail when a
+# variable is renamed, so they report on how a fix was written rather than on
+# what it guarantees. Those rules live in tests/ instead:
+#
+#   invalid option combinations clear the variant id  -> tests/product-variant.test.js
+#   the gallery initializes before the buy box        -> tests/product-init.test.js
+#   only [data-auto-submit] controls submit a facet   -> tests/collection-facets.test.js
+#   the cart survives a section swap mid-request      -> tests/cart-lifecycle.test.js
 
 if (( failed != 0 )); then
   exit 1

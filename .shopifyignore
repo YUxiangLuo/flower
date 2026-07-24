@@ -15,7 +15,11 @@
 # Repository-only files.
 .github/*
 scripts/*
+tests/*
 old-design/*
+node_modules/*
+package.json
+package-lock.json
 .gitignore
 .gitattributes
 .theme-check.yml

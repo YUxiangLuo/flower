@@ -1,0 +1,12 @@
+{
+  "name": "flower-theme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development tooling for the Flower Shopify theme. The theme itself has no build step; this package only carries the regression test suite.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.0"
+  }
+}

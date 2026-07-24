@@ -17,8 +17,14 @@ approach before you invest time in it.
   reserve `assets/critical.css` for global essentials.
 - Route every user-facing string through translation filters and add new keys to
   `locales/en.default.json`.
-- Run [Theme Check](https://shopify.dev/docs/storefronts/themes/tools/theme-check)
-  (`shopify theme check`) before opening a pull request.
+- Run the full check suite before opening a pull request — `npm ci` once, then
+  `bash scripts/check-theme.sh`. It runs
+  [Theme Check](https://shopify.dev/docs/storefronts/themes/tools/theme-check),
+  the static checks, and the regression tests, and is exactly what CI runs.
+- When you fix a bug in section JavaScript, add a test under `tests/` that fails
+  without the fix. Don't pin the fix's source text in
+  `scripts/theme-static-checks.sh`; keep that script for rules a grep can
+  actually decide. See [Regression tests](./README.md#regression-tests).
 
 ## Steps to contribute
 
