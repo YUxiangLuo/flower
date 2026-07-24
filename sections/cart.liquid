@@ -5,10 +5,24 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/cart
 {% endcomment %}
 
-<div class="cart">
+<div
+  class="cart"
+  data-cart-section
+  data-section-id="{{ section.id }}"
+  data-cart-change-url="{{ routes.cart_change_url }}.js"
+  data-cart-update-url="{{ routes.cart_update_url }}.js"
+  data-cart-page-url="{{ routes.cart_url }}"
+  data-status-updating="{{ 'cart.updating' | t | escape }}"
+  data-status-updated="{{ 'cart.updated' | t | escape }}"
+  data-status-note-saved="{{ 'cart.note_saved' | t | escape }}"
+  data-status-error="{{ 'cart.update_error' | t | escape }}"
+  data-status-invalid-quantity="{{ 'cart.quantity_invalid' | t | escape }}"
+>
   <header class="cart__header">
-    <h1 class="cart__title">{{ 'cart.title' | t }}</h1>
+    <h1 class="cart__title" data-cart-title>{{ 'cart.title' | t }}</h1>
   </header>
+
+  <p class="cart__status" data-cart-status role="status" aria-live="polite" aria-atomic="true"></p>
 
   {% if cart.item_count == 0 %}
     <div class="cart__empty">
@@ -27,7 +41,13 @@
         </div>
 
         {% for item in cart.items %}
-          <div class="cart__row" role="row">
+          <div
+            class="cart__row"
+            role="row"
+            data-cart-line
+            data-line-key="{{ item.key | escape }}"
+            data-line-index="{{ forloop.index }}"
+          >
             <div class="cart__product" role="cell">
               <a class="cart__media" href="{{ item.url }}">
                 {% if item.image %}
@@ -61,13 +81,31 @@
                   <ul class="cart__properties">{{ cart_item_properties }}</ul>
                 {%- endif -%}
                 <p class="cart__unit-price">{{ item.final_price | money }}</p>
-                <a class="cart__remove" href="{{ item.url_to_remove }}">{{ 'cart.remove' | t }}</a>
+                <a
+                  class="cart__remove"
+                  href="{{ item.url_to_remove }}"
+                  data-cart-remove
+                  data-cart-control="remove"
+                  data-line-key="{{ item.key | escape }}"
+                  data-line-index="{{ forloop.index }}"
+                >
+                  {{- 'cart.remove' | t -}}
+                </a>
               </div>
             </div>
 
             <div class="cart__quantity" role="cell">
               <div class="cart__stepper">
-                <button type="button" data-qty-step="-1" data-qty-target="updates-{{ forloop.index }}" aria-label="{{ 'product.decrease_quantity' | t }}">&minus;</button>
+                <button
+                  type="button"
+                  data-qty-step="-1"
+                  data-qty-target="updates-{{ forloop.index }}"
+                  data-cart-control="decrease"
+                  data-line-index="{{ forloop.index }}"
+                  aria-label="{{ 'product.decrease_quantity' | t }}"
+                >
+                  &minus;
+                </button>
                 <input
                   id="updates-{{ forloop.index }}"
                   class="cart__quantity-input"
@@ -75,9 +113,25 @@
                   name="updates[]"
                   value="{{ item.quantity }}"
                   min="0"
+                  step="1"
+                  inputmode="numeric"
+                  data-cart-quantity
+                  data-cart-control="quantity"
+                  data-line-key="{{ item.key | escape }}"
+                  data-line-index="{{ forloop.index }}"
+                  data-current-quantity="{{ item.quantity }}"
                   aria-label="{{ 'cart.quantity' | t }}"
                 >
-                <button type="button" data-qty-step="1" data-qty-target="updates-{{ forloop.index }}" aria-label="{{ 'product.increase_quantity' | t }}">+</button>
+                <button
+                  type="button"
+                  data-qty-step="1"
+                  data-qty-target="updates-{{ forloop.index }}"
+                  data-cart-control="increase"
+                  data-line-index="{{ forloop.index }}"
+                  aria-label="{{ 'product.increase_quantity' | t }}"
+                >
+                  +
+                </button>
               </div>
             </div>
 
@@ -139,6 +193,22 @@
 
   .cart__header {
     margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+
+  .cart__status {
+    min-height: 1.25em;
+    margin: -1.5rem 0 1.5rem;
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+
+  .cart__status:empty {
+    min-height: 0;
+    margin-block: 0;
+  }
+
+  .cart__status--error {
+    color: var(--color-accent);
   }
 
   .cart__title {
@@ -249,6 +319,11 @@
 
   .cart__remove:hover {
     color: var(--color-accent);
+  }
+
+  .cart__remove[aria-disabled='true'] {
+    opacity: 0.55;
+    pointer-events: none;
   }
 
   .cart__stepper {
@@ -387,6 +462,22 @@
     color: var(--color-background);
   }
 
+  .cart--ajax .cart__button[name='update'] {
+    display: none;
+  }
+
+  .cart[aria-busy='true'] button,
+  .cart[aria-busy='true'] input,
+  .cart[aria-busy='true'] textarea {
+    cursor: wait;
+  }
+
+  .cart[aria-busy='true'] button:disabled,
+  .cart[aria-busy='true'] input:disabled,
+  .cart[aria-busy='true'] textarea:disabled {
+    opacity: 0.55;
+  }
+
   @media (max-width: 749px) {
     .cart__row {
       grid-template-columns: 1fr auto;
@@ -416,19 +507,419 @@
 
 {% javascript %}
   (function () {
-    function init(scope) {
-      var cart = scope.querySelector('.cart__form');
-      if (!cart) return;
-      cart.querySelectorAll('[data-qty-step]').forEach(function (button) {
-        button.addEventListener('click', function () {
-          var input = document.getElementById(button.getAttribute('data-qty-target'));
-          if (!input) return;
-          var step = parseInt(button.getAttribute('data-qty-step'), 10);
-          var next = (parseInt(input.value, 10) || 0) + step;
-          if (next < 0) next = 0;
-          input.value = next;
+    var ajaxSupported = Boolean(window.fetch && window.Promise && window.DOMParser);
+
+    function setStatus(cart, message, isError) {
+      var status = cart.querySelector('[data-cart-status]');
+      if (!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('cart__status--error', Boolean(isError));
+    }
+
+    function setBusy(cart, isBusy) {
+      cart.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+      cart.querySelectorAll('button, input, textarea').forEach(function (control) {
+        control.disabled = isBusy;
+      });
+      cart.querySelectorAll('[data-cart-remove]').forEach(function (link) {
+        link.setAttribute('aria-disabled', isBusy ? 'true' : 'false');
+      });
+    }
+
+    function updateHeaderCount(itemCount) {
+      document.querySelectorAll('[data-cart-link]').forEach(function (link) {
+        var count = link.querySelector('[data-cart-count]');
+        var labelTemplate =
+          itemCount === 1
+            ? link.getAttribute('data-cart-label-one')
+            : link.getAttribute('data-cart-label-other');
+
+        if (count) {
+          count.textContent = itemCount;
+          count.hidden = itemCount === 0;
+        }
+
+        if (labelTemplate) {
+          link.setAttribute('aria-label', labelTemplate.replace('__COUNT__', itemCount));
+        }
+      });
+    }
+
+    function requestCart(url, payload) {
+      return fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(payload)
+      }).then(function (response) {
+        return response
+          .json()
+          .catch(function () {
+            return {};
+          })
+          .then(function (data) {
+            if (!response.ok) {
+              var requestError = new Error(data.description || data.message || '');
+              requestError.isCartResponseError = true;
+              throw requestError;
+            }
+            return data;
+          });
+      });
+    }
+
+    function focusDescriptor(control) {
+      if (!control) return null;
+      return {
+        control: control.getAttribute('data-cart-control'),
+        lineIndex: control.getAttribute('data-line-index')
+      };
+    }
+
+    function restoreFocus(cart, descriptor) {
+      if (!descriptor) return;
+
+      var target = null;
+      if (descriptor.control && descriptor.lineIndex) {
+        target = cart.querySelector(
+          '[data-cart-control="' + descriptor.control + '"][data-line-index="' + descriptor.lineIndex + '"]'
+        );
+      }
+      if (!target) target = cart.querySelector('[data-cart-control="quantity"]');
+      if (!target) {
+        target = cart.querySelector('[data-cart-title]');
+        if (target) target.setAttribute('tabindex', '-1');
+      }
+      if (!target) return;
+
+      window.requestAnimationFrame(function () {
+        try {
+          target.focus({ preventScroll: true });
+        } catch (error) {
+          target.focus();
+        }
+      });
+    }
+
+    function replaceCart(currentCart, sectionHtml, descriptor, message, isError) {
+      if (typeof sectionHtml !== 'string') {
+        throw new Error('Missing cart section HTML');
+      }
+
+      var renderedDocument = new DOMParser().parseFromString(sectionHtml, 'text/html');
+      var nextCart = renderedDocument.querySelector('[data-cart-section]');
+      if (!nextCart) {
+        throw new Error('Missing cart section root');
+      }
+
+      currentCart.replaceWith(nextCart);
+      initCart(nextCart);
+      setStatus(nextCart, message, isError);
+      restoreFocus(nextCart, descriptor);
+    }
+
+    function renderCartData(state, cartData, descriptor, message, isError) {
+      updateHeaderCount(cartData.item_count);
+      replaceCart(
+        state.cart,
+        cartData.sections && cartData.sections[state.sectionId],
+        descriptor,
+        message,
+        isError
+      );
+    }
+
+    function reconcileCart(state, descriptor, message) {
+      return requestCart(state.updateUrl, {
+        sections: [state.sectionId],
+        sections_url: state.cartPageUrl
+      }).then(function (cartData) {
+        try {
+          renderCartData(state, cartData, descriptor, message, true);
+        } catch (error) {
+          window.location.assign(state.cartPageUrl);
+        }
+      });
+    }
+
+    function validQuantity(input) {
+      var quantity = Number(input.value);
+      if (input.value === '' || !Number.isInteger(quantity) || quantity < 0 || !input.checkValidity()) {
+        return null;
+      }
+      return quantity;
+    }
+
+    function resetQuantities(cart) {
+      cart.querySelectorAll('[data-cart-quantity]').forEach(function (input) {
+        input.value = input.getAttribute('data-current-quantity');
+      });
+    }
+
+    function queueQuantity(state, input, quantity, descriptor) {
+      var lineKey = input.getAttribute('data-line-key');
+      var lineIndex = Number(input.getAttribute('data-line-index'));
+      var currentQuantity = Number(input.getAttribute('data-current-quantity'));
+      var queuedChange = state.quantities.get(lineKey);
+      if (!lineKey || !lineIndex) return false;
+
+      if (queuedChange && queuedChange.quantity === quantity) {
+        state.focus = descriptor;
+        return false;
+      }
+      if (state.inFlightQuantities.get(lineKey) === quantity) {
+        state.focus = descriptor;
+        return false;
+      }
+
+      if (quantity === currentQuantity) {
+        state.quantities.delete(lineKey);
+      } else {
+        state.quantities.set(lineKey, {
+          id: lineKey,
+          line: lineIndex,
+          quantity: quantity
+        });
+      }
+      state.focus = descriptor;
+      return true;
+    }
+
+    function scheduleFlush(state, delay) {
+      window.clearTimeout(state.timer);
+      state.timer = window.setTimeout(function () {
+        flush(state);
+      }, delay);
+    }
+
+    function flush(state) {
+      if (state.busy) {
+        scheduleFlush(state, 100);
+        return;
+      }
+
+      var quantityChanges = Array.from(state.quantities.values()).sort(function (first, second) {
+        return second.line - first.line;
+      });
+      var noteQueued = state.noteQueued;
+      var note = state.note;
+      var descriptor = state.focus;
+
+      state.quantities.clear();
+      state.noteQueued = false;
+      state.inFlightQuantities = new Map(
+        quantityChanges.map(function (change) {
+          return [change.id, change.quantity];
+        })
+      );
+
+      if (quantityChanges.length === 0 && !noteQueued) return;
+
+      state.busy = true;
+      setBusy(state.cart, true);
+      setStatus(state.cart, state.cart.getAttribute('data-status-updating'), false);
+
+      var sequence = Promise.resolve();
+      var lastCart = null;
+
+      if (noteQueued) {
+        sequence = sequence.then(function () {
+          return requestCart(state.updateUrl, { note: note });
+        });
+      }
+
+      quantityChanges.forEach(function (change) {
+        sequence = sequence.then(function () {
+          return requestCart(state.changeUrl, {
+            line: change.line,
+            quantity: change.quantity,
+            sections: [state.sectionId],
+            sections_url: state.cartPageUrl
+          }).then(function (cartData) {
+            lastCart = cartData;
+          });
         });
       });
+
+      sequence
+        .then(function () {
+          state.busy = false;
+          state.inFlightQuantities.clear();
+
+          if (!lastCart) {
+            setBusy(state.cart, false);
+            setStatus(state.cart, state.cart.getAttribute('data-status-note-saved'), false);
+            return;
+          }
+
+          try {
+            renderCartData(state, lastCart, descriptor, state.cart.getAttribute('data-status-updated'), false);
+          } catch (error) {
+            window.location.assign(state.cartPageUrl);
+          }
+        })
+        .catch(function (error) {
+          state.busy = false;
+          state.inFlightQuantities.clear();
+          var message = state.cart.getAttribute('data-status-error');
+          if (error.isCartResponseError && error.message) {
+            message = error.message;
+          }
+
+          reconcileCart(state, descriptor, message).catch(function () {
+            if (error.isCartResponseError) {
+              window.location.assign(state.cartPageUrl);
+              return;
+            }
+
+            if (lastCart) {
+              try {
+                renderCartData(state, lastCart, descriptor, message, true);
+              } catch (renderError) {
+                window.location.assign(state.cartPageUrl);
+              }
+              return;
+            }
+
+            resetQuantities(state.cart);
+            setBusy(state.cart, false);
+            setStatus(state.cart, message, true);
+            restoreFocus(state.cart, descriptor);
+          });
+        });
+    }
+
+    function initCart(cart) {
+      if (!cart || cart.getAttribute('data-cart-initialized') === 'true') return;
+      cart.setAttribute('data-cart-initialized', 'true');
+
+      var form = cart.querySelector('.cart__form');
+      if (!form || !ajaxSupported) return;
+
+      cart.classList.add('cart--ajax');
+      var state = {
+        cart: cart,
+        form: form,
+        sectionId: cart.getAttribute('data-section-id'),
+        changeUrl: cart.getAttribute('data-cart-change-url'),
+        updateUrl: cart.getAttribute('data-cart-update-url'),
+        cartPageUrl: cart.getAttribute('data-cart-page-url'),
+        quantities: new Map(),
+        inFlightQuantities: new Map(),
+        noteQueued: false,
+        note: '',
+        focus: null,
+        timer: null,
+        busy: false
+      };
+
+      cart.addEventListener('click', function (event) {
+        var stepButton = event.target.closest('[data-qty-step]');
+        if (stepButton && cart.contains(stepButton)) {
+          var targetId = stepButton.getAttribute('data-qty-target');
+          var input = document.getElementById(targetId);
+          if (!input) return;
+
+          var step = Number(stepButton.getAttribute('data-qty-step'));
+          var current = validQuantity(input);
+          if (current === null) current = Number(input.getAttribute('data-current-quantity'));
+          var next = Math.max(0, current + step);
+          input.value = next;
+          if (queueQuantity(state, input, next, focusDescriptor(stepButton))) {
+            scheduleFlush(state, 250);
+          }
+          return;
+        }
+
+        var remove = event.target.closest('[data-cart-remove]');
+        if (remove && cart.contains(remove)) {
+          event.preventDefault();
+          if (state.busy) return;
+
+          var lineKey = remove.getAttribute('data-line-key');
+          var lineIndex = Number(remove.getAttribute('data-line-index'));
+          if (!lineKey || !lineIndex) return;
+          state.quantities.set(lineKey, { id: lineKey, line: lineIndex, quantity: 0 });
+          state.focus = focusDescriptor(remove);
+          scheduleFlush(state, 0);
+        }
+      });
+
+      cart.addEventListener('change', function (event) {
+        if (event.target.matches('[data-cart-quantity]')) {
+          var quantity = validQuantity(event.target);
+          if (quantity === null) {
+            event.target.value = event.target.getAttribute('data-current-quantity');
+            setStatus(cart, cart.getAttribute('data-status-invalid-quantity'), true);
+            return;
+          }
+
+          if (queueQuantity(state, event.target, quantity, focusDescriptor(event.target))) {
+            scheduleFlush(state, 0);
+          }
+          return;
+        }
+
+        if (event.target.name === 'note') {
+          state.note = event.target.value;
+          state.noteQueued = true;
+          state.focus = null;
+          scheduleFlush(state, 250);
+        }
+      });
+
+      cart.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' || !event.target.matches('[data-cart-quantity]')) return;
+        event.preventDefault();
+        var quantity = validQuantity(event.target);
+        if (quantity === null) {
+          event.target.value = event.target.getAttribute('data-current-quantity');
+          setStatus(cart, cart.getAttribute('data-status-invalid-quantity'), true);
+          return;
+        }
+
+        if (queueQuantity(state, event.target, quantity, focusDescriptor(event.target))) {
+          scheduleFlush(state, 0);
+        }
+      });
+
+      form.addEventListener('submit', function (event) {
+        if (event.submitter && event.submitter.name === 'checkout') return;
+        event.preventDefault();
+
+        var invalidInput = null;
+        form.querySelectorAll('[data-cart-quantity]').forEach(function (input) {
+          var quantity = validQuantity(input);
+          if (quantity === null) {
+            invalidInput = invalidInput || input;
+            return;
+          }
+          queueQuantity(state, input, quantity, focusDescriptor(input));
+        });
+
+        if (invalidInput) {
+          invalidInput.value = invalidInput.getAttribute('data-current-quantity');
+          invalidInput.focus();
+          setStatus(cart, cart.getAttribute('data-status-invalid-quantity'), true);
+          return;
+        }
+
+        var noteInput = form.querySelector('[name="note"]');
+        if (noteInput) {
+          state.note = noteInput.value;
+          state.noteQueued = true;
+        }
+        scheduleFlush(state, 0);
+      });
+    }
+
+    function init(scope) {
+      if (scope.matches && scope.matches('[data-cart-section]')) initCart(scope);
+      scope.querySelectorAll('[data-cart-section]').forEach(initCart);
     }
 
     init(document);

@@ -55,11 +55,14 @@
         class="header__action"
         href="{{ routes.cart_url }}"
         aria-label="{{ 'sections.header.cart' | t: count: cart.item_count }}"
+        data-cart-link
+        data-cart-label-one="{{ 'sections.header.cart_label_one' | t | escape_once }}"
+        data-cart-label-other="{{ 'sections.header.cart_label_other' | t | escape_once }}"
       >
         {{ 'icon-cart.svg' | inline_asset_content }}
-        {% if cart.item_count > 0 %}
-          <sup class="header__cart-count">{{ cart.item_count }}</sup>
-        {% endif %}
+        <sup class="header__cart-count" data-cart-count {% if cart.item_count == 0 %}hidden{% endif %}>
+          {{- cart.item_count -}}
+        </sup>
       </a>
     </div>
   </div>
@@ -167,6 +170,10 @@
     font-size: 0.7rem;
     line-height: 1;
     color: var(--color-accent);
+  }
+
+  .header__cart-count[hidden] {
+    display: none;
   }
 
   /* Mobile menu — hidden entirely on desktop so it stays out of the grid. */
