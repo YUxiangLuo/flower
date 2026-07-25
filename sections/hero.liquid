@@ -391,10 +391,18 @@
 
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
       var interval = parseInt(hero.getAttribute('data-interval'), 10) || 6000;
-      var index = 0;
       var timer = null;
       var leaveTimer = null;
-      var hovering = false;
+
+      /* Start from whichever slide is actually on screen rather than assuming
+         the first. Re-initialising against a carousel that had already rotated
+         would otherwise hold the wrong slide opaque through the next crossfade
+         — the one that was showing gets neither state and fades out uncovered,
+         which is the background flash the stylesheet exists to prevent. */
+      var index = slides.findIndex(function (slide) {
+        return slide.hasAttribute('data-active');
+      });
+      if (index < 0) index = 0;
 
       /* Track every listener we add so the section can be torn down cleanly
          when the theme editor reloads it (shopify:section:unload). */
@@ -406,13 +414,33 @@
         });
       }
 
-      /* Read the crossfade length off the stylesheet so the two can't drift. */
-      var fade = (parseFloat(getComputedStyle(slides[0]).transitionDuration) || 1.2) * 1000;
+      /* Read the crossfade length off the stylesheet so the two can't drift.
+         A measured 0 is a real answer — reduced motion sets `transition: none`
+         — and must not be mistaken for "nothing to read", or the outgoing slide
+         would be held opaque for over a second with no crossfade to cover. */
+      var measuredFade = parseFloat(getComputedStyle(slides[0]).transitionDuration);
+      var fade = (isNaN(measuredFade) ? 1.2 : measuredFade) * 1000;
 
       function show(next) {
         var previous = index;
         index = (next + slides.length) % slides.length;
         if (index === previous) return;
+
+        /* Autoplay never stops, so a slide can rotate away from under a
+           keyboard user. `inert` on the element holding focus drops it to
+           <body> and loses their place in the tab order entirely, so hand focus
+           to the incoming slide's dot first: it sits outside the slides, is
+           always focusable, and its aria-current says where they now are.
+           preventScroll matters — the hero may be far above the viewport by
+           now, and focusing must not yank the page back up to it. */
+        var outgoing = slides[previous];
+        if (dots[index] && outgoing.contains(document.activeElement)) {
+          try {
+            dots[index].focus({ preventScroll: true });
+          } catch (error) {
+            dots[index].focus();
+          }
+        }
 
         clearTimeout(leaveTimer);
         slides.forEach(function (slide, i) {
@@ -430,7 +458,6 @@
 
         /* Hold the outgoing slide opaque below the incoming one until the
            fade is over, so the background never shows through. */
-        var outgoing = slides[previous];
         outgoing.setAttribute('data-leaving', '');
         leaveTimer = setTimeout(function () {
           outgoing.removeAttribute('data-leaving');
@@ -449,9 +476,12 @@
         }
       }
 
+      /* Nothing the customer does stops autoplay. Pausing on hover or on focus
+         meant a full-bleed hero, which is most of the viewport, could park the
+         carousel for the rest of the visit — see goTo below for the one thing
+         that touches the timer, and it only ever restarts it. */
       function start() {
         stop();
-        if (hovering) return;
         if (hero.getAttribute('data-autoplay') !== 'true') return;
         if (reduced.matches) return;
         timer = setInterval(function () {
@@ -459,7 +489,8 @@
         }, interval);
       }
 
-      /* Advancing by hand shouldn't leave a partial interval running. */
+      /* Advancing by hand re-syncs the timer so the slide the customer asked
+         for still gets a full interval on screen. It never stops autoplay. */
       function goTo(next) {
         show(next);
         start();
@@ -483,24 +514,8 @@
         });
       });
 
-      /* Pause while the pointer is genuinely moving over the hero. We key off
-         mousemove rather than mouseenter because a browser fires a synthetic
-         mouseenter on whatever element sits under a stationary cursor when the
-         page loads; with plain mouseenter that spurious event would pause
-         autoplay on load and leave it stuck until the pointer moved. */
-      on(hero, 'mousemove', function () {
-        hovering = true;
-        stop();
-      });
-      on(hero, 'mouseleave', function () {
-        hovering = false;
-        start();
-      });
-      on(hero, 'focusin', stop);
-      on(hero, 'focusout', function (event) {
-        if (!hero.contains(event.relatedTarget)) start();
-      });
-
+      /* A background tab is not something the customer did to the carousel, and
+         this one cannot leave it parked: coming back always restarts it. */
       on(document, 'visibilitychange', function () {
         if (document.hidden) stop();
         else start();
@@ -538,8 +553,22 @@
     }
 
     /* Register the page-level measurement once; per-hero listeners live and
-       die with each carousel instance. */
-    window.addEventListener('resize', measureAll);
+       die with each carousel instance.
+
+       Measuring reads getBoundingClientRect for every hero, which forces
+       layout. Resize fires in a continuous stream — on mobile every time the
+       address bar slides — so coalesce to one measurement per frame instead of
+       thrashing layout on each event. */
+    var measureFrame = null;
+    function scheduleMeasure() {
+      if (measureFrame !== null) return;
+      measureFrame = window.requestAnimationFrame(function () {
+        measureFrame = null;
+        measureAll();
+      });
+    }
+
+    window.addEventListener('resize', scheduleMeasure);
     window.addEventListener('load', measureAll);
 
     init(document);
