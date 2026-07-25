@@ -34,25 +34,13 @@
     "updated": "Cart updated.",
     "note_saved": "Order note saved.",
     "update_error": "Unable to update your cart. Please try again.",
-    "quantity_invalid": "Enter a whole number of 0 or more."
-  },
-  "customers": {
-    "login": {
-      "email": "Email",
-      "password": "Password",
-      "submit": "Sign in",
-      "title": "Login"
-    }
-  },
-  "collections": {
-    "title": "Collections"
+    "quantity_invalid": "Enter a whole number of 0 or more.",
+    "view_cart": "View cart"
   },
   "collection": {
     "filter": "Filter",
     "apply": "Apply",
     "clear_all": "Clear all",
-    "price_from": "From",
-    "price_to": "To",
     "price_from_with_currency": "From ({{ currency }})",
     "price_to_with_currency": "To ({{ currency }})",
     "price_invalid": "Enter a valid price.",
@@ -63,7 +51,8 @@
   },
   "general": {
     "accessibility": {
-      "skip_to_content": "Skip to content"
+      "skip_to_content": "Skip to content",
+      "close": "Close"
     },
     "meta": {
       "tagged": "Tagged {{ tags }}",
@@ -102,7 +91,9 @@
     "decrease_quantity": "Decrease quantity",
     "increase_quantity": "Increase quantity",
     "sale": "Sale",
-    "optional": "Optional"
+    "optional": "Optional",
+    "adding_to_cart": "Adding to cart…",
+    "add_to_cart_error": "Unable to add this item. Please try again."
   },
   "search": {
     "title": "Search",
@@ -147,7 +138,9 @@
         "other": "Cart, {{ count }} items"
       },
       "cart_label_one": "Cart, __COUNT__ item",
-      "cart_label_other": "Cart, __COUNT__ items"
+      "cart_label_other": "Cart, __COUNT__ items",
+      "primary_navigation": "Primary navigation",
+      "view_all": "View all {{ title }}"
     },
     "hero": {
       "label": "Featured",

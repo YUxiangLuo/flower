@@ -34,25 +34,13 @@
     "updated": "Warenkorb aktualisiert.",
     "note_saved": "Bestellhinweis gespeichert.",
     "update_error": "Der Warenkorb konnte nicht aktualisiert werden. Bitte versuche es erneut.",
-    "quantity_invalid": "Gib eine ganze Zahl ab 0 ein."
-  },
-  "customers": {
-    "login": {
-      "email": "E-Mail",
-      "password": "Passwort",
-      "submit": "Anmelden",
-      "title": "Anmeldung"
-    }
-  },
-  "collections": {
-    "title": "Kollektionen"
+    "quantity_invalid": "Gib eine ganze Zahl ab 0 ein.",
+    "view_cart": "Warenkorb ansehen"
   },
   "collection": {
     "filter": "Filtern",
     "apply": "Anwenden",
     "clear_all": "Alle löschen",
-    "price_from": "Von",
-    "price_to": "Bis",
     "price_from_with_currency": "Von ({{ currency }})",
     "price_to_with_currency": "Bis ({{ currency }})",
     "price_invalid": "Gib einen gültigen Preis ein.",
@@ -63,7 +51,8 @@
   },
   "general": {
     "accessibility": {
-      "skip_to_content": "Zum Inhalt springen"
+      "skip_to_content": "Zum Inhalt springen",
+      "close": "Schließen"
     },
     "meta": {
       "tagged": "Getaggt {{ tags }}",
@@ -102,7 +91,9 @@
     "decrease_quantity": "Menge verringern",
     "increase_quantity": "Menge erhöhen",
     "sale": "Angebot",
-    "optional": "Optional"
+    "optional": "Optional",
+    "adding_to_cart": "Wird hinzugefügt…",
+    "add_to_cart_error": "Artikel konnte nicht hinzugefügt werden. Bitte erneut versuchen."
   },
   "search": {
     "title": "Suche",
@@ -147,7 +138,9 @@
         "other": "Warenkorb, {{ count }} Artikel"
       },
       "cart_label_one": "Warenkorb, __COUNT__ Artikel",
-      "cart_label_other": "Warenkorb, __COUNT__ Artikel"
+      "cart_label_other": "Warenkorb, __COUNT__ Artikel",
+      "primary_navigation": "Hauptnavigation",
+      "view_all": "Alle anzeigen: {{ title }}"
     },
     "hero": {
       "label": "Empfohlen",

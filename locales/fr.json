@@ -34,25 +34,13 @@
     "updated": "Panier mis à jour.",
     "note_saved": "Note de commande enregistrée.",
     "update_error": "Impossible de mettre à jour votre panier. Veuillez réessayer.",
-    "quantity_invalid": "Saisissez un nombre entier égal ou supérieur à 0."
-  },
-  "customers": {
-    "login": {
-      "email": "E-mail",
-      "password": "Mot de passe",
-      "submit": "Se connecter",
-      "title": "Connexion"
-    }
-  },
-  "collections": {
-    "title": "Collections"
+    "quantity_invalid": "Saisissez un nombre entier égal ou supérieur à 0.",
+    "view_cart": "Voir le panier"
   },
   "collection": {
     "filter": "Filtrer",
     "apply": "Appliquer",
     "clear_all": "Tout effacer",
-    "price_from": "De",
-    "price_to": "À",
     "price_from_with_currency": "De ({{ currency }})",
     "price_to_with_currency": "À ({{ currency }})",
     "price_invalid": "Saisissez un prix valide.",
@@ -63,7 +51,8 @@
   },
   "general": {
     "accessibility": {
-      "skip_to_content": "Passer au contenu"
+      "skip_to_content": "Passer au contenu",
+      "close": "Fermer"
     },
     "meta": {
       "tagged": "Étiqueté {{ tags }}",
@@ -102,7 +91,9 @@
     "decrease_quantity": "Diminuer la quantité",
     "increase_quantity": "Augmenter la quantité",
     "sale": "Solde",
-    "optional": "Facultatif"
+    "optional": "Facultatif",
+    "adding_to_cart": "Ajout au panier…",
+    "add_to_cart_error": "Impossible d'ajouter cet article. Veuillez réessayer."
   },
   "search": {
     "title": "Rechercher",
@@ -147,7 +138,9 @@
         "other": "Panier, {{ count }} articles"
       },
       "cart_label_one": "Panier, __COUNT__ article",
-      "cart_label_other": "Panier, __COUNT__ articles"
+      "cart_label_other": "Panier, __COUNT__ articles",
+      "primary_navigation": "Navigation principale",
+      "view_all": "Voir tout : {{ title }}"
     },
     "hero": {
       "label": "En vedette",

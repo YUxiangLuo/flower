@@ -79,7 +79,8 @@
   },
   "sections": {
     "header": {
-      "show_language_selector": "Show language selector"
+      "show_language_selector": "Show language selector",
+      "show_search": "Show search"
     },
     "announcement": {
       "name": "Announcement bar",
@@ -300,6 +301,9 @@
       "body": "Body",
       "button_label": "Button label",
       "button_link": "Button link"
+    },
+    "cart_drawer": {
+      "name": "Cart drawer"
     }
   }
 }

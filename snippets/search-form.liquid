@@ -1,0 +1,93 @@
+{% doc %}
+  Renders the storefront search form.
+
+  The header shows it twice — once behind the desktop disclosure and once at the
+  top of the mobile drawer — so `id_suffix` keeps the input id, and the label
+  pointing at it, unique on the page.
+
+  @param {string} id_suffix - Suffix appended to the input id to keep it unique
+  @param {string} [css_class] - Optional class added to the form element
+  @param {string} [value] - Prefills the field, e.g. with the current search terms
+
+  @example
+  {% render 'search-form', id_suffix: section.id %}
+  {% render 'search-form', id_suffix: section.id, value: search.terms %}
+{% enddoc %}
+
+<form class="search-form {{ css_class }}" action="{{ routes.search_url }}" method="get" role="search">
+  <label class="visually-hidden" for="SearchForm-{{ id_suffix }}">
+    {{- 'search.label' | t -}}
+  </label>
+  <input
+    id="SearchForm-{{ id_suffix }}"
+    class="search-form__input"
+    type="search"
+    name="q"
+    value="{{ value | escape }}"
+    placeholder="{{ 'search.placeholder' | t }}"
+    autocomplete="off"
+    data-search-input
+  >
+  <button class="search-form__submit" type="submit" aria-label="{{ 'search.submit' | t }}">
+    {{- 'icon-search.svg' | inline_asset_content -}}
+  </button>
+</form>
+
+{% stylesheet %}
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--style-border-radius-inputs);
+    background-color: var(--color-background);
+    padding-inline: 0.75rem;
+  }
+
+  .search-form:focus-within {
+    border-color: var(--color-accent);
+  }
+
+  .search-form__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-foreground);
+    font-size: 0.95rem;
+    padding-block: 0.6rem;
+  }
+
+  .search-form__input:focus {
+    outline: none;
+  }
+
+  /* Safari draws its own clear button on type="search"; drop it so the field
+     matches the rest of the theme's inputs. */
+  .search-form__input::-webkit-search-decoration,
+  .search-form__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .search-form__submit {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .search-form__submit svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    max-width: none;
+  }
+
+  .search-form__submit:hover,
+  .search-form__submit:focus-visible {
+    color: var(--color-accent);
+  }
+{% endstylesheet %}

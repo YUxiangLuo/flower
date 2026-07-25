@@ -3,6 +3,8 @@
   if section.settings.show_language_selector and localization.available_languages.size > 1
     assign show_language_selector = true
   endif
+
+  assign drawer_search_id = section.id | append: '-drawer'
 %}
 
 <header class="header full-width">
@@ -24,9 +26,88 @@
         </summary>
 
         <div class="header__drawer">
-          <nav class="header__drawer-nav">
+          {% if section.settings.show_search %}
+            {% render 'search-form',
+              id_suffix: drawer_search_id,
+              css_class: 'search-form--drawer'
+            %}
+          {% endif %}
+
+          <nav class="header__drawer-nav" aria-label="{{ 'sections.header.primary_navigation' | t }}">
             {% for link in section.settings.menu.links %}
-              <a class="header__drawer-link" href="{{ link.url }}">{{ link.title }}</a>
+              {% comment %}
+                A parent link's own page is unreachable once its entry becomes a
+                disclosure, so every submenu opens with a link back to it.
+              {% endcomment %}
+              {% if link.links.size > 0 %}
+                <details class="header__drawer-group" {% if link.child_active %}open{% endif %}>
+                  <summary class="header__drawer-link header__drawer-link--parent">
+                    {{ link.title }}
+                    <span class="header__caret" aria-hidden="true">
+                      {{- 'icon-chevron.svg' | inline_asset_content -}}
+                    </span>
+                  </summary>
+
+                  <div class="header__drawer-sub">
+                    <a
+                      class="header__drawer-sublink"
+                      href="{{ link.url }}"
+                      {% if link.current %}aria-current="page"{% endif %}
+                    >
+                      {{- 'sections.header.view_all' | t: title: link.title -}}
+                    </a>
+
+                    {% for child in link.links %}
+                      {% if child.links.size > 0 %}
+                        <details class="header__drawer-group" {% if child.child_active %}open{% endif %}>
+                          <summary class="header__drawer-sublink header__drawer-link--parent">
+                            {{ child.title }}
+                            <span class="header__caret" aria-hidden="true">
+                              {{- 'icon-chevron.svg' | inline_asset_content -}}
+                            </span>
+                          </summary>
+
+                          <div class="header__drawer-sub">
+                            <a
+                              class="header__drawer-sublink"
+                              href="{{ child.url }}"
+                              {% if child.current %}aria-current="page"{% endif %}
+                            >
+                              {{- 'sections.header.view_all' | t: title: child.title -}}
+                            </a>
+
+                            {% for grandchild in child.links %}
+                              <a
+                                class="header__drawer-sublink"
+                                href="{{ grandchild.url }}"
+                                {% if grandchild.current %}aria-current="page"{% endif %}
+                              >
+                                {{- grandchild.title -}}
+                              </a>
+                            {% endfor %}
+                          </div>
+                        </details>
+                      {% else %}
+                        <a
+                          class="header__drawer-sublink"
+                          href="{{ child.url }}"
+                          {% if child.current %}aria-current="page"{% endif %}
+                        >
+                          {{- child.title -}}
+                        </a>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </details>
+              {% else %}
+                <a
+                  class="header__drawer-link"
+                  href="{{ link.url }}"
+                  {% if link.current %}aria-current="page"{% endif %}
+                >
+                  {{- link.title -}}
+                </a>
+              {% endif %}
             {% endfor %}
           </nav>
         </div>
@@ -42,9 +123,72 @@
     </a>
 
     {% if section.settings.menu.links.size > 0 %}
-      <nav class="header__nav">
+      <nav class="header__nav" aria-label="{{ 'sections.header.primary_navigation' | t }}">
         {% for link in section.settings.menu.links %}
-          <a class="header__nav-link" href="{{ link.url }}">{{ link.title }}</a>
+          {% if link.links.size > 0 %}
+            <details class="header__dropdown" data-header-dropdown>
+              <summary class="header__nav-link header__nav-link--parent">
+                {{ link.title }}
+                <span class="header__caret" aria-hidden="true">
+                  {{- 'icon-chevron.svg' | inline_asset_content -}}
+                </span>
+              </summary>
+
+              <div class="header__panel">
+                <ul class="header__panel-list" role="list">
+                  {% comment %}
+                    The summary is a disclosure, not a link, so the parent's own
+                    page needs an entry of its own inside the panel.
+                  {% endcomment %}
+                  <li>
+                    <a
+                      class="header__panel-link header__panel-link--all"
+                      href="{{ link.url }}"
+                      {% if link.current %}aria-current="page"{% endif %}
+                    >
+                      {{- 'sections.header.view_all' | t: title: link.title -}}
+                    </a>
+                  </li>
+
+                  {% for child in link.links %}
+                    <li>
+                      <a
+                        class="header__panel-link"
+                        href="{{ child.url }}"
+                        {% if child.current %}aria-current="page"{% endif %}
+                      >
+                        {{- child.title -}}
+                      </a>
+
+                      {% if child.links.size > 0 %}
+                        <ul class="header__panel-sublist" role="list">
+                          {% for grandchild in child.links %}
+                            <li>
+                              <a
+                                class="header__panel-sublink"
+                                href="{{ grandchild.url }}"
+                                {% if grandchild.current %}aria-current="page"{% endif %}
+                              >
+                                {{- grandchild.title -}}
+                              </a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </details>
+          {% else %}
+            <a
+              class="header__nav-link"
+              href="{{ link.url }}"
+              {% if link.current %}aria-current="page"{% endif %}
+            >
+              {{- link.title -}}
+            </a>
+          {% endif %}
         {% endfor %}
       </nav>
     {% else %}
@@ -81,6 +225,28 @@
         {% endform %}
       {% endif %}
 
+      {% comment %}
+        A <details> disclosure so the field opens without JavaScript. The form
+        inside posts to the search page on its own, so search keeps working even
+        if the panel never opens.
+      {% endcomment %}
+      {% if section.settings.show_search %}
+        <details class="header__search" data-header-search>
+          <summary class="header__action header__search-toggle" aria-label="{{ 'search.title' | t }}">
+            <span class="header__search-icon header__search-icon--open">
+              {{- 'icon-search.svg' | inline_asset_content -}}
+            </span>
+            <span class="header__search-icon header__search-icon--close">
+              {{- 'icon-close.svg' | inline_asset_content -}}
+            </span>
+          </summary>
+
+          <div class="header__search-panel">
+            {% render 'search-form', id_suffix: section.id, css_class: 'search-form--header' %}
+          </div>
+        </details>
+      {% endif %}
+
       {% if shop.customer_accounts_enabled %}
         <shopify-account class="header__action" menu="{{ section.settings.customer_account_menu }}">
           {{ 'icon-account.svg' | inline_asset_content }}
@@ -112,6 +278,8 @@
   }
 
   .header {
+    /* Positioning context for the full-width search panel. */
+    position: relative;
     background-color: var(--color-background);
     border-bottom: 1px solid var(--color-line);
   }
@@ -171,6 +339,171 @@
   .header__nav-link:focus-visible {
     color: var(--color-accent);
     border-bottom-color: var(--color-accent);
+  }
+
+  .header__nav-link[aria-current='page'] {
+    border-bottom-color: var(--color-accent);
+  }
+
+  /* Dropdowns ------------------------------------------------------------ */
+
+  .header__dropdown {
+    position: relative;
+  }
+
+  .header__nav-link--parent {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .header__nav-link--parent::-webkit-details-marker {
+    display: none;
+  }
+
+  .header__caret svg {
+    display: block;
+    width: 0.7rem;
+    height: 0.7rem;
+    max-width: none;
+    /* The shared chevron points left; turn it down and flip it when open. */
+    transform: rotate(-90deg);
+    transition: transform var(--duration-ui) var(--ease-out);
+  }
+
+  .header__dropdown[open] > .header__nav-link--parent .header__caret svg,
+  .header__drawer-group[open] > summary .header__caret svg {
+    transform: rotate(90deg);
+  }
+
+  .header__panel {
+    position: absolute;
+    top: calc(100% + 0.9rem);
+    left: 50%;
+    translate: -50% 0;
+    z-index: 10;
+    min-width: 15rem;
+    max-width: min(24rem, 90vw);
+    padding: 1.25rem 1.5rem;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.5);
+    animation: header-panel-in var(--duration-ui) var(--ease-out);
+  }
+
+  /* Bridge the gap between the trigger and the panel so moving the pointer
+     down onto it doesn't cross un-hovered ground and close it. */
+  .header__panel::before {
+    content: '';
+    position: absolute;
+    inset: -0.9rem 0 100%;
+  }
+
+  @keyframes header-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.4rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header__panel {
+      animation: none;
+    }
+
+    .header__caret svg {
+      transition: none;
+    }
+  }
+
+  .header__panel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header__panel-link {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--color-foreground);
+    text-decoration: none;
+  }
+
+  .header__panel-link--all {
+    font-size: 0.72rem;
+    letter-spacing: var(--tracking-button);
+    text-transform: uppercase;
+    color: var(--color-muted);
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .header__panel-link:hover,
+  .header__panel-link:focus-visible,
+  .header__panel-sublink:hover,
+  .header__panel-sublink:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .header__panel-link[aria-current='page'],
+  .header__panel-sublink[aria-current='page'] {
+    color: var(--color-accent);
+  }
+
+  .header__panel-sublist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0.5rem 0 0;
+    padding: 0 0 0 0.9rem;
+    border-left: 1px solid var(--color-line);
+    list-style: none;
+  }
+
+  .header__panel-sublink {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    text-decoration: none;
+  }
+
+  /* Search --------------------------------------------------------------- */
+
+  .header__search-toggle {
+    list-style: none;
+  }
+
+  .header__search-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .header__search-icon--close,
+  .header__search[open] .header__search-icon--open {
+    display: none;
+  }
+
+  .header__search[open] .header__search-icon--close {
+    display: block;
+  }
+
+  .header__search-panel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 10;
+    padding: 1rem max(var(--page-margin), 3vw) 1.25rem;
+    background-color: var(--color-background);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .search-form--header {
+    max-width: var(--page-width);
+    margin-inline: auto;
   }
 
   .header__actions {
@@ -321,6 +654,54 @@
     color: var(--color-accent);
   }
 
+  .header__drawer-link[aria-current='page'],
+  .header__drawer-sublink[aria-current='page'] {
+    color: var(--color-accent);
+  }
+
+  .search-form--drawer {
+    margin-bottom: 1.5rem;
+  }
+
+  .header__drawer-group > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .header__drawer-group > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .header__drawer-sub {
+    display: flex;
+    flex-direction: column;
+    padding-left: 1rem;
+    border-left: 1px solid var(--color-line);
+    margin-block: 0.5rem 1rem;
+  }
+
+  .header__drawer-sublink {
+    font-size: 1rem;
+    color: var(--color-muted);
+    text-decoration: none;
+    padding-block: 0.6rem;
+  }
+
+  .header__drawer-sublink:hover,
+  .header__drawer-sublink:focus-visible {
+    color: var(--color-accent);
+  }
+
+  /* A nested group's summary is itself a sublink, so drop the padding the
+     flex column would otherwise double up on. */
+  .header__drawer-group .header__drawer-group > summary {
+    border-bottom: 0;
+  }
+
   @media (max-width: 749px) {
     .header__inner {
       --header-height: 4rem;
@@ -356,6 +737,137 @@
 
 {% javascript %}
   (function () {
+    /* A browser fires a synthetic mouseenter on whatever sits under a
+       stationary cursor when the page loads. Without this gate a dropdown that
+       happens to be under the pointer springs open on every page load. Wait for
+       evidence of a real pointer before honouring hover at all. */
+    var pointerMoved = false;
+    document.addEventListener(
+      'mousemove',
+      function () {
+        pointerMoved = true;
+      },
+      true
+    );
+
+    function initHeader(header) {
+      var dropdowns = Array.prototype.slice.call(header.querySelectorAll('[data-header-dropdown]'));
+      var search = header.querySelector('[data-header-search]');
+
+      /* Track every listener so the section can be torn down cleanly when the
+         theme editor reloads it. */
+      var teardown = [];
+      function on(target, type, handler) {
+        target.addEventListener(type, handler);
+        teardown.push(function () {
+          target.removeEventListener(type, handler);
+        });
+      }
+
+      var hoverable = window.matchMedia('(hover: hover)');
+      var hoverTimer = null;
+
+      function disclosures() {
+        return search ? dropdowns.concat([search]) : dropdowns;
+      }
+
+      function closeAll(except) {
+        disclosures().forEach(function (panel) {
+          if (panel !== except) panel.open = false;
+        });
+      }
+
+      dropdowns.forEach(function (dropdown) {
+        /* Opening one panel closes the rest — including the search field, which
+           shares the header's width. */
+        on(dropdown, 'toggle', function () {
+          if (dropdown.open) closeAll(dropdown);
+        });
+
+        on(dropdown, 'mouseenter', function () {
+          if (!hoverable.matches || !pointerMoved) return;
+          window.clearTimeout(hoverTimer);
+          dropdown.open = true;
+        });
+
+        /* A short grace period, so cutting a corner on the way to the panel
+           doesn't snap it shut. */
+        on(dropdown, 'mouseleave', function () {
+          if (!hoverable.matches) return;
+          window.clearTimeout(hoverTimer);
+          hoverTimer = window.setTimeout(function () {
+            dropdown.open = false;
+          }, 150);
+        });
+
+        /* Tabbing past the last item in a panel has to close it, or it stays
+           open over whatever the customer moved on to. */
+        on(dropdown, 'focusout', function (event) {
+          if (!dropdown.contains(event.relatedTarget)) dropdown.open = false;
+        });
+      });
+
+      if (search) {
+        on(search, 'toggle', function () {
+          if (!search.open) return;
+          closeAll(search);
+          var input = search.querySelector('[data-search-input]');
+          if (input) input.focus();
+        });
+      }
+
+      /* Escape closes the open panel and hands focus back to its trigger, so
+         keyboard users don't land at the top of the document. */
+      on(header, 'keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        var open = header.querySelector('[data-header-dropdown][open], [data-header-search][open]');
+        if (!open) return;
+        open.open = false;
+        var summary = open.querySelector('summary');
+        if (summary) summary.focus();
+      });
+
+      on(document, 'click', function (event) {
+        if (!header.contains(event.target)) closeAll(null);
+      });
+
+      header.headerCleanup = function () {
+        window.clearTimeout(hoverTimer);
+        teardown.forEach(function (off) {
+          off();
+        });
+        teardown = [];
+        header.headerCleanup = null;
+      };
+    }
+
+    /* The header owns the cart link, so it owns the badge on it. Whatever
+       changed the cart — the cart page, the drawer — says so with cart:updated
+       and the count is applied here, against whichever header is on the page at
+       the time. Registered once at document level, so a re-rendered header is
+       picked up without re-binding. */
+    document.addEventListener('cart:updated', function (event) {
+      var itemCount = Number((event.detail || {}).itemCount);
+      if (!Number.isFinite(itemCount)) return;
+
+      document.querySelectorAll('[data-cart-link]').forEach(function (link) {
+        var count = link.querySelector('[data-cart-count]');
+        var labelTemplate =
+          itemCount === 1
+            ? link.getAttribute('data-cart-label-one')
+            : link.getAttribute('data-cart-label-other');
+
+        if (count) {
+          count.textContent = itemCount;
+          count.hidden = itemCount === 0;
+        }
+
+        if (labelTemplate) {
+          link.setAttribute('aria-label', labelTemplate.replace('__COUNT__', itemCount));
+        }
+      });
+    });
+
     function init(scope) {
       scope.querySelectorAll('[data-localization-select]').forEach(function (select) {
         if (select.dataset.localizationBound) return;
@@ -367,11 +879,25 @@
           }
         });
       });
+
+      scope.querySelectorAll('.header').forEach(function (header) {
+        if (header.headerCleanup) header.headerCleanup();
+        initHeader(header);
+      });
+    }
+
+    function destroy(scope) {
+      scope.querySelectorAll('.header').forEach(function (header) {
+        if (header.headerCleanup) header.headerCleanup();
+      });
     }
 
     init(document);
     document.addEventListener('shopify:section:load', function (event) {
       init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
     });
   })();
 {% endjavascript %}
@@ -390,6 +916,12 @@
       "id": "customer_account_menu",
       "label": "t:labels.customer_account_menu",
       "default": "customer-account-main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "t:sections.header.show_search",
+      "default": true
     },
     {
       "type": "checkbox",

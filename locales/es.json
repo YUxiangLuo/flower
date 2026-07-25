@@ -34,25 +34,13 @@
     "updated": "Carrito actualizado.",
     "note_saved": "Nota del pedido guardada.",
     "update_error": "No se pudo actualizar tu carrito. Inténtalo de nuevo.",
-    "quantity_invalid": "Introduce un número entero igual o mayor que 0."
-  },
-  "customers": {
-    "login": {
-      "email": "Correo electrónico",
-      "password": "Contraseña",
-      "submit": "Iniciar sesión",
-      "title": "Iniciar sesión"
-    }
-  },
-  "collections": {
-    "title": "Colecciones"
+    "quantity_invalid": "Introduce un número entero igual o mayor que 0.",
+    "view_cart": "Ver carrito"
   },
   "collection": {
     "filter": "Filtrar",
     "apply": "Aplicar",
     "clear_all": "Borrar todo",
-    "price_from": "Desde",
-    "price_to": "Hasta",
     "price_from_with_currency": "Desde ({{ currency }})",
     "price_to_with_currency": "Hasta ({{ currency }})",
     "price_invalid": "Introduce un precio válido.",
@@ -63,7 +51,8 @@
   },
   "general": {
     "accessibility": {
-      "skip_to_content": "Saltar al contenido"
+      "skip_to_content": "Saltar al contenido",
+      "close": "Cerrar"
     },
     "meta": {
       "tagged": "Etiquetado {{ tags }}",
@@ -102,7 +91,9 @@
     "decrease_quantity": "Reducir cantidad",
     "increase_quantity": "Aumentar cantidad",
     "sale": "Oferta",
-    "optional": "Opcional"
+    "optional": "Opcional",
+    "adding_to_cart": "Añadiendo al carrito…",
+    "add_to_cart_error": "No se pudo añadir este artículo. Inténtalo de nuevo."
   },
   "search": {
     "title": "Buscar",
@@ -147,7 +138,9 @@
         "other": "Carrito, {{ count }} artículos"
       },
       "cart_label_one": "Carrito, __COUNT__ artículo",
-      "cart_label_other": "Carrito, __COUNT__ artículos"
+      "cart_label_other": "Carrito, __COUNT__ artículos",
+      "primary_navigation": "Navegación principal",
+      "view_all": "Ver todo: {{ title }}"
     },
     "hero": {
       "label": "Destacado",
