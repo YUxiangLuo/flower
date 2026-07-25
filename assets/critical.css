@@ -212,11 +212,20 @@ body {
 }
 
 /* Visually hide content while keeping it available to screen readers. */
+/* The single definition for the whole theme — sections must not restate it.
+   `clip` is deprecated but still the only thing older Safari honours, so both
+   it and `clip-path` are kept. Zeroing padding and border matters because the
+   reset above only clears margin: inherited box spacing would otherwise leave
+   a sliver of the element on screen. */
 .visually-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
+  border: 0;
 }
