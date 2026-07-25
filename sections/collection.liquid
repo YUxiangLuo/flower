@@ -6,7 +6,27 @@
 {% endcomment %}
 
 <div class="collection">
-  <header class="collection__header">
+  {%- comment -%}
+    On narrow screens the collection's own artwork sits behind its name. The URL
+    is handed to CSS as a custom property rather than an <img> so the file is
+    only ever fetched where it is used: a background-image inside a media query
+    is not requested when the query does not match, while an <img> is downloaded
+    even when its container is display:none.
+
+    The veil is derived from the page colour here because Liquid does not run
+    inside {% stylesheet %} tags, and color_modify is what turns the merchant's
+    setting into something a gradient can use.
+  {%- endcomment -%}
+  <header
+    class="collection__header{% if collection.image %} collection__header--media{% endif %}"
+    {%- if collection.image %}
+      style="
+        --collection-media: url('{{ collection.image | image_url: width: 600 | escape }}');
+        --collection-veil-top: {{ settings.background_color | color_modify: 'alpha', 0.55 }};
+        --collection-veil-bottom: {{ settings.background_color | color_modify: 'alpha', 0.85 }};
+      "
+    {%- endif %}
+  >
     <h1 class="collection__title">{{ collection.title }}</h1>
     {% if section.settings.show_description and collection.description != blank %}
       <div class="collection__description">{{ collection.description }}</div>
@@ -188,6 +208,59 @@
   @media (max-width: 749px) {
     .collection__bar {
       justify-content: flex-start;
+    }
+
+    /* The artwork is treated rather than shown: softened, desaturated, and
+       veiled in the page colour so it reads as a wash behind the words.
+
+       Keeping the composite light is the whole point. A dark scrim would have
+       forced white text and still not cleared 4.5:1 over a pale bouquet,
+       whereas a light veil holds the existing colours at better than 7:1
+       against the worst image a merchant could upload. */
+    .collection__header--media {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      max-width: none;
+      /* Step back out of the inset the section grid gives its children so the
+         artwork reaches both edges. */
+      margin-inline: calc(var(--page-margin) * -1);
+      padding: clamp(2rem, 9vw, 3rem) var(--page-margin);
+    }
+
+    .collection__header--media::before,
+    .collection__header--media::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
+    .collection__header--media::before {
+      z-index: -2;
+      background-image: var(--collection-media);
+      background-size: cover;
+      background-position: center;
+      /* Most of the softening is already done: the source is requested at
+         600px and stretched, which costs a few kilobytes instead of a
+         full-width blur on a phone GPU. This only smooths what is left. */
+      filter: blur(2px) saturate(0.75);
+      /* Overscan, or the blur feathers the artwork's own edges into the page. */
+      transform: scale(1.08);
+    }
+
+    .collection__header--media::after {
+      z-index: -1;
+      background-image: linear-gradient(
+        to bottom,
+        var(--collection-veil-top),
+        var(--collection-veil-bottom)
+      );
+    }
+
+    /* Muted grey is the one colour that cannot survive the wash, so the
+       description takes the full foreground here. */
+    .collection__header--media .collection__description {
+      color: var(--color-foreground);
     }
   }
 
