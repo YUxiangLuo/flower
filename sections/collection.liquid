@@ -114,23 +114,20 @@
     color: var(--color-muted);
   }
 
-  /* One row: filters at the start, count and sort at the end. Dropping the
-     "Filter" and "Sort by" captions is what buys the room — both survive as an
-     accessible name on the group and a visually hidden label on the select. */
   /* One row: the count at the start, sorting at the end. The "Sort by" caption
      is what would force a wrap on a narrow viewport, so it survives as a
-     visually hidden label on the select rather than as text in the bar. */
+     visually hidden label on the select rather than as text in the bar.
+
+     No rules above or below it — the gap to the grid is what sets it apart, and
+     a line across the page was drawing more attention than a count and a select
+     deserve. */
   .collection__bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.5rem 1.5rem;
-    padding-block: 0.6rem;
-    border-block: 1px solid var(--color-line);
   }
-
-
 
   .collection__sort {
     display: flex;
@@ -164,7 +161,6 @@
     font-size: 0.8rem;
     color: var(--color-muted);
   }
-
 
   .collection__grid {
     display: grid;
