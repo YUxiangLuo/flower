@@ -14,7 +14,14 @@
   </header>
 
   {% paginate collection.products by section.settings.products_per_page %}
-    {% assign current_sort = collection.sort_by | default: collection.default_sort_by %}
+    {% liquid
+      assign current_sort = collection.sort_by | default: collection.default_sort_by
+
+      # Shopify offers every sort it knows how to perform, including reversals
+      # nobody reaches for. This is the curated list; anything outside it is
+      # dropped from the control.
+      assign allowed_sorts = 'manual,best-selling,price-ascending,price-descending,title-ascending,created-descending' | split: ','
+    %}
 
     <form method="get" action="{{ collection.url }}" class="collection__bar collection__form">
       <span class="collection__count">
@@ -27,10 +34,27 @@
             {{- 'collection.sort_by' | t -}}
           </label>
           <select id="SortBy-{{ section.id }}" name="sort_by" data-auto-submit>
+            {% comment %}
+              A sort outside the curated list is still rendered while it is the
+              one in effect — reached by a shared link, or set as the
+              collection's default in the admin. Dropping it would leave the
+              control naming a sort the page is not actually in.
+            {% endcomment %}
             {% for option in collection.sort_options %}
-              <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
-                {{ option.name }}
-              </option>
+              {% if allowed_sorts contains option.value or option.value == current_sort %}
+                <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
+                  {%- comment -%}
+                    Shopify calls the collection's own arrangement "Featured",
+                    which reads as a category of product rather than an order to
+                    put them in.
+                  {%- endcomment -%}
+                  {% if option.value == 'manual' %}
+                    {{- 'collection.sort_recommended' | t -}}
+                  {% else %}
+                    {{- option.name -}}
+                  {% endif %}
+                </option>
+              {% endif %}
             {% endfor %}
           </select>
 

@@ -41,7 +41,8 @@
     "apply": "Apply",
     "sort_by": "Sort by",
     "products_count": "{{ count }} products",
-    "empty": "No products found."
+    "empty": "No products found.",
+    "sort_recommended": "Recommended"
   },
   "general": {
     "accessibility": {
