@@ -210,6 +210,14 @@
       justify-content: flex-start;
     }
 
+    /* The band meets the site header directly. A strip of page colour between
+       the two reads as a gap in the page rather than as margin, and only the
+       variant that has artwork can close it — without one there is no band, and
+       the title would sit against the header with nothing to separate them. */
+    .collection:has(.collection__header--media) {
+      padding-block-start: 0;
+    }
+
     /* The artwork is treated rather than shown: softened, desaturated, and
        veiled in the page colour so it reads as a wash behind the words.
 
