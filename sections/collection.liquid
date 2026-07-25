@@ -21,9 +21,9 @@
     class="collection__header{% if collection.image %} collection__header--media{% endif %}"
     {%- if collection.image %}
       style="
-        --collection-media: url('{{ collection.image | image_url: width: 600 | escape }}');
-        --collection-veil-top: {{ settings.background_color | color_modify: 'alpha', 0.55 }};
-        --collection-veil-bottom: {{ settings.background_color | color_modify: 'alpha', 0.85 }};
+        --collection-media: url('{{ collection.image | image_url: width: 420 | escape }}');
+        --collection-veil-top: {{ settings.background_color | color_modify: 'alpha', 0.68 }};
+        --collection-veil-bottom: {{ settings.background_color | color_modify: 'alpha', 0.93 }};
       "
     {%- endif %}
   >
@@ -124,14 +124,36 @@
     font-weight: 400;
     font-size: clamp(1.75rem, 3.2vw, 2.5rem);
     line-height: 1.15;
+    /* A two-line collection name should break evenly rather than leave one
+       word stranded under the rest. */
+    text-wrap: balance;
   }
 
+  /* Set in the heading serif, not the body sans. An italic sans under a serif
+     title is what made the pair read as two unrelated voices; the same italic
+     in Georgia reads as the title's own subtitle. */
   .collection__description {
-    margin-top: 0.4rem;
+    margin-top: var(--space-xs);
+    font-family: var(--font-heading--family);
     font-style: italic;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 1.05rem;
+    line-height: 1.6;
     color: var(--color-muted);
+    /* Hold it to a comfortable measure so it breaks into balanced lines
+       instead of running the full width of the band. */
+    max-width: 34ch;
+    margin-inline: auto;
+  }
+
+  .collection__description p {
+    text-wrap: balance;
+  }
+
+  /* The description is merchant rich text. A pasted <strong> would otherwise
+     land a heavy slab under a light serif title — the weight of the pairing is
+     the theme's to decide, not the copy's. */
+  .collection__description :is(strong, b) {
+    font-weight: inherit;
   }
 
   /* One row: the count at the start, sorting at the end. The "Sort by" caption
@@ -249,9 +271,11 @@
       background-size: cover;
       background-position: center;
       /* Most of the softening is already done: the source is requested at
-         600px and stretched, which costs a few kilobytes instead of a
-         full-width blur on a phone GPU. This only smooths what is left. */
-      filter: blur(2px) saturate(0.75);
+         420px and stretched, which costs a few kilobytes instead of a
+         full-width blur on a phone GPU. The rest takes it past "slightly out of
+         focus" — a recognisable photograph behind the words is what made the
+         band read as text dropped on an image rather than as a printed page. */
+      filter: blur(6px) saturate(0.55);
       /* Overscan, or the blur feathers the artwork's own edges into the page. */
       transform: scale(1.08);
     }
