@@ -38,5 +38,12 @@
     </main>
 
     {% sections 'footer-group' %}
+
+    {% comment %}
+      Rendered from the layout so the drawer exists on every page — the header
+      cart link and the product form both open it, and it refreshes itself
+      through the Section Rendering API.
+    {% endcomment %}
+    {% section 'cart-drawer' %}
   </body>
 </html>

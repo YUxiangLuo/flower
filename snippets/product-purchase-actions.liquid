@@ -49,4 +49,12 @@
   <div data-payment-button {% unless current_variant.available %}hidden{% endunless %}>
     {{ form | payment_button }}
   </div>
+
+  <p
+    class="product__add-status"
+    data-add-status
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  ></p>
 </div>

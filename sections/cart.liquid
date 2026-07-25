@@ -526,23 +526,14 @@
       });
     }
 
-    function updateHeaderCount(itemCount) {
-      document.querySelectorAll('[data-cart-link]').forEach(function (link) {
-        var count = link.querySelector('[data-cart-count]');
-        var labelTemplate =
-          itemCount === 1
-            ? link.getAttribute('data-cart-label-one')
-            : link.getAttribute('data-cart-label-other');
-
-        if (count) {
-          count.textContent = itemCount;
-          count.hidden = itemCount === 0;
-        }
-
-        if (labelTemplate) {
-          link.setAttribute('aria-label', labelTemplate.replace('__COUNT__', itemCount));
-        }
-      });
+    /* The header owns its own markup and listens for this; the drawer keeps
+       itself in step by marking stale, since the response here only carries the
+       cart page's own section HTML. */
+    function announceCart(itemCount) {
+      document.dispatchEvent(
+        new CustomEvent('cart:updated', { detail: { itemCount: itemCount } })
+      );
+      document.dispatchEvent(new CustomEvent('cart:refresh', { detail: {} }));
     }
 
     function requestCart(url, payload) {
@@ -645,7 +636,7 @@
     }
 
     function renderCartData(state, cartData, descriptor, message, isError) {
-      updateHeaderCount(cartData.item_count);
+      announceCart(cartData.item_count);
       replaceCart(
         state.cart,
         cartData.sections && cartData.sections[state.sectionId],

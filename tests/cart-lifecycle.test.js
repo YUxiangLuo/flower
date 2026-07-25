@@ -21,8 +21,11 @@ function bootCart({ responseDelay = 0, serverQuantity = 5 } = {}) {
     releaseResponse = resolve;
   });
 
+  /* The cart page reports the new item count; the header is what applies it to
+     the badge. Both scripts have to be on the page for that hand-off to happen,
+     which on a real storefront they always are. */
   const window = bootSection(
-    'cart.liquid',
+    ['cart.liquid', 'header.liquid'],
     `<a data-cart-link data-cart-label-one="__COUNT__ item"
         data-cart-label-other="__COUNT__ items"><sup data-cart-count>1</sup></a>
      <div class="shopify-section" id="sec">${cartSection({ quantity: 1 })}</div>`,

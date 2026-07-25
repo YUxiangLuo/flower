@@ -14,7 +14,13 @@
   assign image_media = product.media | where: 'media_type', 'image'
 %}
 
-<div class="product" data-product>
+<div
+  class="product"
+  data-product
+  data-cart-add-url="{{ routes.cart_add_url }}.js"
+  data-status-adding="{{ 'product.adding_to_cart' | t | escape }}"
+  data-status-add-error="{{ 'product.add_to_cart_error' | t | escape }}"
+>
   <div class="product__top">
     {% render 'product-media-gallery', product: product %}
 
@@ -431,6 +437,21 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .product__add-status {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  /* Nothing to announce, nothing to space out. */
+  .product__add-status:empty {
+    display: none;
+  }
+
+  .product__add-status--error {
+    color: #9a2f2f;
   }
 
   .product__quantity {
@@ -1057,16 +1078,116 @@
         });
       });
 
-      /* Don't store blank optional personalization fields as empty line-item
-         properties: disabled inputs aren't submitted with the form. */
       var form = root.querySelector('.product__form');
-      if (form) {
-        form.addEventListener('submit', function () {
-          root.querySelectorAll('[data-property-optional]').forEach(function (field) {
-            if (!field.value.trim()) field.disabled = true;
-          });
-        });
+      if (!form) return;
+
+      var statusEl = root.querySelector('[data-add-status]');
+
+      function setStatus(message, isError) {
+        if (!statusEl) return;
+        statusEl.textContent = message || '';
+        statusEl.classList.toggle('product__add-status--error', Boolean(isError));
       }
+
+      /* Add through the drawer only when there is a live one to add into.
+         The drawer marks itself initialized once it has decided it can run —
+         it stands down on the cart page and in browsers without <dialog> — so
+         that marker, not merely the element being present, is what says an
+         AJAX add has somewhere to show its result. Otherwise the form posts
+         normally and the browser lands on the cart page, which is the
+         behaviour this replaces. */
+      function drawerAvailable() {
+        return Boolean(
+          window.fetch &&
+            window.FormData &&
+            document.querySelector('[data-cart-drawer][data-drawer-initialized="true"]')
+        );
+      }
+
+      form.addEventListener('submit', function (event) {
+        /* Don't store blank optional personalization fields as empty line-item
+           properties: disabled inputs aren't submitted with the form. */
+        root.querySelectorAll('[data-property-optional]').forEach(function (field) {
+          if (!field.value.trim()) field.disabled = true;
+        });
+
+        if (!drawerAvailable()) return;
+        event.preventDefault();
+        if (form.getAttribute('data-adding') === 'true') return;
+
+        var drawer = document.querySelector('[data-cart-drawer]');
+        var sectionId = drawer.getAttribute('data-section-id');
+        var addUrl = root.getAttribute('data-cart-add-url');
+
+        var body = new FormData(form);
+        body.append('sections', sectionId);
+        body.append('sections_url', window.location.pathname);
+
+        form.setAttribute('data-adding', 'true');
+        if (addBtn) addBtn.disabled = true;
+        setStatus(root.getAttribute('data-status-adding'), false);
+
+        /* No Content-Type header: the browser has to set the multipart boundary
+           itself, and overriding it makes Shopify reject the body. */
+        fetch(addUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body
+        })
+          .then(function (response) {
+            /* A rejected add may answer with an HTML error page rather than
+               JSON, and a dropped connection rejects with the engine's own
+               message. Only text the server actually sent is fit to show a
+               customer; anything else gets the translated fallback. */
+            return response
+              .json()
+              .catch(function () {
+                return {};
+              })
+              .then(function (data) {
+                if (!response.ok) {
+                  var responseError = new Error(data.description || data.message || '');
+                  responseError.isCartResponseError = true;
+                  throw responseError;
+                }
+                return data;
+              });
+          })
+          .then(function (data) {
+            setStatus('', false);
+            /* /cart/add.js answers with the line item, not the cart, so there
+               is no item count to pass on here. The drawer renders the section
+               HTML that came back with it and reports the count from that. */
+            document.dispatchEvent(
+              new CustomEvent('cart:refresh', { detail: { sections: data.sections } })
+            );
+            document.dispatchEvent(new CustomEvent('cart:open'));
+          })
+          .catch(function (error) {
+            var message = root.getAttribute('data-status-add-error');
+            if (error.isCartResponseError && error.message) message = error.message;
+            setStatus(message, true);
+          })
+          .then(function () {
+            form.removeAttribute('data-adding');
+
+            /* Re-enable through the variant logic so a sold-out selection stays
+               disabled rather than being switched back on here. An unmatched
+               option combination clears the select, leaving selectedIndex at
+               -1 and no selected option — passing null is what tells
+               applyOption the selection is unbuyable, where falling through to
+               a bare re-enable would offer a button that posts an empty id. */
+            if (select) applyOption(select.selectedOptions[0] || null);
+            else if (addBtn) addBtn.disabled = false;
+
+            /* The properties disabled on the way out have to come back, or a
+               second add would drop the customer's personalization. */
+            root.querySelectorAll('[data-property-optional]').forEach(function (field) {
+              field.disabled = false;
+            });
+          });
+      });
     }
 
     /* Scope to the section that loaded so re-renders in the theme editor

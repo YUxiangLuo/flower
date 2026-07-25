@@ -1,0 +1,768 @@
+{% comment %}
+  Cart drawer. Rendered once from the layout so it is available on every page,
+  and refreshed through the Section Rendering API whenever the cart changes.
+
+  Only the contents inside [data-cart-drawer-contents] are swapped on a refresh
+  — replacing the <dialog> itself would close a drawer the customer is looking
+  at.
+
+  https://shopify.dev/docs/api/section-rendering
+{% endcomment %}
+
+<dialog
+  class="cart-drawer"
+  data-cart-drawer
+  data-section-id="{{ section.id }}"
+  data-cart-change-url="{{ routes.cart_change_url }}.js"
+  data-cart-page-url="{{ routes.cart_url }}"
+  data-status-error="{{ 'cart.update_error' | t | escape }}"
+  scroll-lock
+  aria-label="{{ 'cart.title' | t }}"
+>
+  <div
+    class="cart-drawer__contents"
+    data-cart-drawer-contents
+    data-item-count="{{ cart.item_count }}"
+  >
+    <header class="cart-drawer__header">
+      <h2 class="cart-drawer__title" data-cart-drawer-title tabindex="-1">
+        {{- 'cart.title' | t -}}
+      </h2>
+      <button
+        class="cart-drawer__close"
+        type="button"
+        data-cart-drawer-close
+        aria-label="{{ 'general.accessibility.close' | t }}"
+      >
+        {{- 'icon-close.svg' | inline_asset_content -}}
+      </button>
+    </header>
+
+    <p
+      class="cart-drawer__status"
+      data-cart-drawer-status
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></p>
+
+    {% if cart.item_count == 0 %}
+      <div class="cart-drawer__empty">
+        <p>{{ 'cart.empty' | t }}</p>
+        <a class="cart-drawer__button" href="{{ routes.all_products_collection_url }}">
+          {{ 'cart.empty_cta' | t }}
+        </a>
+      </div>
+    {% else %}
+      <ul class="cart-drawer__items" role="list">
+        {% for item in cart.items %}
+          <li
+            class="cart-drawer__item"
+            data-cart-line
+            data-line-key="{{ item.key | escape }}"
+            data-line-index="{{ forloop.index }}"
+          >
+            <a class="cart-drawer__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+              {% if item.image %}
+                {{
+                  item.image
+                  | image_url: width: 200, height: 250, crop: 'center'
+                  | image_tag: loading: 'lazy', class: 'cart-drawer__image', sizes: '80px', widths: '80, 120, 160, 200', alt: item.title
+                }}
+              {% else %}
+                {{ 'product-1' | placeholder_svg_tag: 'cart-drawer__image' }}
+              {% endif %}
+            </a>
+
+            <div class="cart-drawer__details">
+              <a class="cart-drawer__item-title" href="{{ item.url }}">{{ item.product.title }}</a>
+
+              {% unless item.product.has_only_default_variant %}
+                <p class="cart-drawer__variant">{{ item.variant.title }}</p>
+              {% endunless %}
+
+              {%- capture drawer_item_properties -%}
+                {%- for property in item.properties -%}
+                  {%- assign property_first_char = property.first | slice: 0 -%}
+                  {%- unless property.last == blank or property_first_char == '_' -%}
+                    <li class="cart-drawer__property">
+                      <span class="cart-drawer__property-name">{{ property.first | escape }}:</span>
+                      {{ property.last | escape }}
+                    </li>
+                  {%- endunless -%}
+                {%- endfor -%}
+              {%- endcapture -%}
+              {%- if drawer_item_properties != blank -%}
+                <ul class="cart-drawer__properties">{{ drawer_item_properties }}</ul>
+              {%- endif -%}
+
+              <div class="cart-drawer__line-actions">
+                <div class="cart-drawer__stepper">
+                  <button
+                    type="button"
+                    data-drawer-qty-step="-1"
+                    data-line-index="{{ forloop.index }}"
+                    data-line-key="{{ item.key | escape }}"
+                    aria-label="{{ 'product.decrease_quantity' | t }}"
+                  >
+                    &minus;
+                  </button>
+                  <span class="cart-drawer__quantity" data-line-quantity>{{ item.quantity }}</span>
+                  <button
+                    type="button"
+                    data-drawer-qty-step="1"
+                    data-line-index="{{ forloop.index }}"
+                    data-line-key="{{ item.key | escape }}"
+                    aria-label="{{ 'product.increase_quantity' | t }}"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <span class="cart-drawer__line-price">{{ item.final_line_price | money }}</span>
+              </div>
+
+              {% comment %}
+                A real link, so removing an item still works with the drawer's
+                JavaScript unavailable.
+              {% endcomment %}
+              <a
+                class="cart-drawer__remove"
+                href="{{ item.url_to_remove }}"
+                data-cart-drawer-remove
+                data-line-index="{{ forloop.index }}"
+                data-line-key="{{ item.key | escape }}"
+              >
+                {{- 'cart.remove' | t -}}
+              </a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <footer class="cart-drawer__footer">
+        <div class="cart-drawer__subtotal">
+          <span>{{ 'cart.subtotal' | t }}</span>
+          <span class="cart-drawer__subtotal-value">{{ cart.total_price | money }}</span>
+        </div>
+
+        <p class="cart-drawer__taxes">
+          {% if cart.duties_included %}
+            {% if cart.taxes_included %}
+              {{ 'cart.duties_and_taxes_included' | t }}
+            {% else %}
+              {{ 'cart.duties_included' | t }}
+            {% endif %}
+          {% elsif cart.taxes_included %}
+            {{ 'cart.taxes_included' | t }}
+          {% else %}
+            {{ 'cart.taxes_note' | t }}
+          {% endif %}
+        </p>
+
+        <form action="{{ routes.cart_url }}" method="post">
+          <button class="cart-drawer__button" type="submit" name="checkout">
+            {{ 'cart.checkout' | t }}
+          </button>
+        </form>
+
+        <a class="cart-drawer__view-cart" href="{{ routes.cart_url }}">{{ 'cart.view_cart' | t }}</a>
+      </footer>
+    {% endif %}
+  </div>
+</dialog>
+
+{% stylesheet %}
+  .cart-drawer {
+    /* A dialog centres itself by default; pin it to the inline-end edge and let
+       it run the full height of the viewport. */
+    margin: 0 0 0 auto;
+    width: min(28rem, 100%);
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--color-line);
+    color: var(--color-foreground);
+  }
+
+  .cart-drawer::backdrop {
+    background-color: rgba(20, 18, 10, 0.4);
+  }
+
+  .cart-drawer[open] {
+    animation: cart-drawer-in var(--duration-ui) var(--ease-out);
+  }
+
+  .cart-drawer[open]::backdrop {
+    animation: cart-drawer-backdrop-in var(--duration-ui) var(--ease-out);
+  }
+
+  @keyframes cart-drawer-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes cart-drawer-backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cart-drawer[open],
+    .cart-drawer[open]::backdrop {
+      animation: none;
+    }
+  }
+
+  .cart-drawer__contents {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .cart-drawer[aria-busy='true'] .cart-drawer__contents {
+    opacity: 0.6;
+  }
+
+  .cart-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .cart-drawer__title {
+    font-family: var(--font-heading--family);
+    font-size: var(--text-lg);
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .cart-drawer__close {
+    display: flex;
+    border: 0;
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .cart-drawer__close svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    max-width: none;
+  }
+
+  .cart-drawer__status {
+    margin: 0;
+    padding-inline: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .cart-drawer__status:empty {
+    display: none;
+  }
+
+  .cart-drawer__status--error {
+    color: #9a2f2f;
+  }
+
+  .cart-drawer__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+
+  .cart-drawer__items {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cart-drawer__item {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .cart-drawer__image {
+    width: 100%;
+    height: auto;
+  }
+
+  .cart-drawer__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .cart-drawer__item-title {
+    color: var(--color-foreground);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  .cart-drawer__variant,
+  .cart-drawer__properties {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .cart-drawer__properties {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .cart-drawer__property-name {
+    font-weight: 600;
+  }
+
+  .cart-drawer__line-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    margin-top: 0.35rem;
+  }
+
+  .cart-drawer__stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--color-line);
+    border-radius: var(--style-border-radius-inputs);
+  }
+
+  .cart-drawer__stepper button {
+    border: 0;
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  .cart-drawer__stepper button:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  .cart-drawer__quantity {
+    min-width: 1.75rem;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .cart-drawer__remove {
+    align-self: flex-start;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .cart-drawer__remove:hover,
+  .cart-drawer__remove:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .cart-drawer__footer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: var(--space-md);
+    background-color: var(--color-background);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .cart-drawer__subtotal {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+  }
+
+  .cart-drawer__taxes {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+  }
+
+  .cart-drawer__button {
+    display: block;
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+    border: 0;
+    background-color: var(--color-accent);
+    color: #fff;
+    font-size: 0.78rem;
+    letter-spacing: var(--tracking-button);
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .cart-drawer__view-cart {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    var ajaxSupported = Boolean(window.fetch && window.Promise && window.DOMParser);
+
+    /* Three one-way events keep the pieces apart, and keep them from talking in
+       circles:
+
+         cart:refresh  carries freshly rendered drawer HTML, or nothing at all
+                       when the sender has none — only the drawer listens
+         cart:updated  reports the item count — only the header listens
+         cart:open     asks for the drawer — only the drawer listens
+
+       The drawer announces cart:updated after every render and never listens
+       for it, so nothing it sends can come back around to it. */
+    function announce(itemCount) {
+      document.dispatchEvent(
+        new CustomEvent('cart:updated', { detail: { itemCount: itemCount } })
+      );
+    }
+
+    function initDrawer(drawer) {
+      if (drawer.getAttribute('data-drawer-initialized') === 'true') return;
+
+      /* The cart page owns the cart. Leaving the drawer live there would let a
+         customer edit the same lines from two places at once: the drawer would
+         update itself and the badge, while the page behind kept its old
+         quantities — and its now-stale line indexes, so the next edit made on
+         the page would write to the wrong line. Stand down and let the cart
+         link be the plain link it already is. */
+      if (document.querySelector('[data-cart-section]')) return;
+
+      /* <dialog> is what makes this a modal at all. Without showModal there is
+         nothing to open, so the drawer must not claim the cart link — that
+         would leave the cart icon inert — and product.liquid reads the same
+         marker before deciding to add over AJAX. */
+      if (typeof drawer.showModal !== 'function') return;
+
+      drawer.setAttribute('data-drawer-initialized', 'true');
+
+      var sectionId = drawer.getAttribute('data-section-id');
+      var changeUrl = drawer.getAttribute('data-cart-change-url');
+      var cartPageUrl = drawer.getAttribute('data-cart-page-url');
+
+      var busy = false;
+      /* Set when something else changed the cart without handing us fresh HTML —
+         the cart page, for instance. The drawer then re-renders itself the next
+         time it opens rather than showing quantities the server no longer holds. */
+      var stale = false;
+
+      var teardown = [];
+      function on(target, type, handler) {
+        target.addEventListener(type, handler);
+        teardown.push(function () {
+          target.removeEventListener(type, handler);
+        });
+      }
+
+      function contents() {
+        return drawer.querySelector('[data-cart-drawer-contents]');
+      }
+
+      function setStatus(message, isError) {
+        var status = drawer.querySelector('[data-cart-drawer-status]');
+        if (!status) return;
+        status.textContent = message || '';
+        status.classList.toggle('cart-drawer__status--error', Boolean(isError));
+      }
+
+      function setBusy(isBusy) {
+        busy = isBusy;
+        drawer.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+
+        /* Everything that writes to the cart goes quiet during a request, but
+           never the way out: a hung request must not trap the customer behind a
+           drawer they cannot close. */
+        drawer
+          .querySelectorAll('button:not([data-cart-drawer-close]), a[data-cart-drawer-remove]')
+          .forEach(function (control) {
+            if (control.tagName === 'BUTTON') control.disabled = isBusy;
+            else control.setAttribute('aria-disabled', isBusy ? 'true' : 'false');
+          });
+      }
+
+      /* What the customer had focused is inside the contents we are about to
+         destroy, so note where they were and put them back afterwards. Without
+         this, every quantity step drops focus to <body> and a keyboard customer
+         has to tab in from the top of the page again to press it twice. */
+      function focusedLineKey() {
+        var active = document.activeElement;
+        if (!active || !drawer.contains(active)) return null;
+        var line = active.closest('[data-cart-line]');
+        return {
+          lineKey: line ? line.getAttribute('data-line-key') : null,
+          step: active.getAttribute('data-drawer-qty-step')
+        };
+      }
+
+      function restoreFocus(where) {
+        if (!where) return;
+
+        var target = null;
+        if (where.lineKey && where.step) {
+          target = drawer.querySelector(
+            '[data-cart-line][data-line-key="' + where.lineKey + '"] ' +
+              '[data-drawer-qty-step="' + where.step + '"]'
+          );
+        }
+        /* The line may be gone — removed, or emptied to zero. Falling back to
+           the title keeps focus inside the drawer instead of on the page
+           behind it. */
+        if (!target) target = drawer.querySelector('[data-cart-drawer-title]');
+        if (!target) return;
+
+        try {
+          target.focus({ preventScroll: true });
+        } catch (error) {
+          target.focus();
+        }
+      }
+
+      /* Replace only the contents; swapping the <dialog> would close it. */
+      function render(html) {
+        if (typeof html !== 'string') throw new Error('Missing cart drawer HTML');
+
+        var parsed = new DOMParser().parseFromString(html, 'text/html');
+        var next = parsed.querySelector('[data-cart-drawer-contents]');
+        var current = contents();
+        if (!next || !current) throw new Error('Missing cart drawer contents');
+
+        var where = focusedLineKey();
+        current.replaceWith(next);
+        stale = false;
+        restoreFocus(where);
+        announce(Number(next.getAttribute('data-item-count')));
+        return next;
+      }
+
+      function itemCount() {
+        var node = contents();
+        return node ? Number(node.getAttribute('data-item-count')) : 0;
+      }
+
+      function requestSection() {
+        return fetch(cartPageUrl + '?section_id=' + encodeURIComponent(sectionId), {
+          credentials: 'same-origin',
+          headers: { Accept: 'text/html' }
+        }).then(function (response) {
+          if (!response.ok) throw new Error('Cart drawer refresh failed');
+          return response.text();
+        });
+      }
+
+      function show() {
+        if (typeof drawer.showModal !== 'function') return;
+        if (!drawer.open) drawer.showModal();
+        var title = drawer.querySelector('[data-cart-drawer-title]');
+        if (title) title.focus();
+      }
+
+      function open() {
+        if (!stale || !ajaxSupported) {
+          show();
+          return;
+        }
+
+        /* Opened while carrying someone else's changes: show it, then correct
+           it in place rather than making the customer wait on a request. */
+        show();
+        requestSection()
+          .then(function (html) {
+            render(html);
+          })
+          .catch(function () {
+            setStatus(drawer.getAttribute('data-status-error'), true);
+          });
+      }
+
+      /* Address the line by its key, not by its position. The drawer can be
+         showing a list the server has already moved on from — open() puts it on
+         screen before the corrective fetch lands, and a failed refresh leaves it
+         stale indefinitely — and in that window a positional index points at
+         whatever now sits in that slot. Removing the wrong item is not a
+         recoverable mistake; a key that no longer exists is. */
+      function changeLine(lineKey, quantity) {
+        if (busy || !lineKey) return;
+        setBusy(true);
+        setStatus('', false);
+
+        fetch(changeUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({
+            id: lineKey,
+            quantity: quantity,
+            sections: [sectionId],
+            sections_url: window.location.pathname
+          })
+        })
+          .then(function (response) {
+            /* A rejected request may answer with an HTML error page rather than
+               JSON. Treat only a message the server actually sent as fit to
+               show; everything else gets the translated fallback. */
+            return response
+              .json()
+              .catch(function () {
+                return {};
+              })
+              .then(function (data) {
+                if (!response.ok) {
+                  var responseError = new Error(data.description || data.message || '');
+                  responseError.isCartResponseError = true;
+                  throw responseError;
+                }
+                return data;
+              });
+          })
+          .then(function (cart) {
+            render(cart.sections && cart.sections[sectionId]);
+            setBusy(false);
+          })
+          .catch(function (error) {
+            setBusy(false);
+
+            /* The server may well have accepted the change — a render that
+               throws says nothing about what the cart now holds. Mark the
+               drawer stale so the next open goes and asks, rather than leaving
+               quantities on screen that nobody stands behind. */
+            if (!error.isCartResponseError) stale = true;
+
+            var message = drawer.getAttribute('data-status-error');
+            if (error.isCartResponseError && error.message) message = error.message;
+            setStatus(message, true);
+          });
+      }
+
+      on(drawer, 'click', function (event) {
+        if (event.target.closest('[data-cart-drawer-close]')) {
+          drawer.close();
+          return;
+        }
+
+        var step = event.target.closest('[data-drawer-qty-step]');
+        if (step) {
+          var line = step.closest('[data-cart-line]');
+          var quantityEl = line && line.querySelector('[data-line-quantity]');
+          if (!line || !quantityEl) return;
+          var next = Number(quantityEl.textContent.trim()) + Number(step.getAttribute('data-drawer-qty-step'));
+          changeLine(line.getAttribute('data-line-key'), Math.max(0, next));
+          return;
+        }
+
+        var remove = event.target.closest('[data-cart-drawer-remove]');
+        if (remove) {
+          if (!ajaxSupported) return;
+          event.preventDefault();
+          changeLine(remove.getAttribute('data-line-key'), 0);
+        }
+      });
+
+      /* A dialog's backdrop is the dialog element itself, so a click that lands
+         on it and not on the panel means the customer clicked outside. */
+      on(drawer, 'click', function (event) {
+        if (event.target === drawer) drawer.close();
+      });
+
+      on(document, 'cart:open', function () {
+        open();
+      });
+
+      on(document, 'cart:refresh', function (event) {
+        var detail = event.detail || {};
+        var html = detail.sections && detail.sections[sectionId];
+        if (typeof html !== 'string') {
+          stale = true;
+          return;
+        }
+
+        try {
+          render(html);
+        } catch (error) {
+          stale = true;
+        }
+      });
+
+      /* The header cart link stays a real link so it works without JavaScript;
+         with the drawer present it opens that instead of loading /cart. */
+      on(document, 'click', function (event) {
+        if (!ajaxSupported) return;
+
+        /* A modified click is a request for a new tab or window, and the cart
+           page is a real destination. Intercepting it would turn the cart icon
+           into something that cannot be opened alongside the current page. */
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        if (typeof event.button === 'number' && event.button !== 0) return;
+
+        var link = event.target.closest('[data-cart-link]');
+        if (!link) return;
+        event.preventDefault();
+        open();
+      });
+
+      drawer.drawerCleanup = function () {
+        teardown.forEach(function (off) {
+          off();
+        });
+        teardown = [];
+        drawer.removeAttribute('data-drawer-initialized');
+        drawer.drawerCleanup = null;
+      };
+    }
+
+    function init(scope) {
+      scope.querySelectorAll('[data-cart-drawer]').forEach(initDrawer);
+    }
+
+    function destroy(scope) {
+      scope.querySelectorAll('[data-cart-drawer]').forEach(function (drawer) {
+        if (drawer.drawerCleanup) drawer.drawerCleanup();
+      });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:sections.cart_drawer.name"
+}
+{% endschema %}
