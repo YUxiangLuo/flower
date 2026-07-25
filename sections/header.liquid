@@ -719,6 +719,20 @@
       display: none;
     }
 
+    /* The drawer opens with a search field of its own, so the icon here is a
+       second door to the same room — and the widest thing standing between the
+       shop name and the middle of the bar. The outer columns are `1fr` each, so
+       they only come out equal while neither one's contents exceed its share;
+       dropping this brings the actions back under that line and the name lands
+       centred. */
+    .header__search {
+      display: none;
+    }
+
+    .header__actions {
+      gap: 1rem;
+    }
+
     .header__logo {
       justify-self: center;
       font-size: 1.2rem;
