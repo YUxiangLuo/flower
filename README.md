@@ -49,9 +49,11 @@ shopify theme dev
 Homepage and storefront modules tailored to a handmade keepsake brand:
 
 - **Hero carousel** – full-bleed autoplay slides
+- **Header** – nested drop-down menus, an expanding search field, and a language switcher
 - **Shop by occasion** – occasion-based entry cards
 - **Featured products**, **testimonials**, **gallery**, **creator story**
 - **Product page** – media gallery, variant picker, highlights, collapsible details
+- **Cart drawer** – adds from the product page over AJAX and opens in place
 - **Collection** – facet filters and sorting
 - **Theme and app blocks** – flexible content and app-host sections
 - Cart, search, blog, article, collections list, and 404 – styled to match
@@ -187,6 +189,10 @@ npm test
 ```
 
 Each test boots a section's `{% javascript %}` block in jsdom and drives it through real events. Shopify concatenates section JavaScript into one file that loads once per page and is *not* re-executed when a section re-renders, so the tests evaluate it once and dispatch `shopify:section:load` and `shopify:section:unload` by hand, the way the theme editor does.
+
+Sections that talk to each other are booted together — `bootSection` takes a list — because on a real storefront they always share a page. The cart drawer, the product form, the cart page and the header only meet through three document events (`cart:refresh`, `cart:updated`, `cart:open`), and that hand-off is only observable with all of them running.
+
+jsdom has gaps the helpers fill: `<dialog>` has no `showModal`/`close`, `matchMedia` cannot be driven, and there is no layout engine. Those stubs live in `tests/helpers/section.js` and are deliberately minimal — the focus trap, the top layer and Escape-to-close are the browser's, so nothing asserts on them.
 
 Rules about runtime behaviour belong here rather than in the static checks. An assertion that greps for a specific source expression passes when that text survives in a comment and fails when a variable is renamed — it pins how a fix was written, not what it guarantees. Helpers live in `tests/helpers/`; `fixtures.js` carries the minimal markup each section reads, so a markup change that drops a hook surfaces as a failing test.
 
