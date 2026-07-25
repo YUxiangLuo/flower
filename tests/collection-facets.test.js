@@ -36,6 +36,8 @@ function boot() {
     window,
     form,
     submits,
+    /* jsdom fires no focus events for a programmatic focus chain, so the tests
+       dispatch focusout with the relatedTarget the browser would supply. */
     change(selector) {
       const field = form.querySelector(selector);
       field.dispatchEvent(new window.Event('change', { bubbles: true }));
@@ -69,6 +71,71 @@ test('changing the price field does not submit the form', () => {
     facets.submits.length,
     0,
     'the price field would reload the page while the customer is still typing'
+  );
+});
+
+/* There is no apply button with scripting on — it only exists inside
+   <noscript> — so the price pair has to apply itself. It cannot do that the
+   instant the first field is committed, because "committed" includes tabbing
+   to the second one, and reloading there would take the field away mid-entry. */
+
+test('leaving the price pair applies the filter', () => {
+  const facets = boot();
+
+  const [from] = facets.form.querySelectorAll('.facet__price input');
+  facets.change('.facet__price input');
+  from.dispatchEvent(
+    Object.assign(new facets.window.Event('focusout', { bubbles: true }), {
+      relatedTarget: facets.form.querySelector('[name="sort_by"]')
+    })
+  );
+
+  assert.equal(facets.submits.length, 1, 'the price filter never applied');
+});
+
+test('moving between the two price fields does not apply yet', () => {
+  const facets = boot();
+
+  const [from, to] = facets.form.querySelectorAll('.facet__price input');
+  facets.change('.facet__price input');
+  from.dispatchEvent(
+    Object.assign(new facets.window.Event('focusout', { bubbles: true }), { relatedTarget: to })
+  );
+
+  assert.equal(
+    facets.submits.length,
+    0,
+    'tabbing from "from" to "to" reloaded the page before the pair was filled in'
+  );
+});
+
+test('leaving an untouched price field applies nothing', () => {
+  const facets = boot();
+
+  const [from] = facets.form.querySelectorAll('.facet__price input');
+  from.dispatchEvent(
+    Object.assign(new facets.window.Event('focusout', { bubbles: true }), { relatedTarget: null })
+  );
+
+  assert.equal(facets.submits.length, 0, 'merely passing through the field reloaded the page');
+});
+
+test('enter in a price field applies without waiting for focus to leave', () => {
+  const facets = boot();
+
+  const [from] = facets.form.querySelectorAll('.facet__price input');
+  facets.change('.facet__price input');
+  const event = Object.assign(
+    new facets.window.Event('keydown', { bubbles: true, cancelable: true }),
+    { key: 'Enter' }
+  );
+  from.dispatchEvent(event);
+
+  assert.equal(facets.submits.length, 1, 'enter did not apply the price filter');
+  assert.equal(
+    event.defaultPrevented,
+    true,
+    'implicit submission would apply the form a second time, and skip validation'
   );
 });
 

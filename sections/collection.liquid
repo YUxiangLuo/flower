@@ -31,10 +31,12 @@
     %}
 
     <form method="get" action="{{ collection.url }}" class="collection__bar facets__form">
-      <div class="collection__filters">
-        {% if collection.filters.size > 0 %}
-          <span class="collection__bar-label">{{ 'collection.filter' | t }}</span>
-
+      {% if collection.filters.size > 0 %}
+        {% comment %}
+          The group carries the "Filter" label so assistive tech still announces
+          what these controls are, without spending a line of the bar on it.
+        {% endcomment %}
+        <div class="collection__filters" role="group" aria-label="{{ 'collection.filter' | t }}">
           {% for filter in collection.filters %}
             <details class="facet">
               <summary class="facet__summary">
@@ -51,6 +53,7 @@
                           type="checkbox"
                           name="{{ value.param_name }}"
                           value="{{ value.value }}"
+                          data-auto-submit
                           {% if value.active %}checked{% endif %}
                         >
                         <span>{{ value.label }} ({{ value.count }})</span>
@@ -100,14 +103,26 @@
             </details>
           {% endfor %}
 
-          <button type="submit" class="facets__apply">{{ 'collection.apply' | t }}</button>
-        {% endif %}
-      </div>
+          {% comment %}
+            Filters apply as they are changed. Nothing would apply them without
+            JavaScript, so the button exists for exactly that case.
+          {% endcomment %}
+          <noscript>
+            <button type="submit" class="facets__apply">{{ 'collection.apply' | t }}</button>
+          </noscript>
+        </div>
+      {% endif %}
 
       <div class="collection__tools">
+        <span class="collection__count">
+          {{ 'collection.products_count' | t: count: paginate.items }}
+        </span>
+
         {% if collection.sort_options.size > 0 %}
           <div class="collection__sort">
-            <label for="SortBy-{{ section.id }}">{{ 'collection.sort_by' | t }}</label>
+            <label class="visually-hidden" for="SortBy-{{ section.id }}">
+              {{- 'collection.sort_by' | t -}}
+            </label>
             <select id="SortBy-{{ section.id }}" name="sort_by" data-auto-submit>
               {% for option in collection.sort_options %}
                 <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
@@ -117,10 +132,6 @@
             </select>
           </div>
         {% endif %}
-
-        <span class="collection__count">
-          {{ 'collection.products_count' | t: count: paginate.items }}
-        </span>
       </div>
     </form>
 
@@ -166,37 +177,44 @@
 </div>
 
 {% stylesheet %}
+  /* A listing, not a marketing section: the products are what the customer came
+     for, so the top gets a fraction of the section rhythm the rest of the theme
+     uses and the grid starts near the fold. */
   .collection {
-    padding-block: var(--section-spacing);
+    padding-block: clamp(1.5rem, 3.5vw, 2.75rem) var(--section-spacing);
   }
 
   .collection__header {
     text-align: center;
     max-width: 40rem;
-    margin: 0 auto clamp(2rem, 4vw, 3.5rem);
+    margin: 0 auto clamp(1rem, 2.5vw, 1.75rem);
   }
 
   .collection__title {
     font-family: var(--font-heading--family);
     font-weight: 400;
-    font-size: clamp(2rem, 4vw, 3.25rem);
-    line-height: 1.1;
+    font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+    line-height: 1.15;
   }
 
   .collection__description {
-    margin-top: 1rem;
+    margin-top: 0.4rem;
     font-style: italic;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.5;
     color: var(--color-muted);
   }
 
+  /* One row: filters at the start, count and sort at the end. Dropping the
+     "Filter" and "Sort by" captions is what buys the room — both survive as an
+     accessible name on the group and a visually hidden label on the select. */
   .collection__bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 1rem;
-    padding-block: 1rem;
+    gap: 0.5rem 1.5rem;
+    padding-block: 0.6rem;
     border-block: 1px solid var(--color-line);
   }
 
@@ -206,14 +224,6 @@
     align-items: center;
     gap: 1.25rem;
     flex-wrap: wrap;
-  }
-
-  .collection__bar-label,
-  .collection__sort label {
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--color-muted);
   }
 
   .facet {
@@ -502,18 +512,53 @@
         window.location.assign(targetUrl.toString());
       });
 
-      form.addEventListener('change', function (event) {
-        if (!event.target.matches('[data-auto-submit]')) return;
+      /* There is no apply button to press — it only exists inside <noscript> —
+         so every path that applies a filter comes through here. */
+      function applyFacets() {
         if (typeof form.requestSubmit === 'function') {
           form.requestSubmit();
-        } else {
-          var submitButton = form.querySelector('[type="submit"]');
-          if (submitButton) {
-            submitButton.click();
-          } else {
-            form.submit();
-          }
+          return;
         }
+
+        /* Safari before 16 has no requestSubmit. Dispatch the event the handler
+           above listens for rather than calling form.submit(), which would skip
+           it and send the blank price fields as empty parameters. */
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      }
+
+      form.addEventListener('change', function (event) {
+        if (!event.target.matches('[data-auto-submit]')) return;
+        applyFacets();
+      });
+
+      /* Price is a pair of fields a customer usually fills together. Applying
+         the moment the first one is committed would reload the page while they
+         are on their way to the second, so hold off until focus has actually
+         left the pair. */
+      Array.prototype.forEach.call(form.querySelectorAll('.facet__price'), function (group) {
+        var edited = false;
+
+        group.addEventListener('change', function () {
+          edited = true;
+        });
+
+        group.addEventListener('focusout', function (event) {
+          if (!edited) return;
+          if (group.contains(event.relatedTarget)) return;
+          edited = false;
+          applyFacets();
+        });
+
+        group.addEventListener('keydown', function (event) {
+          if (event.key !== 'Enter') return;
+          /* Whether a form submits implicitly on Enter depends on how many
+             fields it has and whether it carries a submit button — neither of
+             which should decide this. Apply it explicitly instead. */
+          event.preventDefault();
+          if (!edited) return;
+          edited = false;
+          applyFacets();
+        });
       });
     }
 
