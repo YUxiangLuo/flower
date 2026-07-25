@@ -54,7 +54,7 @@ Homepage and storefront modules tailored to a handmade keepsake brand:
 - **Featured products**, **testimonials**, **gallery**, **creator story**
 - **Product page** – media gallery, variant picker, highlights, collapsible details
 - **Cart drawer** – adds from the product page over AJAX and opens in place
-- **Collection** – facet filters and sorting
+- **Collection** – a curated sort control that applies on change
 - **Theme and app blocks** – flexible content and app-host sections
 - Cart, search, blog, article, collections list, and 404 – styled to match
 

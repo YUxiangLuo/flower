@@ -58,7 +58,7 @@ fi
 #
 #   invalid option combinations clear the variant id  -> tests/product-variant.test.js
 #   the gallery initializes before the buy box        -> tests/product-init.test.js
-#   only [data-auto-submit] controls submit a facet   -> tests/collection-facets.test.js
+#   only [data-auto-submit] controls submit the sort  -> tests/collection-sort.test.js
 #   the cart survives a section swap mid-request      -> tests/cart-lifecycle.test.js
 
 if (( failed != 0 )); then
