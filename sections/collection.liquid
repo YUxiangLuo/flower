@@ -20,7 +20,7 @@
       # Shopify offers every sort it knows how to perform, including reversals
       # nobody reaches for. This is the curated list; anything outside it is
       # dropped from the control.
-      assign allowed_sorts = 'manual,best-selling,price-ascending,price-descending,title-ascending,created-descending' | split: ','
+      assign allowed_sorts = 'manual,best-selling,price-ascending,price-descending,created-descending' | split: ','
     %}
 
     <form method="get" action="{{ collection.url }}" class="collection__bar collection__form">
