@@ -26,7 +26,19 @@ test_output="$(npm test --silent)" || {
 }
 printf '%s\n' "$test_output"
 
-tests_passed="$(printf '%s\n' "$test_output" | sed -n 's/^[^ ]* pass \([0-9]\{1,\}\)$/\1/p' | tail -1)"
+# Node's test reporter colourises its summary whenever FORCE_COLOR is set, which
+# most terminals and editors do. The escape codes wrap the whole line, so the
+# anchored match below finds nothing and the guard misfires with "discovery is
+# broken" on a run that was in fact green. CI has neither a TTY nor FORCE_COLOR,
+# which is why this only ever bit locally. Strip the codes before parsing; the
+# output printed above keeps its colour.
+escape="$(printf '\033')"
+tests_passed="$(
+  printf '%s\n' "$test_output" \
+    | sed "s/${escape}\[[0-9;]*m//g" \
+    | sed -n 's/^[^ ]* pass \([0-9]\{1,\}\)$/\1/p' \
+    | tail -1
+)"
 if [[ -z "$tests_passed" ]] || (( tests_passed < 1 )); then
   printf 'No regression tests ran. Test discovery is broken.\n' >&2
   exit 1
