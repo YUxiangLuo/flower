@@ -59,6 +59,40 @@ function stubDialogMethods(window) {
   };
 }
 
+/* jsdom parses <video> but implements none of the playback surface: play() and
+   pause() raise "Not implemented" and `paused` is a getter with nothing behind
+   it. A section that starts a clip would throw here while working in every
+   browser, so supply the smallest faithful pair — a play/pause state and a
+   promise-returning play(), which is what the real one hands back.
+
+   Deliberately not simulated — decoding, buffering, autoplay policy. Nothing
+   asserts on those; what the tests care about is which clips the section asked
+   to play and which it asked to stop. */
+function stubMediaMethods(window) {
+  const proto = window.HTMLMediaElement.prototype;
+  if (proto.play && proto.play.isThemeStub) return;
+
+  const paused = new WeakMap();
+
+  Object.defineProperty(proto, 'paused', {
+    configurable: true,
+    get() {
+      const state = paused.get(this);
+      return state === undefined ? true : state;
+    }
+  });
+
+  proto.play = function play() {
+    paused.set(this, false);
+    return Promise.resolve();
+  };
+  proto.play.isThemeStub = true;
+
+  proto.pause = function pause() {
+    paused.set(this, true);
+  };
+}
+
 function sectionScript(name) {
   const source = fs.readFileSync(path.join(themeRoot, 'sections', name), 'utf8');
   const match = source.match(/\{%\s*javascript\s*%\}([\s\S]*?)\{%\s*endjavascript\s*%\}/);
@@ -106,6 +140,7 @@ function bootSection(name, html, { beforeScript } = {}) {
   // jsdom has no layout engine; the gallery scrolls the active thumbnail into view.
   window.Element.prototype.scrollIntoView = function scrollIntoView() {};
   stubDialogMethods(window);
+  stubMediaMethods(window);
 
   if (beforeScript) beforeScript(window);
   names.forEach((section) => window.eval(sectionScript(section)));
@@ -149,6 +184,47 @@ function stubMatchMedia(window, initial = {}) {
   };
 }
 
+/* jsdom has no IntersectionObserver at all, and no layout engine to drive one
+   with, so a section that plays what is on screen would only ever be tested
+   with the feature absent. Install one the test drives instead.
+
+   `setVisible` reports a target as entering or leaving, the way a browser does
+   when the customer scrolls. `observed` lists what is still being watched, so a
+   test can tell a section that disconnected on unload from one that leaked. */
+function stubIntersectionObserver(window) {
+  const observers = [];
+
+  window.IntersectionObserver = function IntersectionObserver(callback) {
+    const targets = [];
+    const observer = {
+      observe(target) {
+        if (targets.indexOf(target) === -1) targets.push(target);
+      },
+      unobserve(target) {
+        const at = targets.indexOf(target);
+        if (at !== -1) targets.splice(at, 1);
+      },
+      disconnect() {
+        targets.length = 0;
+      }
+    };
+    observers.push({ callback, targets, observer });
+    return observer;
+  };
+
+  return {
+    observed() {
+      return observers.reduce((all, entry) => all.concat(entry.targets), []);
+    },
+    setVisible(target, isIntersecting) {
+      observers.forEach((entry) => {
+        if (entry.targets.indexOf(target) === -1) return;
+        entry.callback([{ target, isIntersecting }], entry.observer);
+      });
+    }
+  };
+}
+
 /* The theme editor dispatches these on the section wrapper; they reach the
    document handlers by bubbling, which is what makes event.target the section. */
 function dispatchSectionEvent(window, type, target) {
@@ -159,4 +235,10 @@ function tick(window, ms = 0) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-module.exports = { bootSection, dispatchSectionEvent, stubMatchMedia, tick };
+module.exports = {
+  bootSection,
+  dispatchSectionEvent,
+  stubIntersectionObserver,
+  stubMatchMedia,
+  tick
+};

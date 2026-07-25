@@ -113,6 +113,12 @@
       "rating": "{{ rating }} out of 5 stars",
       "add_review": "Add a verified customer testimonial in the theme editor."
     },
+    "customer_videos": {
+      "play": "Play customer video {{ number }}",
+      "viewer": "Customer video",
+      "close": "Close video",
+      "add_video": "Add a customer video in the theme editor."
+    },
     "newsletter": {
       "email_label": "Email address",
       "email_placeholder": "Enter your email",

@@ -211,11 +211,39 @@ function collectionSection() {
 </div>`;
 }
 
+/* A rail of vertical clips plus the viewer dialog. The <video> elements carry
+   `muted` the way video_tag emits it, because whether the section unmutes the
+   copy it puts in the viewer is exactly what one of the tests is about. */
+function customerVideosSection({ id = 'clips', clips = 2, empty = false } = {}) {
+  const clip = (i) => `
+      <li class="clip" data-clip data-clip-index="${i}">
+        <button type="button" class="clip__trigger" data-clip-open>
+          <video class="clip__video" data-video="${i}" muted loop playsinline></video>
+        </button>
+      </li>`;
+
+  const items = empty ? '' : Array.from({ length: clips }, (unused, i) => clip(i)).join('');
+
+  return `
+<div class="shopify-section" id="section-${id}">
+  <div class="clips" data-clips data-cid="${id}">
+    <div class="clips__inner">
+      <ul class="clips__rail" role="list">${items}</ul>
+    </div>
+    <dialog class="clips__viewer" data-clips-viewer scroll-lock>
+      <button type="button" data-clips-close>close</button>
+      <div class="clips__viewer-stage" data-clips-stage></div>
+    </dialog>
+  </div>
+</div>`;
+}
+
 module.exports = {
   productSection,
   cartSection,
   cartDrawerSection,
   collectionSection,
+  customerVideosSection,
   headerSection,
   heroSection
 };

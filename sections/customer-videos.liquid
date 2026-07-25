@@ -1,0 +1,565 @@
+{% comment %}
+  Customer clips — vertical phone-shot videos of pieces that have arrived,
+  laid out as a swipeable rail. Each clip can name the product it shows.
+
+  Videos are uploaded to Shopify rather than embedded: TikTok and Instagram
+  cannot be embedded through a `video_url` setting (it accepts only YouTube and
+  Vimeo), and a hosted file is the only source the theme can mute, loop and
+  pause on its own terms.
+{% endcomment %}
+
+{% liquid
+  assign clip_count = 0
+  for block in section.blocks
+    if block.settings.video
+      assign clip_count = clip_count | plus: 1
+    endif
+  endfor
+%}
+
+{% if clip_count > 0 or request.design_mode %}
+  <div class="clips full-width" data-clips>
+    <div class="clips__inner">
+      <header class="clips__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="clips__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </header>
+
+      {%- comment -%}
+        The rail scrolls itself rather than widening the page — wide content
+        carries its own overflow so the document never scrolls sideways.
+      {%- endcomment -%}
+      <ul class="clips__rail" role="list">
+        {%- comment -%}
+          Number the clips that render, not the blocks. A block with no video is
+          nothing on the storefront, so counting blocks would have the first
+          button on the page announce itself as "video 2".
+        {%- endcomment -%}
+        {% assign clip_number = 0 %}
+        {% for block in section.blocks %}
+          {% if block.settings.video %}
+            {% assign clip_number = clip_number | plus: 1 %}
+            <li class="clip" data-clip {{ block.shopify_attributes }}>
+              {%- comment -%}
+                The trigger and the product link are siblings on purpose. Nesting
+                a link inside a button gives one control two jobs and no
+                assistive technology reports it usefully.
+
+                `autoplay` is deliberately not passed: it would start every clip
+                on the page at once regardless of what is on screen. Playback is
+                driven from the observer below instead. `muted` is what lets that
+                programmatic play() through — browsers block an unmuted one.
+              {%- endcomment -%}
+              <button
+                type="button"
+                class="clip__trigger"
+                data-clip-open
+                aria-label="{{ 'sections.customer_videos.play' | t: number: clip_number }}"
+              >
+                {{
+                  block.settings.video
+                  | video_tag: loop: true, muted: true, loading: 'lazy', class: 'clip__video'
+                }}
+                <span class="clip__badge" aria-hidden="true">
+                  {{- 'icon-play.svg' | inline_asset_content -}}
+                </span>
+              </button>
+
+              {% if block.settings.product %}
+                <a class="clip__product" href="{{ block.settings.product.url }}">
+                  <span class="clip__product-media">
+                    {% if block.settings.product.featured_image %}
+                      {%- assign clip_product_alt = block.settings.product.featured_image.alt
+                        | default: block.settings.product.title
+                      -%}
+                      {{
+                        block.settings.product.featured_image
+                        | image_url: width: 120, height: 120, crop: 'center'
+                        | image_tag: loading: 'lazy', class: 'clip__product-image', sizes: '60px', widths: '60, 90, 120', alt: clip_product_alt
+                      }}
+                    {% else %}
+                      {{ 'product-1' | placeholder_svg_tag: 'clip__product-image clip__product-image--placeholder' }}
+                    {% endif %}
+                  </span>
+                  <span class="clip__product-title">{{ block.settings.product.title | escape }}</span>
+                  <span class="clip__product-arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              {% endif %}
+            </li>
+          {% elsif request.design_mode %}
+            <li class="clip clip--empty" data-clip {{ block.shopify_attributes }}>
+              <span class="clip__trigger clip__trigger--empty">
+                {{ 'sections.customer_videos.add_video' | t }}
+              </span>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+
+    {%- comment -%}
+      One viewer per section. `scroll-lock` is read by critical.css to freeze the
+      page behind an open dialog; the focus trap, the top layer and
+      Escape-to-close are the browser's, which is the reason this is a <dialog>
+      and not a div.
+    {%- endcomment -%}
+    <dialog
+      class="clips__viewer"
+      data-clips-viewer
+      scroll-lock
+      aria-label="{{ 'sections.customer_videos.viewer' | t }}"
+    >
+      <button
+        type="button"
+        class="clips__viewer-close"
+        data-clips-close
+        aria-label="{{ 'sections.customer_videos.close' | t }}"
+      >
+        {{- 'icon-close.svg' | inline_asset_content -}}
+      </button>
+      <div class="clips__viewer-stage" data-clips-stage></div>
+    </dialog>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .clips {
+    background-color: var(--color-background);
+  }
+
+  .clips__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-block: var(--section-spacing);
+    padding-inline: var(--page-margin);
+  }
+
+  .clips__header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .clips__heading {
+    font-family: var(--font-heading--family);
+    font-weight: 400;
+    font-size: var(--text-xl);
+    line-height: 1.1;
+  }
+
+  /* The upper bound is what keeps a sparse rail sane. A bare 1fr hands each
+     clip an equal share of the full width, and the 9:16 frame turns that share
+     into height: two clips on a 1440px page become 680px wide and 1209px tall,
+     one becomes 1400px wide and taller than any screen — at which point it can
+     never be half on screen, so the observer below never starts it. Capped, a
+     clip is a phone-shaped card whatever the merchant uploaded. */
+  .clips__rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(13rem, 20rem);
+    gap: var(--content-gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    padding: 0 0 var(--space-sm);
+    margin: 0;
+    list-style: none;
+  }
+
+  .clip {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin: 0;
+  }
+
+  .clip__trigger {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 9 / 16;
+    background-color: var(--color-surface-deep);
+    color: var(--color-background);
+  }
+
+  /* video_tag renders an <img> inside the <video> as its fallback, so both need
+     to fill the frame. */
+  .clip__video,
+  .clip__trigger img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .clip__badge {
+    position: absolute;
+    inset-block-end: var(--space-xs);
+    inset-inline-start: var(--space-xs);
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background-color: rgb(0 0 0 / 0.45);
+    transition: background-color var(--duration-ui) var(--ease-out);
+  }
+
+  .clip__badge svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .clip__trigger:hover .clip__badge,
+  .clip__trigger:focus-visible .clip__badge {
+    background-color: rgb(0 0 0 / 0.75);
+  }
+
+  .clip__trigger--empty {
+    display: grid;
+    place-items: center;
+    padding: var(--space-sm);
+    text-align: center;
+    color: var(--color-muted);
+    font-style: italic;
+    cursor: default;
+  }
+
+  .clip__product {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-2xs);
+    color: var(--color-foreground);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+
+  .clip__product-media {
+    display: block;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    background-color: var(--color-surface);
+  }
+
+  .clip__product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .clip__product-image--placeholder {
+    padding: 18%;
+    object-fit: contain;
+    opacity: 0.35;
+  }
+
+  .clip__product-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .clip__product-arrow {
+    color: var(--color-muted);
+    transition: transform var(--duration-ui) var(--ease-out);
+  }
+
+  .clip__product:hover .clip__product-arrow,
+  .clip__product:focus-visible .clip__product-arrow {
+    transform: translateX(0.25rem);
+  }
+
+  .clips__viewer {
+    width: min(28rem, 92vw);
+    max-height: 92vh;
+    padding: 0;
+    border: 0;
+    background-color: #000;
+    overflow: hidden;
+  }
+
+  .clips__viewer::backdrop {
+    background-color: rgb(0 0 0 / 0.8);
+  }
+
+  .clips__viewer-close {
+    position: absolute;
+    inset-block-start: var(--space-xs);
+    inset-inline-end: var(--space-xs);
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: rgb(0 0 0 / 0.5);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .clips__viewer-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .clips__viewer-stage video {
+    display: block;
+    width: 100%;
+    max-height: 92vh;
+    object-fit: contain;
+  }
+
+  @media (max-width: 749px) {
+    .clips__rail {
+      grid-auto-columns: minmax(11rem, 1fr);
+    }
+  }
+
+  /* Nothing here animates on its own when the preference is set — the script
+     leaves every clip paused on its poster — so this only stills the trims. */
+  @media (prefers-reduced-motion: reduce) {
+    .clip__badge,
+    .clip__product-arrow {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    function initClips(root) {
+      var cards = Array.prototype.slice.call(root.querySelectorAll('[data-clip]'));
+      if (cards.length === 0) return null;
+
+      var viewer = root.querySelector('[data-clips-viewer]');
+      var stage = root.querySelector('[data-clips-stage]');
+      var closer = root.querySelector('[data-clips-close]');
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      /* Track every listener so the section can be torn down cleanly when the
+         theme editor reloads it. */
+      var teardown = [];
+      function on(target, type, handler) {
+        target.addEventListener(type, handler);
+        teardown.push(function () {
+          target.removeEventListener(type, handler);
+        });
+      }
+
+      /* Which cards the observer currently reports as on screen. Kept as state
+         rather than recomputed, because the answer is also needed when nothing
+         scrolled — a preference flip or a tab coming back has to resume exactly
+         the clips that are still in view. */
+      var onScreen = [];
+
+      function videoOf(card) {
+        return card.querySelector('video');
+      }
+
+      /* play() rejects when the browser declines — a still-loading source, a
+         power-saving mode. That is not an error worth surfacing, but an
+         unhandled rejection would be. */
+      function attemptPlay(video) {
+        var started = video.play();
+        if (started && typeof started.catch === 'function') {
+          started.catch(function () {});
+        }
+      }
+
+      function railMayPlay() {
+        if (reduced.matches) return false;
+        if (document.hidden) return false;
+        /* The viewer is playing the same clip with sound. Two copies at once is
+           an echo, so the rail stands down for as long as it is open. */
+        if (viewer && viewer.open) return false;
+        return true;
+      }
+
+      function sync() {
+        cards.forEach(function (card) {
+          var video = videoOf(card);
+          if (!video) return;
+          if (onScreen.indexOf(card) !== -1 && railMayPlay()) attemptPlay(video);
+          else video.pause();
+        });
+      }
+
+      /* Without IntersectionObserver nothing autoplays and every clip sits on
+         its poster, which is a usable page rather than a broken one. */
+      if (typeof window.IntersectionObserver === 'function') {
+        var observer = new window.IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              var at = onScreen.indexOf(entry.target);
+              if (entry.isIntersecting && at === -1) onScreen.push(entry.target);
+              else if (!entry.isIntersecting && at !== -1) onScreen.splice(at, 1);
+            });
+            sync();
+          },
+          { threshold: 0.5 }
+        );
+        cards.forEach(function (card) {
+          observer.observe(card);
+        });
+        teardown.push(function () {
+          observer.disconnect();
+        });
+      }
+
+      function openViewer(card) {
+        var source = videoOf(card);
+        if (!source || !viewer || !stage) return;
+        if (typeof viewer.showModal !== 'function') return;
+
+        /* Clone the element rather than reading a URL off the video object and
+           rebuilding a tag: the clone carries whatever sources Shopify emitted,
+           so this cannot fall out of step with the shape of that markup. */
+        stage.textContent = '';
+        var full = source.cloneNode(true);
+        full.removeAttribute('muted');
+        full.muted = false;
+        full.controls = true;
+        full.loop = true;
+        stage.appendChild(full);
+
+        viewer.showModal();
+        sync();
+        attemptPlay(full);
+      }
+
+      cards.forEach(function (card) {
+        var trigger = card.querySelector('[data-clip-open]');
+        if (!trigger) return;
+        on(trigger, 'click', function () {
+          openViewer(card);
+        });
+      });
+
+      if (viewer) {
+        /* Every way out ends in a `close` event — Escape, the button, the
+           backdrop below — so the clean-up is registered once here rather than
+           on each of them. */
+        on(viewer, 'close', function () {
+          if (stage) stage.textContent = '';
+          sync();
+        });
+
+        /* A dialog's backdrop is the dialog element itself, so a click that
+           lands on it and not on the video means the customer clicked outside.
+           A modal <dialog> does not light-dismiss on its own. */
+        on(viewer, 'click', function (event) {
+          if (event.target === viewer) viewer.close();
+        });
+      }
+
+      if (closer && viewer) {
+        on(closer, 'click', function () {
+          viewer.close();
+        });
+      }
+
+      /* A backgrounded tab is not something the customer did to the rail, so
+         coming back resumes whatever is still on screen. */
+      on(document, 'visibilitychange', sync);
+      if (reduced.addEventListener) on(reduced, 'change', sync);
+
+      sync();
+
+      return function cleanup() {
+        cards.forEach(function (card) {
+          var video = videoOf(card);
+          if (video) video.pause();
+        });
+        if (stage) stage.textContent = '';
+        onScreen = [];
+        teardown.forEach(function (off) {
+          off();
+        });
+        teardown = [];
+      };
+    }
+
+    /* Walk every rail in scope rather than the first, so a page carrying more
+       than one of these sections wires up all of them. */
+    function init(scope) {
+      scope.querySelectorAll('[data-clips]').forEach(function (root) {
+        if (root.clipsCleanup) root.clipsCleanup();
+        root.clipsCleanup = initClips(root);
+      });
+    }
+
+    function destroy(scope) {
+      scope.querySelectorAll('[data-clips]').forEach(function (root) {
+        if (root.clipsCleanup) {
+          root.clipsCleanup();
+          root.clipsCleanup = null;
+        }
+      });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:sections.customer_videos.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:sections.customer_videos.eyebrow",
+      "default": "Straight from the doorstep"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.customer_videos.heading",
+      "default": "Real customers, real keepsakes"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "clip",
+      "name": "t:sections.customer_videos.block_name",
+      "settings": [
+        {
+          "type": "video",
+          "id": "video",
+          "label": "t:sections.customer_videos.video"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "t:sections.customer_videos.product"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "t:sections.customer_videos.name",
+      "blocks": [{ "type": "clip" }, { "type": "clip" }, { "type": "clip" }, { "type": "clip" }]
+    }
+  ]
+}
+{% endschema %}

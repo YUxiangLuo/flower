@@ -26,17 +26,28 @@
         {% endif %}
       </header>
 
-      <div class="testimonials__grid">
+      <div class="testimonials__grid" style="--columns: {{ section.settings.columns }}">
         {% for block in section.blocks %}
           {% if block.settings.quote != blank %}
             <figure class="testimonial" {{ block.shopify_attributes }}>
               {% if block.settings.rating > 0 %}
+                {%- comment -%}
+                  All five slots are always drawn, the unearned ones as outlines.
+                  Stopping the loop at the rating leaves three solid stars and
+                  nothing after them, which reads as three out of three — the
+                  label says "out of 5" but only a screen reader ever hears it.
+                {%- endcomment -%}
                 <div
                   class="testimonial__stars"
                   aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating }}"
                 >
-                  {% for i in (1..block.settings.rating) %}
-                    <span aria-hidden="true">&#9733;</span>
+                  {% for i in (1..5) %}
+                    <span
+                      class="testimonial__star{% if i > block.settings.rating %} testimonial__star--empty{% endif %}"
+                      aria-hidden="true"
+                    >
+                      {{- 'icon-star.svg' | inline_asset_content -}}
+                    </span>
                   {% endfor %}
                 </div>
               {% endif %}
@@ -82,9 +93,13 @@
     line-height: 1.1;
   }
 
+  /* A fixed column count rather than auto-fit: these cards hold prose, and
+     auto-fit answers the merchant's block count with however many 15rem columns
+     the page happens to fit — six blocks land as five plus an orphan, each one
+     too narrow to read a quote in. */
   .testimonials__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    grid-template-columns: repeat(var(--columns), 1fr);
     gap: var(--content-gap);
   }
 
@@ -103,7 +118,24 @@
     display: flex;
     gap: 0.2rem;
     color: var(--color-accent);
-    font-size: 0.9rem;
+  }
+
+  .testimonial__star {
+    display: block;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .testimonial__star svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Same glyph either way, so the row keeps its spacing and an outline cannot be
+     mistaken for a gap. */
+  .testimonial__star--empty svg {
+    fill: none;
   }
 
   .testimonial__quote {
@@ -125,6 +157,20 @@
     color: var(--color-muted);
     font-style: italic;
   }
+
+  @media (max-width: 989px) {
+    .testimonials__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Quotes go single file well before a product grid would — a testimonial in
+     half a phone's width wraps to a column of two-word lines. */
+  @media (max-width: 649px) {
+    .testimonials__grid {
+      grid-template-columns: 1fr;
+    }
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -141,6 +187,17 @@
       "id": "heading",
       "label": "t:sections.testimonials.heading",
       "default": "Customer testimonials"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "t:sections.testimonials.columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
     }
   ],
   "blocks": [
@@ -174,12 +231,7 @@
   "presets": [
     {
       "name": "t:sections.testimonials.name",
-      "blocks": [
-        { "type": "testimonial" },
-        { "type": "testimonial" },
-        { "type": "testimonial" },
-        { "type": "testimonial" }
-      ]
+      "blocks": [{ "type": "testimonial" }, { "type": "testimonial" }, { "type": "testimonial" }]
     }
   ]
 }

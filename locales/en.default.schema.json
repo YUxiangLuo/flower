@@ -198,10 +198,19 @@
       "name": "Testimonials",
       "eyebrow": "Eyebrow",
       "heading": "Heading",
+      "columns": "Columns",
       "block_name": "Testimonial",
       "rating": "Rating",
       "quote": "Quote",
       "author": "Author"
+    },
+    "customer_videos": {
+      "name": "Customer videos",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "block_name": "Clip",
+      "video": "Video",
+      "product": "Product shown"
     },
     "gallery": {
       "name": "Gallery",

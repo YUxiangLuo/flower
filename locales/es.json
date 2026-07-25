@@ -113,6 +113,12 @@
       "rating": "{{ rating }} de 5 estrellas",
       "add_review": "Añade un testimonio verificado de cliente en el editor de temas."
     },
+    "customer_videos": {
+      "play": "Reproducir el vídeo de cliente {{ number }}",
+      "viewer": "Vídeo de cliente",
+      "close": "Cerrar el vídeo",
+      "add_video": "Añade un vídeo de cliente en el editor de temas."
+    },
     "newsletter": {
       "email_label": "Correo electrónico",
       "email_placeholder": "Introduce tu correo electrónico",

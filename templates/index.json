@@ -99,6 +99,17 @@
         "heading": "Best-selling gifts"
       }
     },
+    "clips": {
+      "type": "customer-videos",
+      "blocks": {
+        "clip-1": { "type": "clip", "settings": {} },
+        "clip-2": { "type": "clip", "settings": {} },
+        "clip-3": { "type": "clip", "settings": {} },
+        "clip-4": { "type": "clip", "settings": {} }
+      },
+      "block_order": ["clip-1", "clip-2", "clip-3", "clip-4"],
+      "settings": {}
+    },
     "lookbook": {
       "type": "gallery",
       "blocks": {
@@ -110,6 +121,16 @@
         "g-6": { "type": "image", "settings": {} }
       },
       "block_order": ["g-1", "g-2", "g-3", "g-4", "g-5", "g-6"],
+      "settings": {}
+    },
+    "reviews": {
+      "type": "testimonials",
+      "blocks": {
+        "t-1": { "type": "testimonial", "settings": {} },
+        "t-2": { "type": "testimonial", "settings": {} },
+        "t-3": { "type": "testimonial", "settings": {} }
+      },
+      "block_order": ["t-1", "t-2", "t-3"],
       "settings": {}
     },
     "assurance": {
@@ -177,7 +198,9 @@
     "lasting",
     "giftflow",
     "featured",
+    "clips",
     "lookbook",
+    "reviews",
     "assurance",
     "creator",
     "richtext",
