@@ -38,13 +38,7 @@
     "view_cart": "Warenkorb ansehen"
   },
   "collection": {
-    "filter": "Filtern",
     "apply": "Anwenden",
-    "clear_all": "Alle löschen",
-    "price_from_with_currency": "Von ({{ currency }})",
-    "price_to_with_currency": "Bis ({{ currency }})",
-    "price_invalid": "Gib einen gültigen Preis ein.",
-    "price_out_of_range": "Gib einen Preis zwischen {{ min }} und {{ max }} ein.",
     "sort_by": "Sortieren nach",
     "products_count": "{{ count }} Produkte",
     "empty": "Keine Produkte gefunden."

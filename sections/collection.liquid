@@ -1,6 +1,6 @@
 {% comment %}
-  Collection page: a title, optional description, a facet + sort bar backed by
-  Shopify's native storefront filtering, and a paginated product grid.
+  Collection page: a title, optional description, a sort bar and a paginated
+  product grid.
 
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
@@ -14,148 +14,36 @@
   </header>
 
   {% paginate collection.products by section.settings.products_per_page %}
-    {% liquid
-      assign current_sort = collection.sort_by | default: collection.default_sort_by
+    {% assign current_sort = collection.sort_by | default: collection.default_sort_by %}
 
-      assign has_active = false
-      for filter in collection.filters
-        if filter.active_values.size > 0
-          assign has_active = true
-        endif
-        if filter.type == 'price_range'
-          if filter.min_value.value != blank or filter.max_value.value != blank
-            assign has_active = true
-          endif
-        endif
-      endfor
-    %}
+    <form method="get" action="{{ collection.url }}" class="collection__bar collection__form">
+      <span class="collection__count">
+        {{ 'collection.products_count' | t: count: paginate.items }}
+      </span>
 
-    <form method="get" action="{{ collection.url }}" class="collection__bar facets__form">
-      {% if collection.filters.size > 0 %}
-        {% comment %}
-          The group carries the "Filter" label so assistive tech still announces
-          what these controls are, without spending a line of the bar on it.
-        {% endcomment %}
-        <div class="collection__filters" role="group" aria-label="{{ 'collection.filter' | t }}">
-          {% for filter in collection.filters %}
-            <details class="facet">
-              <summary class="facet__summary">
-                {{ filter.label }}
-                <span class="facet__chevron" aria-hidden="true">&#9662;</span>
-              </summary>
-
-              <div class="facet__panel">
-                {% case filter.type %}
-                  {% when 'list', 'boolean' %}
-                    {% for value in filter.values %}
-                      <label class="facet__option">
-                        <input
-                          type="checkbox"
-                          name="{{ value.param_name }}"
-                          value="{{ value.value }}"
-                          data-auto-submit
-                          {% if value.active %}checked{% endif %}
-                        >
-                        <span>{{ value.label }} ({{ value.count }})</span>
-                      </label>
-                    {% endfor %}
-                  {% when 'price_range' %}
-                    {% assign price_max = filter.range_max | money_without_currency %}
-                    {% assign price_max_value = filter.range_max | divided_by: 100.0 %}
-                    <div class="facet__price">
-                      <label>
-                        {{ 'collection.price_from_with_currency' | t: currency: cart.currency.iso_code }}
-                        <input
-                          type="text"
-                          inputmode="decimal"
-                          name="{{ filter.min_value.param_name | escape }}"
-                          {% if filter.min_value.value != blank %}
-                            value="{{ filter.min_value.value | money_without_currency | escape }}"
-                          {% endif %}
-                          placeholder="0"
-                          data-min="0"
-                          data-max="{{ price_max_value }}"
-                          data-invalid-message="{{ 'collection.price_invalid' | t | escape }}"
-                          data-range-message="{{ 'collection.price_out_of_range' | t: min: 0, max: price_max | escape }}"
-                          autocomplete="off"
-                        >
-                      </label>
-                      <label>
-                        {{ 'collection.price_to_with_currency' | t: currency: cart.currency.iso_code }}
-                        <input
-                          type="text"
-                          inputmode="decimal"
-                          name="{{ filter.max_value.param_name | escape }}"
-                          {% if filter.max_value.value != blank %}
-                            value="{{ filter.max_value.value | money_without_currency | escape }}"
-                          {% endif %}
-                          placeholder="{{ price_max | escape }}"
-                          data-min="0"
-                          data-max="{{ price_max_value }}"
-                          data-invalid-message="{{ 'collection.price_invalid' | t | escape }}"
-                          data-range-message="{{ 'collection.price_out_of_range' | t: min: 0, max: price_max | escape }}"
-                          autocomplete="off"
-                        >
-                      </label>
-                    </div>
-                {% endcase %}
-              </div>
-            </details>
-          {% endfor %}
+      {% if collection.sort_options.size > 0 %}
+        <div class="collection__sort">
+          <label class="visually-hidden" for="SortBy-{{ section.id }}">
+            {{- 'collection.sort_by' | t -}}
+          </label>
+          <select id="SortBy-{{ section.id }}" name="sort_by" data-auto-submit>
+            {% for option in collection.sort_options %}
+              <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
+                {{ option.name }}
+              </option>
+            {% endfor %}
+          </select>
 
           {% comment %}
-            Filters apply as they are changed. Nothing would apply them without
+            Sorting applies on change. Nothing would apply it without
             JavaScript, so the button exists for exactly that case.
           {% endcomment %}
           <noscript>
-            <button type="submit" class="facets__apply">{{ 'collection.apply' | t }}</button>
+            <button type="submit" class="collection__apply">{{ 'collection.apply' | t }}</button>
           </noscript>
         </div>
       {% endif %}
-
-      <div class="collection__tools">
-        <span class="collection__count">
-          {{ 'collection.products_count' | t: count: paginate.items }}
-        </span>
-
-        {% if collection.sort_options.size > 0 %}
-          <div class="collection__sort">
-            <label class="visually-hidden" for="SortBy-{{ section.id }}">
-              {{- 'collection.sort_by' | t -}}
-            </label>
-            <select id="SortBy-{{ section.id }}" name="sort_by" data-auto-submit>
-              {% for option in collection.sort_options %}
-                <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
-                  {{ option.name }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-        {% endif %}
-      </div>
     </form>
-
-    {% if has_active %}
-      <div class="collection__active">
-        {% for filter in collection.filters %}
-          {% for value in filter.active_values %}
-            <a class="collection__chip" href="{{ value.url_to_remove }}">
-              {{ value.label }}
-              <span aria-hidden="true">&times;</span>
-            </a>
-          {% endfor %}
-          {% if filter.type == 'price_range' %}
-            {% if filter.min_value.value != blank or filter.max_value.value != blank %}
-              <a class="collection__chip" href="{{ filter.url_to_remove }}">
-                {{ filter.label }}
-                <span aria-hidden="true">&times;</span>
-              </a>
-            {% endif %}
-          {% endif %}
-        {% endfor %}
-        <a class="collection__clear" href="{{ collection.url }}">{{ 'collection.clear_all' | t }}</a>
-      </div>
-    {% endif %}
 
     {% if collection.products.size > 0 %}
       <div class="collection__grid" style="--columns: {{ section.settings.columns }}">
@@ -168,9 +56,6 @@
     {% else %}
       <div class="collection__empty">
         <p>{{ 'collection.empty' | t }}</p>
-        {% if has_active %}
-          <a class="collection__clear" href="{{ collection.url }}">{{ 'collection.clear_all' | t }}</a>
-        {% endif %}
       </div>
     {% endif %}
   {% endpaginate %}
@@ -208,6 +93,9 @@
   /* One row: filters at the start, count and sort at the end. Dropping the
      "Filter" and "Sort by" captions is what buys the room — both survive as an
      accessible name on the group and a visually hidden label on the select. */
+  /* One row: the count at the start, sorting at the end. The "Sort by" caption
+     is what would force a wrap on a narrow viewport, so it survives as a
+     visually hidden label on the select rather than as text in the bar. */
   .collection__bar {
     display: flex;
     align-items: center;
@@ -218,114 +106,24 @@
     border-block: 1px solid var(--color-line);
   }
 
-  .collection__filters,
-  .collection__tools {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    flex-wrap: wrap;
-  }
 
-  .facet {
-    position: relative;
-  }
 
-  .facet__summary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    cursor: pointer;
-    list-style: none;
-    font-size: 0.85rem;
-    color: var(--color-foreground);
-  }
-
-  .facet__summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .facet__chevron {
-    font-size: 0.7rem;
-    color: var(--color-accent);
-    transition: transform 0.25s ease;
-  }
-
-  .facet[open] .facet__chevron {
-    transform: rotate(180deg);
-  }
-
-  .facet__panel {
-    position: absolute;
-    top: calc(100% + 0.75rem);
-    left: 0;
-    z-index: 20;
-    min-width: 14rem;
-    max-height: 20rem;
-    overflow-y: auto;
-    padding: 1rem 1.25rem;
-    background-color: var(--color-background);
-    border: 1px solid var(--color-line);
-    box-shadow: 0 12px 30px rgb(43 42 28 / 0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .facet__option {
+  .collection__sort {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    font-size: 0.85rem;
-    cursor: pointer;
   }
 
-  .facet__option input {
-    accent-color: var(--color-accent);
-  }
-
-  .facet__price {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .facet__price label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    font-size: 0.75rem;
-    color: var(--color-muted);
-  }
-
-  .facet__price input {
-    width: 6rem;
-    padding: 0.4rem 0.5rem;
-    border: 1px solid var(--color-line);
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-  }
-
-  .facets__apply {
-    padding: 0.5rem 1.4rem;
-    font-size: 0.75rem;
+  /* Only ever rendered inside <noscript>. */
+  .collection__apply {
+    padding: 0.35rem 1rem;
+    font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-foreground);
     background-color: transparent;
     border: 1px solid var(--color-foreground);
     cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  .facets__apply:hover,
-  .facets__apply:focus-visible {
-    background-color: var(--color-foreground);
-    color: var(--color-background);
-  }
-
-  .collection__sort {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
   }
 
   .collection__sort select {
@@ -343,39 +141,6 @@
     color: var(--color-muted);
   }
 
-  .collection__active {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 1.25rem;
-  }
-
-  .collection__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.85rem;
-    font-size: 0.78rem;
-    color: var(--color-foreground);
-    text-decoration: none;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: 999px;
-  }
-
-  .collection__chip:hover,
-  .collection__chip:focus-visible {
-    border-color: var(--color-accent);
-  }
-
-  .collection__clear {
-    font-size: 0.78rem;
-    letter-spacing: 0.06em;
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
 
   .collection__grid {
     display: grid;
@@ -415,157 +180,31 @@
 
 {% javascript %}
   (function () {
-    function escapeRegExp(value) {
-      return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
+    /* The bar has no apply button with scripting on — it only exists inside
+       <noscript> — so changing the sort order is what applies it. */
+    function initSort(form) {
+      if (form.getAttribute('data-sort-initialized') === 'true') return;
+      form.setAttribute('data-sort-initialized', 'true');
 
-    function parseLocalizedNumber(value) {
-      var normalized = value.trim();
-      if (normalized === '') return null;
+      form.addEventListener('change', function (event) {
+        if (!event.target.matches('[data-auto-submit]')) return;
 
-      try {
-        var locale = document.documentElement.lang || 'en';
-        var parts = new Intl.NumberFormat(locale).formatToParts(12345.6);
-        var group = '';
-        var decimal = '.';
-
-        parts.forEach(function (part) {
-          if (part.type === 'group') group = part.value;
-          if (part.type === 'decimal') decimal = part.value;
-        });
-
-        normalized = normalized.replace(/\s/g, '');
-        if (group) {
-          normalized = normalized.replace(new RegExp(escapeRegExp(group), 'g'), '');
-        }
-        if (decimal !== '.') {
-          normalized = normalized.replace(new RegExp(escapeRegExp(decimal), 'g'), '.');
-        }
-      } catch (error) {
-        normalized = normalized.replace(/\s/g, '').replace(/,/g, '.');
-      }
-
-      if (!/^(?:\d+|\d*\.\d+)$/.test(normalized)) return NaN;
-      return Number(normalized);
-    }
-
-    function initFacets(form) {
-      if (form.getAttribute('data-facets-initialized') === 'true') return;
-      form.setAttribute('data-facets-initialized', 'true');
-
-      var priceInputs = Array.prototype.slice.call(form.querySelectorAll('.facet__price input'));
-
-      function validatePriceInputs() {
-        var firstInvalid = null;
-
-        priceInputs.forEach(function (input) {
-          input.setCustomValidity('');
-
-          var value = parseLocalizedNumber(input.value);
-          if (value === null) return;
-
-          var min = Number(input.dataset.min);
-          var max = Number(input.dataset.max);
-
-          if (value !== value) {
-            input.setCustomValidity(input.dataset.invalidMessage);
-          } else if (value < min || value > max) {
-            input.setCustomValidity(input.dataset.rangeMessage);
-          }
-
-          if (!input.validity.valid && !firstInvalid) {
-            firstInvalid = input;
-          }
-        });
-
-        return firstInvalid;
-      }
-
-      priceInputs.forEach(function (input) {
-        input.addEventListener('input', function () {
-          input.setCustomValidity('');
-        });
-      });
-
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-
-        var firstInvalid = validatePriceInputs();
-        if (firstInvalid) {
-          if (typeof firstInvalid.reportValidity === 'function') {
-            firstInvalid.reportValidity();
-          } else {
-            firstInvalid.focus();
-          }
-          return;
-        }
-
-        var formData = new FormData(form);
-        priceInputs.forEach(function (input) {
-          if (input.value.trim() === '') {
-            formData.delete(input.name);
-          }
-        });
-
-        var targetUrl = new URL(form.action, window.location.href);
-        targetUrl.search = new URLSearchParams(formData).toString();
-        window.location.assign(targetUrl.toString());
-      });
-
-      /* There is no apply button to press — it only exists inside <noscript> —
-         so every path that applies a filter comes through here. */
-      function applyFacets() {
         if (typeof form.requestSubmit === 'function') {
           form.requestSubmit();
           return;
         }
 
-        /* Safari before 16 has no requestSubmit. Dispatch the event the handler
-           above listens for rather than calling form.submit(), which would skip
-           it and send the blank price fields as empty parameters. */
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-      }
-
-      form.addEventListener('change', function (event) {
-        if (!event.target.matches('[data-auto-submit]')) return;
-        applyFacets();
-      });
-
-      /* Price is a pair of fields a customer usually fills together. Applying
-         the moment the first one is committed would reload the page while they
-         are on their way to the second, so hold off until focus has actually
-         left the pair. */
-      Array.prototype.forEach.call(form.querySelectorAll('.facet__price'), function (group) {
-        var edited = false;
-
-        group.addEventListener('change', function () {
-          edited = true;
-        });
-
-        group.addEventListener('focusout', function (event) {
-          if (!edited) return;
-          if (group.contains(event.relatedTarget)) return;
-          edited = false;
-          applyFacets();
-        });
-
-        group.addEventListener('keydown', function (event) {
-          if (event.key !== 'Enter') return;
-          /* Whether a form submits implicitly on Enter depends on how many
-             fields it has and whether it carries a submit button — neither of
-             which should decide this. Apply it explicitly instead. */
-          event.preventDefault();
-          if (!edited) return;
-          edited = false;
-          applyFacets();
-        });
+        /* Safari before 16 has no requestSubmit. Submitting the form directly
+           is fine here: it is a GET form carrying one select, and the browser
+           builds the same query string this would. */
+        form.submit();
       });
     }
 
-    /* Walk every facet form in scope rather than the first one, so a page
+    /* Walk every sort form in scope rather than the first one, so a page
        carrying more than one collection section wires up all of them. */
     function init(scope) {
-      scope.querySelectorAll('.facets__form').forEach(initFacets);
+      scope.querySelectorAll('.collection__form').forEach(initSort);
     }
 
     init(document);

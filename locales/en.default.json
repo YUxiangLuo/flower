@@ -38,13 +38,7 @@
     "view_cart": "View cart"
   },
   "collection": {
-    "filter": "Filter",
     "apply": "Apply",
-    "clear_all": "Clear all",
-    "price_from_with_currency": "From ({{ currency }})",
-    "price_to_with_currency": "To ({{ currency }})",
-    "price_invalid": "Enter a valid price.",
-    "price_out_of_range": "Enter a price from {{ min }} to {{ max }}.",
     "sort_by": "Sort by",
     "products_count": "{{ count }} products",
     "empty": "No products found."

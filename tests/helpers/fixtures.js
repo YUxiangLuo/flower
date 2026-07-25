@@ -181,24 +181,20 @@ function cartDrawerSection({ itemCount = 1, quantity = 1, marker = 'original' } 
 </dialog>`;
 }
 
-/* The price facet is a pair of fields, as the section renders it — a single one
-   could not show that moving between them holds the filter back. There is no
-   submit button: it lives inside <noscript>, so with scripting on it is not in
-   the document at all. */
+/* The collection bar carries a count and a sort select. There is no submit
+   button: it lives inside <noscript>, so with scripting on it is not in the
+   document at all. */
 function collectionSection() {
-  const price = (name) => `
-      <input type="text" inputmode="decimal" name="${name}" data-min="0" data-max="100"
-             data-invalid-message="Enter a number" data-range-message="Out of range">`;
-
   return `
 <div class="collection">
-  <form class="facets__form" action="/collections/all" method="get">
-    <select name="sort_by" data-auto-submit>
-      <option value="manual" selected>Featured</option>
-      <option value="price-ascending">Price</option>
-    </select>
-    <div class="facet__price">${price('filter.v.price.gte')}${price('filter.v.price.lte')}</div>
-    <input type="checkbox" name="filter.p.vendor" value="acme" data-auto-submit>
+  <form class="collection__bar collection__form" action="/collections/all" method="get">
+    <span class="collection__count">94 products</span>
+    <div class="collection__sort">
+      <select name="sort_by" data-auto-submit>
+        <option value="manual" selected>Featured</option>
+        <option value="price-ascending">Price</option>
+      </select>
+    </div>
   </form>
 </div>`;
 }
