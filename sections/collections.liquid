@@ -17,36 +17,51 @@
     <h1 class="collections__heading">{{ section.settings.heading }}</h1>
   </header>
 
-  <div class="collections__grid" style="--columns: {{ section.settings.columns }}">
-    {% for collection in collections %}
-      <a class="collections__card" href="{{ collection.url }}">
-        <div class="collections__media">
-          {% if collection.featured_image %}
-            {{
-              collection.featured_image
-              | image_url: width: 900, height: 1100, crop: 'center'
-              | image_tag: loading: 'lazy', class: 'collections__image', sizes: collection_image_sizes, widths: '360, 540, 720, 900', alt: collection.title
-            }}
-          {% else %}
-            {{ 'collection-1' | placeholder_svg_tag: 'collections__image collections__image--placeholder' }}
-          {% endif %}
-        </div>
+  {%- comment -%}
+    A `for` loop stops after 50 iterations, so a shop past that many collections
+    would lose the rest with nothing on the page to reach them by. Paginating is
+    what makes the tail reachable at all, not just a nicety on a long list.
+  {%- endcomment -%}
+  {% paginate collections by section.settings.collections_per_page %}
+    {% if collections.size > 0 %}
+      <div class="collections__grid" style="--columns: {{ section.settings.columns }}">
+        {% for collection in collections %}
+          <a class="collections__card" href="{{ collection.url }}">
+            <div class="collections__media">
+              {% if collection.featured_image %}
+                {{
+                  collection.featured_image
+                  | image_url: width: 900, height: 1100, crop: 'center'
+                  | image_tag: loading: 'lazy', class: 'collections__image', sizes: collection_image_sizes, widths: '360, 540, 720, 900', alt: collection.title
+                }}
+              {% else %}
+                {{ 'collection-1' | placeholder_svg_tag: 'collections__image collections__image--placeholder' }}
+              {% endif %}
+            </div>
 
-        <div class="collections__info">
-          <h2 class="collections__card-title">
-            <span>{{ collection.title }}</span>
-            <span class="collections__arrow" aria-hidden="true">&rarr;</span>
-          </h2>
+            <div class="collections__info">
+              <h2 class="collections__card-title">
+                <span>{{ collection.title }}</span>
+                <span class="collections__arrow" aria-hidden="true">&rarr;</span>
+              </h2>
 
-          {% if section.settings.show_description and collection.description != blank %}
-            <p class="collections__card-description">
-              {{ collection.description | strip_html | truncatewords: 18 }}
-            </p>
-          {% endif %}
-        </div>
-      </a>
-    {% endfor %}
-  </div>
+              {% if section.settings.show_description and collection.description != blank %}
+                <p class="collections__card-description">
+                  {{ collection.description | strip_html | truncatewords: 18 }}
+                </p>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+
+      {% render 'pagination', paginate: paginate %}
+    {% else %}
+      <div class="collections__empty">
+        <p>{{ 'collections.empty' | t }}</p>
+      </div>
+    {% endif %}
+  {% endpaginate %}
 </div>
 
 {% stylesheet %}
@@ -124,6 +139,12 @@
     color: var(--color-muted);
   }
 
+  .collections__empty {
+    text-align: center;
+    padding-block: clamp(3rem, 8vw, 6rem);
+    color: var(--color-muted);
+  }
+
   @media (max-width: 989px) {
     .collections__grid {
       grid-template-columns: repeat(2, 1fr);
@@ -162,6 +183,15 @@
         { "value": "4", "label": "4" }
       ],
       "default": "4"
+    },
+    {
+      "type": "range",
+      "id": "collections_per_page",
+      "label": "t:sections.collections.collections_per_page",
+      "min": 8,
+      "max": 24,
+      "step": 4,
+      "default": 12
     },
     {
       "type": "checkbox",

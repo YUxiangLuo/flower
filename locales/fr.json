@@ -44,6 +44,9 @@
     "empty": "Aucun produit trouvé.",
     "sort_recommended": "Recommandé"
   },
+  "collections": {
+    "empty": "Aucune collection trouvée."
+  },
   "general": {
     "accessibility": {
       "skip_to_content": "Passer au contenu",

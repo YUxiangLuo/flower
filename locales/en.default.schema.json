@@ -125,6 +125,7 @@
       "eyebrow": "Eyebrow",
       "heading": "Heading",
       "columns": "Columns",
+      "collections_per_page": "Collections per page",
       "show_description": "Show collection descriptions"
     },
     "page": {
