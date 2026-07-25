@@ -213,6 +213,72 @@ test('escape closes the search panel too', async () => {
   assert.equal(search(window).open, false, 'escape left the search field open');
 });
 
+/* The drawer is a <details>, and nothing but its own summary can close one.
+   That summary is a 22px icon in the corner of a panel filling the screen, so
+   the drawer gets a way out of its own — and Escape, which a <details> does not
+   answer to on its own. */
+
+const menuOf = (window) => window.document.querySelector('.header__menu');
+
+test('the drawer close button is only offered once it can do something', () => {
+  const markup = headerSection();
+  assert.match(markup, /data-drawer-close[^>]*hidden/, 'it must ship hidden');
+
+  const window = bootHeader(markup);
+
+  assert.equal(
+    window.document.querySelector('[data-drawer-close]').hidden,
+    false,
+    'the script never revealed the close button'
+  );
+});
+
+test('the drawer close button closes the drawer', async () => {
+  const window = bootHeader();
+  const menu = menuOf(window);
+
+  menu.open = true;
+  await settle(window);
+
+  window.document
+    .querySelector('[data-drawer-close]')
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(menu.open, false, 'the drawer stayed open');
+  assert.equal(
+    window.document.activeElement,
+    menu.querySelector('summary'),
+    'focus was dropped instead of returning to the toggle'
+  );
+});
+
+test('escape closes the drawer', async () => {
+  const window = bootHeader();
+  const menu = menuOf(window);
+
+  menu.open = true;
+  await settle(window);
+
+  fire(window, window.document.querySelector('.header'), 'keydown', { key: 'Escape' });
+
+  assert.equal(menu.open, false, 'escape left the drawer open');
+});
+
+test('escape closes an open dropdown before it reaches the drawer', async () => {
+  const window = bootHeader();
+  const menu = menuOf(window);
+  const shop = dropdown(window, 'shop');
+
+  menu.open = true;
+  shop.open = true;
+  await settle(window);
+
+  fire(window, window.document.querySelector('.header'), 'keydown', { key: 'Escape' });
+
+  assert.equal(shop.open, false, 'the dropdown should close first');
+  assert.equal(menu.open, true, 'one Escape should not close both at once');
+});
+
 test('a header without search still wires its menus', async () => {
   const window = bootHeader(headerSection({ search: false }));
 

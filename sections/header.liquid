@@ -26,6 +26,26 @@
         </summary>
 
         <div class="header__drawer">
+          {% comment %}
+            The summary in the bar does swap to a close icon, but it is a 22px
+            target in the corner of a panel that fills the screen — easy to miss
+            and easy to read as "menu" still. This gives the drawer a close
+            control of its own.
+
+            It ships hidden and the script reveals it: only JavaScript can close
+            a <details> from the inside, and a button that does nothing is worse
+            than no button. Without it the summary remains the way out.
+          {% endcomment %}
+          <button
+            type="button"
+            class="header__drawer-close"
+            data-drawer-close
+            aria-label="{{ 'general.accessibility.close' | t }}"
+            hidden
+          >
+            {{- 'icon-close.svg' | inline_asset_content -}}
+          </button>
+
           {% if section.settings.show_search %}
             {% render 'search-form',
               id_suffix: drawer_search_id,
@@ -635,6 +655,36 @@
     }
   }
 
+  /* In flow rather than pinned to the corner: absolute would sit on top of the
+     search field below it, and the drawer would need a magic top padding to
+     keep them apart. */
+  .header__drawer-close {
+    display: block;
+    width: fit-content;
+    margin-inline-start: auto;
+    margin-block-end: 0.75rem;
+    padding: 0.35rem;
+    border: 0;
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+  }
+
+  .header__drawer-close[hidden] {
+    display: none;
+  }
+
+  .header__drawer-close svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    max-width: none;
+  }
+
+  .header__drawer-close:hover,
+  .header__drawer-close:focus-visible {
+    color: var(--color-accent);
+  }
+
   .header__drawer-nav {
     display: flex;
     flex-direction: column;
@@ -830,15 +880,40 @@
         });
       }
 
+      /* The mobile drawer is a <details>, which nothing but its own summary can
+         close — no Escape, and no way out from inside the panel. Both are added
+         here, and the button only becomes visible now that something can act on
+         it. */
+      var menu = header.querySelector('.header__menu');
+      var drawerClose = header.querySelector('[data-drawer-close]');
+
+      function closeMenu() {
+        if (!menu || !menu.open) return false;
+        menu.open = false;
+        var toggle = menu.querySelector('summary');
+        if (toggle) toggle.focus();
+        return true;
+      }
+
+      if (menu && drawerClose) {
+        drawerClose.hidden = false;
+        on(drawerClose, 'click', closeMenu);
+      }
+
       /* Escape closes the open panel and hands focus back to its trigger, so
          keyboard users don't land at the top of the document. */
       on(header, 'keydown', function (event) {
         if (event.key !== 'Escape') return;
+
         var open = header.querySelector('[data-header-dropdown][open], [data-header-search][open]');
-        if (!open) return;
-        open.open = false;
-        var summary = open.querySelector('summary');
-        if (summary) summary.focus();
+        if (open) {
+          open.open = false;
+          var summary = open.querySelector('summary');
+          if (summary) summary.focus();
+          return;
+        }
+
+        closeMenu();
       });
 
       on(document, 'click', function (event) {

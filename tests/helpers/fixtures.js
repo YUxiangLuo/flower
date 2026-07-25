@@ -141,9 +141,21 @@ function headerSection({ search = true } = {}) {
         </div>
       </details>`;
 
+  /* The mobile drawer. Its close button ships hidden — only the script can
+     close a <details> from the inside, so it is not offered until the script
+     is there to act on it. */
+  const menu = `
+    <details class="header__menu" scroll-lock>
+      <summary class="header__menu-toggle">Menu</summary>
+      <div class="header__drawer">
+        <button type="button" class="header__drawer-close" data-drawer-close hidden>Close</button>
+        <nav class="header__drawer-nav"><a href="/about">About</a></nav>
+      </div>
+    </details>`;
+
   return `
 <div class="shopify-section" id="section-header">
-  <header class="header full-width">
+  <header class="header full-width">${menu}
     <nav class="header__nav">${dropdown('shop', 'Shop')}${dropdown('gifts', 'Gifts')}
       <a class="header__nav-link" href="/about">About</a>
     </nav>
