@@ -5,7 +5,7 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/page
 {% endcomment %}
 
-<div class="page">
+<div class="page{% if section.settings.compact_bottom_spacing %} page--compact-bottom{% endif %}">
   <header class="page__header">
     {% if section.settings.eyebrow != blank %}
       <p class="eyebrow">{{ section.settings.eyebrow }}</p>
@@ -13,16 +13,26 @@
     <h1 class="page__title">{{ page.title }}</h1>
   </header>
 
-  {% if page.content != blank %}
-    <div class="page__content rte" style="--measure: {{ section.settings.content_width }}rem">
-      {{ page.content }}
-    </div>
+  {% if section.settings.show_content %}
+    {% if page.content != blank %}
+      <div class="page__content rte" style="--measure: {{ section.settings.content_width }}rem">
+        {{ page.content }}
+      </div>
+    {% endif %}
   {% endif %}
 </div>
 
 {% stylesheet %}
   .page {
     padding-block: var(--section-spacing);
+  }
+
+  .page--compact-bottom {
+    padding-bottom: 0;
+  }
+
+  .page--compact-bottom .page__header:last-child {
+    margin-bottom: 0;
   }
 
   .page__header {
@@ -139,6 +149,18 @@
       "step": 2,
       "unit": "rem",
       "default": 42
+    },
+    {
+      "type": "checkbox",
+      "id": "show_content",
+      "label": "t:sections.page.show_content",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "compact_bottom_spacing",
+      "label": "t:sections.page.compact_bottom_spacing",
+      "default": false
     }
   ]
 }

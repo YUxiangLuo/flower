@@ -1,0 +1,53 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "page",
+      "settings": {
+        "show_content": false,
+        "compact_bottom_spacing": true
+      }
+    },
+    "questions": {
+      "type": "faq",
+      "blocks": {
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "How long does a keepsake take to make?",
+            "answer": "<p>Each piece is pressed and framed by hand, so orders typically ship within 2–3 weeks. We'll email you the moment yours is on its way.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "Can I send my own flowers to be pressed?",
+            "answer": "<p>Absolutely. Choose a bespoke keepsake at checkout and we'll send you simple instructions for posting the flowers that mean the most.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "How do I care for my pressed-flower art?",
+            "answer": "<p>Keep it out of direct sunlight and wipe the glass with a dry cloth. Your keepsake is made to hold its colour for years.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3"],
+      "settings": {
+        "eyebrow": "",
+        "heading": "",
+        "background": "page"
+      }
+    }
+  },
+  "order": ["main", "questions"]
+}

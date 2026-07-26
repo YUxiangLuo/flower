@@ -1,13 +1,19 @@
 {% comment %}
-  A row of occasion cards linking to curated collections.
-  Uses section blocks so merchants can add, remove and reorder occasions.
+  A row of occasion cards linking to curated collections. A selected collection
+  supplies each card's title, image and link unless the merchant overrides them.
 {% endcomment %}
 
 {% liquid
   assign visible_card_count = 0
   for block in section.blocks
-    if block.settings.link != blank
+    if block.settings.collection != blank
       assign visible_card_count = visible_card_count | plus: 1
+    elsif block.settings.link != blank
+      if block.settings.title != blank
+        assign visible_card_count = visible_card_count | plus: 1
+      elsif request.design_mode
+        assign visible_card_count = visible_card_count | plus: 1
+      endif
     elsif request.design_mode
       assign visible_card_count = visible_card_count | plus: 1
     endif
@@ -32,26 +38,54 @@
 
     <div class="occasion__grid" style="--columns: {{ visible_card_count }}">
       {% for block in section.blocks %}
+        {% liquid
+          assign occasion_collection = block.settings.collection
+
+          assign occasion_image = block.settings.image
+          if occasion_image == blank
+            assign occasion_image = occasion_collection.featured_image
+          endif
+
+          assign occasion_title = block.settings.title
+          if occasion_title == blank
+            assign occasion_title = occasion_collection.title
+          endif
+
+          assign occasion_link = block.settings.link
+          if occasion_link == blank
+            assign occasion_link = occasion_collection.url
+          endif
+
+          assign occasion_image_alt = occasion_image.alt | default: occasion_title
+
+          assign occasion_is_complete = false
+          if occasion_link != blank
+            if occasion_title != blank
+              assign occasion_is_complete = true
+            endif
+          endif
+        %}
+
         {% capture occasion_card_content %}
         <div class="occasion__media">
-          {% if block.settings.image %}
+          {% if occasion_image != blank %}
             {{
-              block.settings.image
+              occasion_image
               | image_url: width: 900, height: 1100, crop: 'center'
-              | image_tag: loading: 'lazy', class: 'occasion__image', sizes: occasion_image_sizes, widths: '360, 540, 720, 900', alt: block.settings.title
+              | image_tag: loading: 'lazy', class: 'occasion__image', sizes: occasion_image_sizes, widths: '360, 540, 720, 900', alt: occasion_image_alt
             }}
           {% else %}
             {{ 'lifestyle-2' | placeholder_svg_tag: 'occasion__image occasion__image--placeholder' }}
           {% endif %}
         </div>
         <h3 class="occasion__card-title">
-          <span>{{ block.settings.title }}</span>
+          <span>{{ occasion_title }}</span>
           <span class="occasion__arrow" aria-hidden="true">&rarr;</span>
         </h3>
         {% endcapture %}
 
-        {% if block.settings.link != blank %}
-          <a class="occasion__card" href="{{ block.settings.link }}" {{ block.shopify_attributes }}>
+        {% if occasion_is_complete %}
+          <a class="occasion__card" href="{{ occasion_link }}" {{ block.shopify_attributes }}>
             {{ occasion_card_content }}
           </a>
         {% elsif request.design_mode %}
@@ -169,20 +203,28 @@
       "name": "t:sections.occasion.block_name",
       "settings": [
         {
+          "type": "collection",
+          "id": "collection",
+          "label": "t:sections.occasion.collection",
+          "info": "t:sections.occasion.collection_info"
+        },
+        {
           "type": "image_picker",
           "id": "image",
-          "label": "t:sections.occasion.image"
+          "label": "t:sections.occasion.image",
+          "info": "t:sections.occasion.image_info"
         },
         {
           "type": "text",
           "id": "title",
           "label": "t:sections.occasion.title",
-          "default": "The anniversary collection"
+          "info": "t:sections.occasion.title_info"
         },
         {
           "type": "url",
           "id": "link",
-          "label": "t:sections.occasion.link"
+          "label": "t:sections.occasion.link",
+          "info": "t:sections.occasion.link_info"
         }
       ]
     }

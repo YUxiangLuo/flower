@@ -1,5 +1,6 @@
 {% comment %}
-  Lists all published collections as an elegant card grid.
+  Lists a merchant-selected set of collections, or all published collections
+  when no manual selection has been made.
 
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
@@ -22,46 +23,27 @@
     would lose the rest with nothing on the page to reach them by. Paginating is
     what makes the tail reachable at all, not just a nicety on a long list.
   {%- endcomment -%}
-  {% paginate collections by section.settings.collections_per_page %}
-    {% if collections.size > 0 %}
-      <div class="collections__grid" style="--columns: {{ section.settings.columns }}">
-        {% for collection in collections %}
-          <a class="collections__card" href="{{ collection.url }}">
-            <div class="collections__media">
-              {% if collection.featured_image %}
-                {{
-                  collection.featured_image
-                  | image_url: width: 900, height: 1100, crop: 'center'
-                  | image_tag: loading: 'lazy', class: 'collections__image', sizes: collection_image_sizes, widths: '360, 540, 720, 900', alt: collection.title
-                }}
-              {% else %}
-                {{ 'collection-1' | placeholder_svg_tag: 'collections__image collections__image--placeholder' }}
-              {% endif %}
-            </div>
-
-            <div class="collections__info">
-              <h2 class="collections__card-title">
-                <span>{{ collection.title }}</span>
-                <span class="collections__arrow" aria-hidden="true">&rarr;</span>
-              </h2>
-
-              {% if section.settings.show_description and collection.description != blank %}
-                <p class="collections__card-description">
-                  {{ collection.description | strip_html | truncatewords: 18 }}
-                </p>
-              {% endif %}
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-
+  {% if section.settings.selected_collections != blank %}
+    {% paginate section.settings.selected_collections by section.settings.collections_per_page %}
+      {% render 'collection-grid',
+        collection_items: section.settings.selected_collections,
+        columns: section.settings.columns,
+        show_description: section.settings.show_description,
+        image_sizes: collection_image_sizes
+      %}
       {% render 'pagination', paginate: paginate %}
-    {% else %}
-      <div class="collections__empty">
-        <p>{{ 'collections.empty' | t }}</p>
-      </div>
-    {% endif %}
-  {% endpaginate %}
+    {% endpaginate %}
+  {% else %}
+    {% paginate collections by section.settings.collections_per_page %}
+      {% render 'collection-grid',
+        collection_items: collections,
+        columns: section.settings.columns,
+        show_description: section.settings.show_description,
+        image_sizes: collection_image_sizes
+      %}
+      {% render 'pagination', paginate: paginate %}
+    {% endpaginate %}
+  {% endif %}
 </div>
 
 {% stylesheet %}
@@ -172,6 +154,13 @@
       "id": "heading",
       "label": "t:sections.collections.heading",
       "default": "Collections"
+    },
+    {
+      "type": "collection_list",
+      "id": "selected_collections",
+      "label": "t:sections.collections.selected_collections",
+      "info": "t:sections.collections.selected_collections_info",
+      "limit": 24
     },
     {
       "type": "select",

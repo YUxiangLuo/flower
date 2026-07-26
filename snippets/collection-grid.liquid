@@ -1,0 +1,60 @@
+{% doc %}
+  Renders the collection cards shared by automatic and merchant-selected
+  collection lists.
+
+  Carries no styles of its own: every `.collections__*` class it uses is
+  defined in the stylesheet of `sections/collections.liquid`, which is the only
+  place it is rendered from. Rendering it from another section would produce an
+  unstyled grid, and nothing would report that — give it a stylesheet tag of
+  its own before reaching for it somewhere else.
+
+  @param {collection[]} collection_items - Collections to render in their supplied order.
+  @param {string} columns - Number of desktop grid columns.
+  @param {boolean} show_description - Whether to show collection descriptions.
+  @param {string} image_sizes - Responsive `sizes` value for collection images.
+
+  @example
+  {% render 'collection-grid',
+    collection_items: collections,
+    columns: 4,
+    show_description: true,
+    image_sizes: '(min-width: 990px) 25vw, 50vw'
+  %}
+{% enddoc %}
+
+{% if collection_items.size > 0 %}
+  <div class="collections__grid" style="--columns: {{ columns }}">
+    {% for collection in collection_items %}
+      <a class="collections__card" href="{{ collection.url }}">
+        <div class="collections__media">
+          {% if collection.featured_image %}
+            {{
+              collection.featured_image
+              | image_url: width: 900, height: 1100, crop: 'center'
+              | image_tag: loading: 'lazy', class: 'collections__image', sizes: image_sizes, widths: '360, 540, 720, 900', alt: collection.title
+            }}
+          {% else %}
+            {{ 'collection-1' | placeholder_svg_tag: 'collections__image collections__image--placeholder' }}
+          {% endif %}
+        </div>
+
+        <div class="collections__info">
+          <h2 class="collections__card-title">
+            <span>{{ collection.title }}</span>
+            <span class="collections__arrow" aria-hidden="true">&rarr;</span>
+          </h2>
+
+          {% if show_description and collection.description != blank %}
+            <p class="collections__card-description">
+              {{ collection.description | strip_html | truncatewords: 18 }}
+            </p>
+          {% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="collections__empty">
+    <p>{{ 'collections.empty' | t }}</p>
+  </div>
+{% endif %}

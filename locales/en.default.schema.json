@@ -124,13 +124,17 @@
     "collections": {
       "eyebrow": "Eyebrow",
       "heading": "Heading",
+      "selected_collections": "Collections",
+      "selected_collections_info": "Select and order collections manually. Leave empty to show all published collections.",
       "columns": "Columns",
       "collections_per_page": "Collections per page",
       "show_description": "Show collection descriptions"
     },
     "page": {
       "eyebrow": "Eyebrow",
-      "content_width": "Content width"
+      "content_width": "Content width",
+      "show_content": "Show page content",
+      "compact_bottom_spacing": "Reduce space below the page title"
     },
     "product": {
       "show_vendor": "Show vendor",
@@ -185,9 +189,14 @@
       "eyebrow": "Eyebrow",
       "heading": "Heading",
       "block_name": "Occasion",
+      "collection": "Collection",
+      "collection_info": "Used for the card title, image and link when the overrides below are empty.",
       "image": "Image",
+      "image_info": "Optional. Replaces the collection image.",
       "title": "Title",
-      "link": "Link"
+      "title_info": "Replaces the collection title. Required when no collection is selected.",
+      "link": "Link",
+      "link_info": "Replaces the collection link. Required when no collection is selected."
     },
     "featured_products": {
       "name": "Best sellers",

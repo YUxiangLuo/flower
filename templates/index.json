@@ -47,7 +47,7 @@
       "blocks": {
         "occasion-1": {
           "type": "occasion",
-          "settings": { "link": "/collections/all" }
+          "settings": { "title": "The anniversary collection", "link": "/collections/all" }
         },
         "occasion-2": {
           "type": "occasion",

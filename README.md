@@ -82,6 +82,12 @@ To learn more, refer to the [theme architecture documentation](https://shopify.d
 
 This theme uses [JSON templates](https://shopify.dev/docs/storefronts/themes/architecture/templates/json-templates) so merchants can rearrange sections in the theme editor.
 
+#### `page.faq`
+
+An [alternate template](https://shopify.dev/docs/storefronts/themes/architecture/templates#alternate-templates) that pairs the page title with the FAQ section, with the page's own body and the section's heading both switched off so the title is the only heading.
+
+Shipping the file does not put it on a page. Assign it in the admin under **Online Store → Pages → _your FAQ page_ → Theme template → `page.faq`**; until then the page renders with the default `page` template and shows only its title and body.
+
 ### Sections
 
 [Sections](https://shopify.dev/docs/storefronts/themes/architecture/sections) are Liquid modules that merchants can customize. They may include blocks for nested content. Each section exposes settings via a `{% schema %}` tag. See the [section schema docs](https://shopify.dev/docs/storefronts/themes/architecture/sections/section-schema).

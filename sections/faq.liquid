@@ -20,14 +20,16 @@
 {% if question_count > 0 or request.design_mode %}
   <div class="faq faq--{{ section.settings.background }} full-width">
     <div class="faq__inner">
-      <header class="faq__header">
-        {% if section.settings.eyebrow != blank %}
-          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-        {% endif %}
-        {% if section.settings.heading != blank %}
-          <h2 class="faq__heading">{{ section.settings.heading }}</h2>
-        {% endif %}
-      </header>
+      {% if section.settings.eyebrow != blank or section.settings.heading != blank %}
+        <header class="faq__header">
+          {% if section.settings.eyebrow != blank %}
+            <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+          {% endif %}
+          {% if section.settings.heading != blank %}
+            <h2 class="faq__heading">{{ section.settings.heading }}</h2>
+          {% endif %}
+        </header>
+      {% endif %}
 
       <div class="faq__list">
         {% for block in section.blocks %}
