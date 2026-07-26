@@ -18,7 +18,8 @@
             "eyebrow": "The gift that lasts",
             "heading": "Flowers they'll keep for years, not days",
             "subheading": "Handcrafted pressed-flower keepsakes, made to outlive the occasion.",
-            "button_label": "Find the perfect gift"
+            "button_label": "Find the perfect gift",
+            "button_link": "/collections/all"
           }
         },
         "slide-2": {
@@ -44,14 +45,17 @@
     "occasion": {
       "type": "shop-by-occasion",
       "blocks": {
-        "occasion-1": { "type": "occasion", "settings": {} },
+        "occasion-1": {
+          "type": "occasion",
+          "settings": { "link": "/collections/all" }
+        },
         "occasion-2": {
           "type": "occasion",
-          "settings": { "title": "The birthday keepsake" }
+          "settings": { "title": "The birthday keepsake", "link": "/collections/all" }
         },
         "occasion-3": {
           "type": "occasion",
-          "settings": { "title": "Everlasting gifts for mum" }
+          "settings": { "title": "Everlasting gifts for mum", "link": "/collections/all" }
         }
       },
       "block_order": ["occasion-1", "occasion-2", "occasion-3"],
@@ -184,7 +188,8 @@
       "type": "gift-cta",
       "settings": {
         "background_color": "#2a3320",
-        "text_color": "#fcfaf4"
+        "text_color": "#fcfaf4",
+        "button_link": "/collections/all"
       }
     },
     "signup": {
