@@ -17,8 +17,27 @@
           so the fallback would silently never apply.
         {%- endcomment -%}
         {% assign media_alt = media.preview_image.alt | default: product.title %}
+        {%- comment -%}
+          Images share one square stage so the gallery never resizes under the
+          reader. Uploaded video does not: a 9:16 clip cropped to a square
+          loses the top and bottom of the frame, which is where most of a
+          vertical composition lives. The ratio comes off the preview image,
+          which Shopify generates from the video itself.
+
+          Only `video`, not every non-image type. A 3D model and an external
+          video render as <model-viewer> and <iframe>, which object-fit cannot
+          reach, and an embed's own ratio need not match the poster Shopify
+          made for it.
+        {%- endcomment -%}
+        {%- liquid
+          assign stage_ratio = ''
+          if media.media_type == 'video'
+            assign stage_ratio = media.preview_image.aspect_ratio
+          endif
+        -%}
         <div
-          class="product__stage-item{% if forloop.first %} is-active{% endif %}"
+          class="product__stage-item{% if forloop.first %} is-active{% endif %}{% if media.media_type == 'video' %} product__stage-item--native{% endif %}"
+          {% if stage_ratio != blank %}style="--stage-ratio: {{ stage_ratio }};"{% endif %}
           data-stage-item
           data-media-index="{{ forloop.index0 }}"
           data-media-id="{{ media.id }}"
@@ -72,8 +91,16 @@
             | image_url: width: 200, height: 200, crop: 'center'
             | image_tag: loading: 'lazy', class: 'product__thumb-image', sizes: '72px', widths: '72, 144, 200', alt: ''
           }}
+          {%- comment -%}
+            The play mark is the same asset the video section uses, not the
+            &#9658; glyph it used to be: that character is drawn by whichever
+            font resolves it, so its proportions and baseline were never the
+            theme's to control.
+          {%- endcomment -%}
           {% if media.media_type != 'image' %}
-            <span class="product__thumb-badge" aria-hidden="true">&#9658;</span>
+            <span class="product__thumb-badge" aria-hidden="true">
+              {{- 'icon-play.svg' | inline_asset_content -}}
+            </span>
           {% endif %}
         </button>
       {% endfor %}

@@ -39,15 +39,22 @@
         "shipping": {
           "type": "collapsible_row",
           "settings": {
-            "heading": "Shipping & returns",
-            "content": "<p>Each keepsake is made to order and carefully packed. Duties and VAT are prepaid, with no surprises at your door. Returns accepted within 14 days of delivery.</p>"
+            "heading": "Shipping & Cost",
+            "content": "<p>Free shipping, generally 7-10 business days.</p>"
           }
         },
-        "care": {
+        "returns": {
           "type": "collapsible_row",
           "settings": {
-            "heading": "Care",
-            "content": "<p>Display away from direct sunlight to preserve the natural colours of the pressed flowers. Wipe the glazing gently with a dry, soft cloth.</p>"
+            "heading": "Return & Exchange",
+            "content": "<p>We will always strive to make sure you are satisfied with your purchase. If you are not satisfied with your purchase, you can return it within 14 days of receiving an order and communicate with the seller to get the corresponding refund.</p><p>Because every petal frame is order-to-made, the buyer needs to pay a production fee of $50-$75.</p><p>We offer complimentary exchange for damaged item. If you have a damaged item during transportation, we thoroughly apologize, and ask that you send us a message and include your order number and a photo of your damaged artwork. Let us deal with courier companies. We will ship out the replacement just in a few days.</p>"
+          }
+        },
+        "made-to-order": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Made To Order",
+            "content": "<p>The frame you ordered was created by the florist of the original creation.</p><p>Our florist will contact you before framing it, allowing you to preview the final product.</p>"
           }
         }
       },
@@ -59,7 +66,8 @@
         "highlight-2",
         "highlight-3",
         "shipping",
-        "care"
+        "returns",
+        "made-to-order"
       ],
       "settings": {}
     },

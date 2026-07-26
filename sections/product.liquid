@@ -165,6 +165,17 @@
     aspect-ratio: 1 / 1;
   }
 
+  /* Must follow the base rule: same specificity, so source order decides. The
+     fallback covers media whose preview image carries no ratio. */
+  .product__stage-item--native {
+    aspect-ratio: var(--stage-ratio, 1 / 1);
+  }
+
+  /* The box already matches the media, so this only guards the rounding. */
+  .product__stage-item--native .product__image {
+    object-fit: contain;
+  }
+
   .product__stage-item.is-active {
     display: block;
   }
@@ -232,12 +243,16 @@
   .product__thumb-badge {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
+    display: grid;
+    place-items: center;
     color: #fff;
     background-color: rgb(0 0 0 / 0.25);
+  }
+
+  .product__thumb-badge svg {
+    width: 2.8rem;
+    height: 2.8rem;
+    max-width: none;
   }
 
   /* Buy box */
@@ -594,10 +609,13 @@
   }
 
   /* Story — single centered column by default, two columns when specs exist. */
+  /* No rule between the buy box and the story: a full section of space already
+     separates them. Note the rules above are the buy box's own — they sit in
+     the right column and stop where it stops, so this one was never closing
+     them off, and dropping it leaves the story to open on space alone. */
   .product__story {
     margin-top: var(--section-spacing);
     padding-top: clamp(2.5rem, 5vw, 4rem);
-    border-top: 1px solid var(--color-line);
   }
 
   .product__story--split {
@@ -1294,13 +1312,13 @@
           "type": "text",
           "id": "heading",
           "label": "t:sections.product.collapsible_heading",
-          "default": "Shipping & returns"
+          "default": "Shipping & Cost"
         },
         {
           "type": "richtext",
           "id": "content",
           "label": "t:sections.product.collapsible_content",
-          "default": "<p>Made to order and shipped worldwide.</p>"
+          "default": "<p>Free shipping, generally 7-10 business days.</p>"
         }
       ]
     }
