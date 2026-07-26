@@ -238,6 +238,34 @@ function customerVideosSection({ id = 'clips', clips = 2, empty = false } = {}) 
 </div>`;
 }
 
+function productRecommendationsSection({
+  id = 'related',
+  source = 'collection',
+  marker = 'fallback',
+  hidden = false
+} = {}) {
+  const card =
+    source === 'none'
+      ? ''
+      : `<a class="product-card" data-recommendation-marker="${marker}" href="/products/${marker}">
+           <h3>${marker}</h3>
+         </a>`;
+
+  return `
+<div class="shopify-section" id="section-${id}">
+  <div class="recommend full-width"
+       data-product-recommendations
+       data-recommendations-url="/recommendations/products?section_id=${id}&amp;product_id=42&amp;limit=4&amp;intent=related"
+       data-recommendation-source="${source}"
+       ${hidden ? 'hidden' : ''}>
+    <div class="recommend__inner">
+      <h2>You may also like</h2>
+      <div class="recommend__grid" data-recommendations-content>${card}</div>
+    </div>
+  </div>
+</div>`;
+}
+
 module.exports = {
   productSection,
   cartSection,
@@ -245,5 +273,6 @@ module.exports = {
   collectionSection,
   customerVideosSection,
   headerSection,
-  heroSection
+  heroSection,
+  productRecommendationsSection
 };

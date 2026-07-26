@@ -1,9 +1,3 @@
-{% comment %}
-  "You may also like" — other products from a collection this product belongs to,
-  excluding the current one. Renders nothing when there are no siblings, so it
-  never leaves an empty band.
-{% endcomment %}
-
 {% liquid
   assign rec_collection = null
   for collection in product.collections
@@ -12,10 +6,54 @@
       break
     endif
   endfor
+
+  assign has_native_recommendations = false
+  if recommendations.performed?
+    if recommendations.products_count > 0
+      assign has_native_recommendations = true
+    endif
+  endif
+
+  assign recommendation_products = null
+  assign recommendation_source = 'none'
+  if has_native_recommendations
+    assign recommendation_products = recommendations.products
+    assign recommendation_source = 'shopify'
+  elsif rec_collection
+    assign recommendation_products = rec_collection.products
+    assign recommendation_source = 'collection'
+  endif
+
+  assign recommendation_count = 0
+  for candidate_product in recommendation_products
+    unless candidate_product.id == product.id
+      assign recommendation_count = recommendation_count | plus: 1
+      if recommendation_count >= section.settings.products_to_show
+        break
+      endif
+    endunless
+  endfor
+
+  assign show_recommendations = false
+  if recommendation_count > 0
+    assign show_recommendations = true
+  elsif request.design_mode
+    assign show_recommendations = true
+  endif
 %}
 
-{% if rec_collection %}
-  <div class="recommend full-width">
+{% if product != blank %}
+  {%- capture recommendations_url -%}
+    {{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.products_to_show }}&intent=related
+  {%- endcapture -%}
+
+  <div
+    class="recommend full-width"
+    data-product-recommendations
+    data-recommendations-url="{{ recommendations_url | strip | escape }}"
+    data-recommendation-source="{{ recommendation_source }}"
+    {% unless show_recommendations %}hidden{% endunless %}
+  >
     <div class="recommend__inner">
       <header class="recommend__header">
         {% if section.settings.eyebrow != blank %}
@@ -26,9 +64,13 @@
         {% endif %}
       </header>
 
-      <div class="recommend__grid" style="--columns: {{ section.settings.columns }}">
+      <div
+        class="recommend__grid"
+        style="--columns: {{ section.settings.columns }}"
+        data-recommendations-content
+      >
         {% assign shown = 0 %}
-        {% for card_product in rec_collection.products %}
+        {% for card_product in recommendation_products %}
           {% if shown >= section.settings.products_to_show %}
             {% break %}
           {% endif %}
@@ -89,6 +131,70 @@
     }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    function initRecommendations(root) {
+      if (root.getAttribute('data-recommendations-initialized') === 'true') return;
+      root.setAttribute('data-recommendations-initialized', 'true');
+
+      var url = root.getAttribute('data-recommendations-url');
+      if (!url || !window.fetch || !window.DOMParser) return;
+
+      var controller = typeof window.AbortController === 'function' ? new window.AbortController() : null;
+      var options = {
+        credentials: 'same-origin',
+        headers: { Accept: 'text/html' }
+      };
+      if (controller) options.signal = controller.signal;
+
+      window
+        .fetch(url, options)
+        .then(function (response) {
+          if (!response.ok) throw new Error('Unable to load product recommendations');
+          return response.text();
+        })
+        .then(function (html) {
+          if (!root.isConnected) return;
+
+          var rendered = new window.DOMParser().parseFromString(html, 'text/html');
+          var nextRoot = rendered.querySelector('[data-product-recommendations]');
+          if (!nextRoot) return;
+          if (nextRoot.getAttribute('data-recommendation-source') !== 'shopify') return;
+          if (nextRoot.hidden || !nextRoot.querySelector('.product-card')) return;
+
+          root.innerHTML = nextRoot.innerHTML;
+          root.hidden = false;
+          root.setAttribute('data-recommendation-source', 'shopify');
+        })
+        .catch(function () {});
+
+      root.recommendationsCleanup = function () {
+        if (controller) controller.abort();
+        root.removeAttribute('data-recommendations-initialized');
+        root.recommendationsCleanup = null;
+      };
+    }
+
+    function init(scope) {
+      scope.querySelectorAll('[data-product-recommendations]').forEach(initRecommendations);
+    }
+
+    function destroy(scope) {
+      scope.querySelectorAll('[data-product-recommendations]').forEach(function (root) {
+        if (root.recommendationsCleanup) root.recommendationsCleanup();
+      });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
+    });
+  })();
+{% endjavascript %}
 
 {% schema %}
 {
