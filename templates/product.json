@@ -63,10 +63,14 @@
       ],
       "settings": {}
     },
+    "photos": {
+      "type": "customer-photos",
+      "settings": {}
+    },
     "related": {
       "type": "product-recommendations",
       "settings": {}
     }
   },
-  "order": ["main", "related"]
+  "order": ["main", "photos", "related"]
 }

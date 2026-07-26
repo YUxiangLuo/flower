@@ -119,6 +119,11 @@
       "close": "Video schließen",
       "add_video": "Füge im Theme-Editor ein Kundenvideo hinzu."
     },
+    "customer_photos": {
+      "rail_label": "Kundenfotos, scrollbar",
+      "photo_alt": "Kundenfoto von {{ product }}",
+      "editor_hint": "Kundenfotos stammen aus den verknüpften Metaobjekt-Einträgen dieses Produkts. Füge sie im Shopify-Adminbereich unter Metafelder des Produkts hinzu."
+    },
     "newsletter": {
       "email_label": "E-Mail-Adresse",
       "email_placeholder": "E-Mail eingeben",

@@ -119,6 +119,11 @@
       "close": "Close video",
       "add_video": "Add a customer video in the theme editor."
     },
+    "customer_photos": {
+      "rail_label": "Customer photos, scrollable",
+      "photo_alt": "A customer's photo of {{ product }}",
+      "editor_hint": "Customer photos come from this product's linked metaobject entries. Add them under Metafields on the product in the Shopify admin."
+    },
     "newsletter": {
       "email_label": "Email address",
       "email_placeholder": "Enter your email",

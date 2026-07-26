@@ -119,6 +119,11 @@
       "close": "Cerrar el vídeo",
       "add_video": "Añade un vídeo de cliente en el editor de temas."
     },
+    "customer_photos": {
+      "rail_label": "Fotos de clientes, desplazable",
+      "photo_alt": "Foto de un cliente de {{ product }}",
+      "editor_hint": "Las fotos de clientes provienen de las entradas de metaobjeto vinculadas a este producto. Añádelas en Metacampos del producto en el panel de Shopify."
+    },
     "newsletter": {
       "email_label": "Correo electrónico",
       "email_placeholder": "Introduce tu correo electrónico",

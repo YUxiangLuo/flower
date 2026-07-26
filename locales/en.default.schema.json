@@ -204,6 +204,13 @@
       "quote": "Quote",
       "author": "Author"
     },
+    "customer_photos": {
+      "name": "Customer photos",
+      "eyebrow": "Eyebrow",
+      "heading": "Heading",
+      "background": "Background",
+      "photos_shown": "Photos shown"
+    },
     "customer_videos": {
       "name": "Customer videos",
       "eyebrow": "Eyebrow",
