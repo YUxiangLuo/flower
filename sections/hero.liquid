@@ -11,131 +11,160 @@
   else
     assign autoplay = false
   endif
+
+  # The hero owns the page heading only where nothing else does. Every other
+  # template renders its own h1 — the product title, the collection name, the
+  # article headline — so a hero dropped onto one of those is demoted here
+  # whatever the setting says. The class carries the look either way, so this
+  # changes the outline and not the design.
+  #
+  # The setting is the escape hatch the template check cannot cover: the section
+  # can be added more than once, and a second hero on the home page would
+  # otherwise claim a second h1. That one gets set to h2 by hand.
+  assign hero_heading_tag = section.settings.heading_level | default: 'h1'
+  if template.name != 'index'
+    assign hero_heading_tag = 'h2'
+  endif
 %}
 
-<div
-  class="hero full-width hero--{{ section.settings.content_position }}"
-  style="--max-text: {{ section.settings.content_width }}rem"
-  {% if slide_count > 1 %}
-    data-hero
-    data-autoplay="{{ autoplay }}"
-    data-interval="{{ section.settings.autoplay_interval | times: 1000 }}"
-    role="region"
-    aria-roledescription="{{ 'sections.hero.carousel' | t }}"
-    aria-label="{{ 'sections.hero.label' | t }}"
-  {% endif %}
->
-  <div class="hero__slides">
-    {% for block in section.blocks %}
-      <div
-        class="hero__slide"
-        data-hero-slide
-        {% if forloop.first %}
-          data-active
-        {% else %}
-          aria-hidden="true"
-          inert
-        {% endif %}
-        {{ block.shopify_attributes }}
-      >
-        <div class="hero__media">
-          {% if block.settings.image %}
-            {%- comment -%}
-              Resolve the alt text first. A `| default:` written inside an
-              `image_tag` argument binds to the tag's output, not to the
-              argument, so the fallback would silently never apply.
-            {%- endcomment -%}
-            {% assign hero_alt = block.settings.image.alt | default: block.settings.heading %}
-            {% comment %} Only the first slide is above the fold. {% endcomment %}
-            {% if forloop.first %}
-              {{
-                block.settings.image
-                | image_url: width: 2400
-                | image_tag: loading: 'eager', fetchpriority: 'high', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
-              }}
-            {% else %}
-              {{
-                block.settings.image
-                | image_url: width: 2400
-                | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
-              }}
-            {% endif %}
-          {% elsif request.design_mode %}
-            {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
+{%- comment -%}
+  A carousel with no slides is a full-bleed band of empty minimum height. It
+  stays up in the editor so the merchant can select it while adding a slide.
+{%- endcomment -%}
+{% if slide_count > 0 or request.design_mode %}
+  <div
+    class="hero full-width hero--{{ section.settings.content_position }}"
+    style="--max-text: {{ section.settings.content_width }}rem"
+    {% if slide_count > 1 %}
+      data-hero
+      data-autoplay="{{ autoplay }}"
+      data-interval="{{ section.settings.autoplay_interval | times: 1000 }}"
+      role="region"
+      aria-roledescription="{{ 'sections.hero.carousel' | t }}"
+      aria-label="{{ 'sections.hero.label' | t }}"
+    {% endif %}
+  >
+    <div class="hero__slides">
+      {% for block in section.blocks %}
+        <div
+          class="hero__slide"
+          data-hero-slide
+          {% if forloop.first %}
+            data-active
+          {% else %}
+            aria-hidden="true"
+            inert
           {% endif %}
-          <span class="hero__scrim" style="--scrim: {{ block.settings.overlay_opacity }}%"></span>
-        </div>
-
-        <div class="hero__content">
-          {% if block.settings.eyebrow != blank %}
-            <p class="hero__eyebrow">{{ block.settings.eyebrow }}</p>
-          {% endif %}
-
-          {% if block.settings.heading != blank %}
-            {% if forloop.first %}
-              <h1 class="hero__heading">{{ block.settings.heading }}</h1>
-            {% else %}
-              <p class="hero__heading">{{ block.settings.heading }}</p>
-            {% endif %}
-          {% endif %}
-
-          {% if block.settings.subheading != blank %}
-            <p class="hero__subheading">{{ block.settings.subheading }}</p>
-          {% endif %}
-
-          {% if block.settings.button_label != blank and block.settings.button_link != blank %}
-            <a class="hero__button" href="{{ block.settings.button_link }}">
-              {{ block.settings.button_label }}
-            </a>
-          {% endif %}
-        </div>
-      </div>
-    {% else %}
-      {% if request.design_mode %}
-        <div class="hero__slide" data-active>
+          {{ block.shopify_attributes }}
+        >
           <div class="hero__media">
-            {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
-            <span class="hero__scrim" style="--scrim: 30%"></span>
+            {% if block.settings.image %}
+              {%- comment -%}
+                Resolve the alt text first. A `| default:` written inside an
+                `image_tag` argument binds to the tag's output, not to the
+                argument, so the fallback would silently never apply.
+              {%- endcomment -%}
+              {% assign hero_alt = block.settings.image.alt | default: block.settings.heading %}
+              {% comment %} Only the first slide is above the fold. {% endcomment %}
+              {% if forloop.first %}
+                {{
+                  block.settings.image
+                  | image_url: width: 2400
+                  | image_tag: loading: 'eager', fetchpriority: 'high', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
+                }}
+              {% else %}
+                {{
+                  block.settings.image
+                  | image_url: width: 2400
+                  | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
+                }}
+              {% endif %}
+            {% elsif request.design_mode %}
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
+            {% endif %}
+            <span class="hero__scrim" style="--scrim: {{ block.settings.overlay_opacity }}%"></span>
+          </div>
+
+          <div class="hero__content">
+            {% if block.settings.eyebrow != blank %}
+              <p class="hero__eyebrow">{{ block.settings.eyebrow }}</p>
+            {% endif %}
+
+            {%- comment -%}
+              Only the first slide can carry the page heading; the rest are h2
+              so they stay in the heading outline. They are inert until the
+              carousel rotates, and rotating clears aria-hidden — a heading
+              rendered as a <p> would then be visible on screen and absent from
+              the outline.
+            {%- endcomment -%}
+            {% if block.settings.heading != blank %}
+              {% if forloop.first %}
+                <{{ hero_heading_tag }} class="hero__heading">
+                  {{- block.settings.heading -}}
+                </{{ hero_heading_tag }}>
+              {% else %}
+                <h2 class="hero__heading">{{ block.settings.heading }}</h2>
+              {% endif %}
+            {% endif %}
+
+            {% if block.settings.subheading != blank %}
+              <p class="hero__subheading">{{ block.settings.subheading }}</p>
+            {% endif %}
+
+            {% if block.settings.button_label != blank and block.settings.button_link != blank %}
+              <a class="hero__button" href="{{ block.settings.button_link }}">
+                {{ block.settings.button_label }}
+              </a>
+            {% endif %}
           </div>
         </div>
-      {% endif %}
-    {% endfor %}
-  </div>
-
-  {% if slide_count > 1 %}
-    <div class="hero__controls">
-      <button
-        class="hero__arrow hero__arrow--prev"
-        type="button"
-        data-hero-prev
-        aria-label="{{ 'sections.hero.previous_slide' | t }}"
-      >
-        {{- 'icon-chevron.svg' | inline_asset_content -}}
-      </button>
-
-      <div class="hero__dots" role="group" aria-label="{{ 'sections.hero.slides' | t }}">
-        {% for block in section.blocks %}
-          <button
-            class="hero__dot"
-            type="button"
-            data-hero-dot
-            aria-label="{{ 'sections.hero.go_to_slide' | t: index: forloop.index }}"
-            {% if forloop.first %}aria-current="true"{% endif %}
-          ></button>
-        {% endfor %}
-      </div>
-
-      <button
-        class="hero__arrow hero__arrow--next"
-        type="button"
-        data-hero-next
-        aria-label="{{ 'sections.hero.next_slide' | t }}"
-      >
-        {{- 'icon-chevron.svg' | inline_asset_content -}}
-      </button>
+      {% else %}
+        {% if request.design_mode %}
+          <div class="hero__slide" data-active>
+            <div class="hero__media">
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'hero__image hero__image--placeholder' }}
+              <span class="hero__scrim" style="--scrim: 30%"></span>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
     </div>
-  {% endif %}
-</div>
+
+    {% if slide_count > 1 %}
+      <div class="hero__controls">
+        <button
+          class="hero__arrow hero__arrow--prev"
+          type="button"
+          data-hero-prev
+          aria-label="{{ 'sections.hero.previous_slide' | t }}"
+        >
+          {{- 'icon-chevron.svg' | inline_asset_content -}}
+        </button>
+
+        <div class="hero__dots" role="group" aria-label="{{ 'sections.hero.slides' | t }}">
+          {% for block in section.blocks %}
+            <button
+              class="hero__dot"
+              type="button"
+              data-hero-dot
+              aria-label="{{ 'sections.hero.go_to_slide' | t: index: forloop.index }}"
+              {% if forloop.first %}aria-current="true"{% endif %}
+            ></button>
+          {% endfor %}
+        </div>
+
+        <button
+          class="hero__arrow hero__arrow--next"
+          type="button"
+          data-hero-next
+          aria-label="{{ 'sections.hero.next_slide' | t }}"
+        >
+          {{- 'icon-chevron.svg' | inline_asset_content -}}
+        </button>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
 
 {% stylesheet %}
   .hero {
@@ -653,6 +682,17 @@
       "step": 1,
       "unit": "s",
       "default": 6
+    },
+    {
+      "type": "select",
+      "id": "heading_level",
+      "label": "t:sections.hero.heading_level",
+      "info": "t:sections.hero.heading_level_info",
+      "options": [
+        { "value": "h1", "label": "t:sections.hero.heading_level_h1" },
+        { "value": "h2", "label": "t:sections.hero.heading_level_h2" }
+      ],
+      "default": "h1"
     },
     {
       "type": "select",

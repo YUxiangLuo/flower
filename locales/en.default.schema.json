@@ -160,6 +160,10 @@
     },
     "hero": {
       "name": "Hero",
+      "heading_level": "Heading level",
+      "heading_level_info": "Use Heading 2 when the page already has a main heading — a second hero, or a hero on a product or collection page.",
+      "heading_level_h1": "Heading 1 (page title)",
+      "heading_level_h2": "Heading 2",
       "image": "Image",
       "overlay_opacity": "Overlay opacity",
       "eyebrow": "Eyebrow",
