@@ -30,31 +30,31 @@
         },
         "highlight-2": {
           "type": "highlight",
-          "settings": { "text": "Made to order in 2–3 weeks" }
+          "settings": { "text": "Preview shared before final framing" }
         },
         "highlight-3": {
           "type": "highlight",
-          "settings": { "text": "Ships worldwide, duties prepaid" }
+          "settings": { "text": "Free worldwide shipping, duties prepaid" }
         },
         "shipping": {
           "type": "collapsible_row",
           "settings": {
-            "heading": "Shipping & Cost",
-            "content": "<p>Free shipping, generally 7-10 business days.</p>"
+            "heading": "Shipping & Delivery",
+            "content": "<p>Each piece is handcrafted to order and typically takes 2–3 weeks to create. Free worldwide shipping typically takes 7–10 business days after dispatch. Duties are prepaid.</p>"
           }
         },
         "returns": {
           "type": "collapsible_row",
           "settings": {
-            "heading": "Return & Exchange",
-            "content": "<p>We will always strive to make sure you are satisfied with your purchase. If you are not satisfied with your purchase, you can return it within 14 days of receiving an order and communicate with the seller to get the corresponding refund.</p><p>Because every petal frame is order-to-made, the buyer needs to pay a production fee of $50-$75.</p><p>We offer complimentary exchange for damaged item. If you have a damaged item during transportation, we thoroughly apologize, and ask that you send us a message and include your order number and a photo of your damaged artwork. Let us deal with courier companies. We will ship out the replacement just in a few days.</p>"
+            "heading": "Returns & Exchanges",
+            "content": "<p>We want you to love your artwork. If you are not completely satisfied, contact us within 14 days of delivery to request a return.</p><p>Because every piece is made to order, a US$50–$75 production fee applies to returns. Please contact us before sending your order back so we can confirm the applicable fee and next steps.</p><p>If your artwork arrives damaged, contact us with your order number and clear photos of the damage. We’ll handle the claim with the carrier and send a complimentary replacement as quickly as possible.</p>"
           }
         },
         "made-to-order": {
           "type": "collapsible_row",
           "settings": {
-            "heading": "Made To Order",
-            "content": "<p>The frame you ordered was created by the florist of the original creation.</p><p>Our florist will contact you before framing it, allowing you to preview the final product.</p>"
+            "heading": "Made to Order",
+            "content": "<p>Your artwork will be handcrafted by the same floral artist who created the original design. Before framing, we’ll send you a preview for approval.</p>"
           }
         }
       },
