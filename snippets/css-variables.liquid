@@ -36,6 +36,22 @@
     --color-accent: #85580d;
     --color-accent-strong: #85580d;
     --color-line: #e4e0ce;
+
+    {% # Inverted palette for bands that run dark. Same roles in the same order %}
+    {% # as the tokens above, so a section can swap the whole set at once %}
+    {% # instead of hard-coding one-off colours. %}
+    --color-inverse-background: #2a3320;
+    --color-inverse-surface: #333d27;
+    --color-inverse-surface-deep: #3d482f;
+    {% # Text tokens measured at 4.5:1 or better against all three inverse %}
+    {% # bands, matching the guarantee the light tokens above make. %}
+    --color-inverse-foreground: #fcfaf4;
+    --color-inverse-muted: #b8bfa6;
+    --color-inverse-accent: #d9b46a;
+    --color-inverse-accent-strong: #d9b46a;
+    {% # A hairline, not a boundary: sits at the same low contrast as --color-line. %}
+    --color-inverse-line: #4f5b3e;
+
     --section-spacing: clamp(3.5rem, 8vw, 7rem);
     --content-gap: clamp(1.25rem, 3vw, 2.5rem);
 

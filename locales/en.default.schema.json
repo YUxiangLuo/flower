@@ -64,7 +64,8 @@
     "background": {
       "page": "Page",
       "surface": "Cream",
-      "surface_deep": "Deep cream"
+      "surface_deep": "Deep cream",
+      "inverse": "Dark"
     }
   },
   "sections": {
@@ -272,7 +273,12 @@
       "eyebrow": "Eyebrow",
       "heading": "Heading",
       "background": "Background",
+      "background_image": "Background image",
+      "overlay_opacity": "Overlay opacity",
+      "overlay_opacity_info": "Tints the background image with the band color so the text stays readable.",
       "block_name": "Step",
+      "icon": "Icon",
+      "icon_info": "Optional. Replaces the step number once the step has a title or text. Match its color to the background you chose.",
       "title": "Title",
       "text": "Text"
     },

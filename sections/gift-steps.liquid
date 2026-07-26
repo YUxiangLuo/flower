@@ -1,18 +1,29 @@
 {% comment %}
-  A three-step "gifting made easy" walkthrough. Block-driven so merchants can
-  add, remove and reorder steps. Reassures gift-buyers that ordering a bespoke
-  keepsake for someone is simple.
+  A "gifting made easy" walkthrough, laid out as a row of cards over an
+  optional photographic background. Block-driven so merchants can add, remove
+  and reorder steps, and give each one its own icon.
 {% endcomment %}
 
 {% liquid
-  # A step counts when it carries anything at all. Requiring a title would drop
-  # a step a merchant wrote only body copy for, and losing their words is worse
-  # than the empty band this guard exists to prevent.
+  # A step counts when it carries words. Requiring a title would drop a step a
+  # merchant wrote only body copy for, and losing their words is worse than the
+  # empty band this guard exists to prevent.
+  #
+  # An icon on its own does not count. Unlike the assurance strip, where the
+  # icon is half of a fixed pair, a step in a walkthrough is its instruction: a
+  # card holding nothing but a picture explains nothing to a sighted reader and
+  # reaches a screen reader as an empty list item. The icon stays saved on the
+  # block and appears as soon as the instruction is written.
+  #
+  # A richtext setting emptied in the editor keeps a <p></p>, which is not
+  # blank. Stripping the tags tells "the merchant cleared this" apart from
+  # "the merchant wrote something".
   assign step_count = 0
   for block in section.blocks
+    assign step_text = block.settings.text | strip_html | strip
     if block.settings.title != blank
       assign step_count = step_count | plus: 1
-    elsif block.settings.text != blank
+    elsif step_text != blank
       assign step_count = step_count | plus: 1
     endif
   endfor
@@ -23,11 +34,25 @@
   the editor so the merchant can select it while adding the first step.
 {%- endcomment -%}
 {% if step_count > 0 or request.design_mode %}
-  <div class="giftsteps giftsteps--{{ section.settings.background }} full-width">
+  <div
+    class="giftsteps giftsteps--{{ section.settings.background }} full-width"
+    style="--giftsteps-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+  >
+    {% if section.settings.background_image %}
+      <div class="giftsteps__media">
+        {{
+          section.settings.background_image
+          | image_url: width: 2200
+          | image_tag: loading: 'lazy', class: 'giftsteps__image', sizes: '100vw', widths: '900, 1400, 1800, 2200', alt: ''
+        }}
+        <div class="giftsteps__scrim" aria-hidden="true"></div>
+      </div>
+    {% endif %}
+
     <div class="giftsteps__inner">
       <header class="giftsteps__header">
         {% if section.settings.eyebrow != blank %}
-          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+          <p class="eyebrow giftsteps__eyebrow">{{ section.settings.eyebrow }}</p>
         {% endif %}
         {% if section.settings.heading != blank %}
           <h2 class="giftsteps__heading">{{ section.settings.heading }}</h2>
@@ -36,28 +61,45 @@
 
       {%- comment -%}
         The column count and the step numbers both follow the steps that render,
-        not the blocks that exist: an untitled block would otherwise widen the
-        row and take a number with it, leaving a gap in the sequence.
+        not the blocks that exist: an empty block would otherwise widen the row
+        and take a number with it, leaving a gap in the sequence.
+
+        `at_least: 1` covers the editor-only case of a section with no steps
+        yet — `repeat(0, ...)` is invalid and drops the whole declaration.
       {%- endcomment -%}
-      <ol class="giftsteps__list" style="--columns: {{ step_count }}">
+      <ol class="giftsteps__list" style="--columns: {{ step_count | at_least: 1 }}">
         {% assign step_number = 0 %}
         {% for block in section.blocks %}
+          {% assign step_text = block.settings.text | strip_html | strip %}
           {% assign step_has_content = false %}
           {% if block.settings.title != blank %}
             {% assign step_has_content = true %}
-          {% elsif block.settings.text != blank %}
+          {% elsif step_text != blank %}
             {% assign step_has_content = true %}
           {% endif %}
 
           {% if step_has_content %}
             {% assign step_number = step_number | plus: 1 %}
             <li class="giftsteps__step" {{ block.shopify_attributes }}>
-              <span class="giftsteps__num" aria-hidden="true">{{ step_number }}</span>
+              {%- comment -%}
+                The icon replaces the numeral rather than joining it: two marks
+                stacked above the same title read as two separate cues.
+              {%- endcomment -%}
+              {% if block.settings.icon %}
+                {{
+                  block.settings.icon
+                  | image_url: width: 160, height: 160
+                  | image_tag: loading: 'lazy', class: 'giftsteps__icon', sizes: '40px', widths: '40, 80, 120, 160', alt: ''
+                }}
+              {% else %}
+                <span class="giftsteps__num" aria-hidden="true">{{ step_number }}</span>
+              {% endif %}
+
               {% if block.settings.title != blank %}
                 <h3 class="giftsteps__step-title">{{ block.settings.title }}</h3>
               {% endif %}
-              {% if block.settings.text != blank %}
-                <p class="giftsteps__step-text">{{ block.settings.text }}</p>
+              {% if step_text != blank %}
+                <div class="giftsteps__step-text">{{ block.settings.text }}</div>
               {% endif %}
             </li>
           {% endif %}
@@ -68,17 +110,66 @@
 {% endif %}
 
 {% stylesheet %}
-  .giftsteps--page {
-    background-color: var(--color-background);
+  /* Every band routes the theme tokens through the same six local names, so no
+     rule below this block mentions a palette. The base is the page band; the
+     three light bands differ only in their two surface colours, and only the
+     inverse band swaps the whole set. Anything that is not one of the four
+     lands on the page band rather than on undefined variables.
+
+     The card colour steps off whichever band was chosen, which is what keeps it
+     reading as raised on all four — a single fixed card colour would sink into
+     the band on one of them. */
+  .giftsteps {
+    --giftsteps-bg: var(--color-background);
+    --giftsteps-card: var(--color-surface);
+    --giftsteps-line: var(--color-line);
+    --giftsteps-text: var(--color-foreground);
+    --giftsteps-muted: var(--color-muted);
+    --giftsteps-accent: var(--color-accent);
+
+    position: relative;
+    background-color: var(--giftsteps-bg);
+    color: var(--giftsteps-text);
+    overflow: hidden;
   }
+
   .giftsteps--surface {
-    background-color: var(--color-surface);
+    --giftsteps-bg: var(--color-surface);
+    --giftsteps-card: var(--color-background);
   }
   .giftsteps--surface-deep {
-    background-color: var(--color-surface-deep);
+    --giftsteps-bg: var(--color-surface-deep);
+    --giftsteps-card: var(--color-surface);
+  }
+  .giftsteps--inverse {
+    --giftsteps-bg: var(--color-inverse-background);
+    --giftsteps-card: var(--color-inverse-surface);
+    --giftsteps-line: var(--color-inverse-line);
+    --giftsteps-text: var(--color-inverse-foreground);
+    --giftsteps-muted: var(--color-inverse-muted);
+    --giftsteps-accent: var(--color-inverse-accent);
+  }
+
+  .giftsteps__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .giftsteps__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .giftsteps__scrim {
+    position: absolute;
+    inset: 0;
+    background-color: var(--giftsteps-bg);
+    opacity: var(--giftsteps-overlay);
   }
 
   .giftsteps__inner {
+    position: relative;
     max-width: var(--page-width);
     margin-inline: auto;
     padding-block: var(--section-spacing);
@@ -91,6 +182,12 @@
     margin: 0 auto clamp(2.5rem, 5vw, 4rem);
   }
 
+  /* The shared .eyebrow paints itself with the light accent, which disappears
+     on the inverse band. Follow the band's own accent instead. */
+  .giftsteps__eyebrow {
+    color: var(--giftsteps-accent);
+  }
+
   .giftsteps__heading {
     font-family: var(--font-heading--family);
     font-weight: 400;
@@ -98,9 +195,11 @@
     line-height: 1.15;
   }
 
+  /* `minmax(0, 1fr)` rather than `1fr`: a flexible track takes its minimum from
+     its content, so a long unbroken word would push the row wider than the page. */
   .giftsteps__list {
     display: grid;
-    grid-template-columns: repeat(var(--columns), 1fr);
+    grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
     gap: var(--content-gap);
     margin: 0;
     padding: 0;
@@ -113,6 +212,19 @@
     align-items: center;
     text-align: center;
     gap: 0.75rem;
+    padding: clamp(1.5rem, 2.5vw, 2.25rem) clamp(1.25rem, 2vw, 1.75rem);
+    background-color: var(--giftsteps-card);
+    border: 1px solid var(--giftsteps-line);
+    border-radius: var(--style-border-radius-inputs);
+  }
+
+  /* 2.5rem of icon plus 0.75rem of margin occupies the same 3.25rem the numeral
+     circle does, so titles stay on one line across a row that mixes the two. */
+  .giftsteps__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+    margin-bottom: 0.75rem;
   }
 
   .giftsteps__num {
@@ -121,11 +233,11 @@
     justify-content: center;
     width: 3.25rem;
     height: 3.25rem;
-    border: 1px solid var(--color-accent);
+    border: 1px solid var(--giftsteps-accent);
     border-radius: 50%;
     font-family: var(--font-heading--family);
     font-size: 1.4rem;
-    color: var(--color-foreground);
+    color: var(--giftsteps-text);
   }
 
   .giftsteps__step-title {
@@ -137,20 +249,24 @@
 
   .giftsteps__step-text {
     line-height: 1.7;
-    color: var(--color-muted);
     max-width: 22rem;
+    color: var(--giftsteps-muted);
+  }
+
+  .giftsteps__step-text > * + * {
+    margin-top: var(--space-sm);
   }
 
   @media (max-width: 989px) {
     .giftsteps__list {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-lg);
     }
   }
 
   @media (max-width: 749px) {
     .giftsteps__list {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--space-lg);
     }
   }
@@ -179,9 +295,26 @@
       "options": [
         { "value": "page", "label": "t:options.background.page" },
         { "value": "surface", "label": "t:options.background.surface" },
-        { "value": "surface-deep", "label": "t:options.background.surface_deep" }
+        { "value": "surface-deep", "label": "t:options.background.surface_deep" },
+        { "value": "inverse", "label": "t:options.background.inverse" }
       ],
       "default": "page"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:sections.gift_steps.background_image"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "t:sections.gift_steps.overlay_opacity",
+      "info": "t:sections.gift_steps.overlay_opacity_info",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 70
     }
   ],
   "blocks": [
@@ -190,16 +323,22 @@
       "name": "t:sections.gift_steps.block_name",
       "settings": [
         {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "t:sections.gift_steps.icon",
+          "info": "t:sections.gift_steps.icon_info"
+        },
+        {
           "type": "text",
           "id": "title",
           "label": "t:sections.gift_steps.title",
           "default": "Choose their keepsake"
         },
         {
-          "type": "textarea",
+          "type": "richtext",
           "id": "text",
           "label": "t:sections.gift_steps.text",
-          "default": "Pick a design, or send us the flowers that mean something to them."
+          "default": "<p>Pick a design, or send us the flowers that mean something to them.</p>"
         }
       ]
     }
@@ -213,21 +352,21 @@
           "type": "step",
           "settings": {
             "title": "Choose their keepsake",
-            "text": "Pick a design, or send us the flowers that mean something to them."
+            "text": "<p>Pick a design, or send us the flowers that mean something to them.</p>"
           }
         },
         {
           "type": "step",
           "settings": {
             "title": "Add a personal note",
-            "text": "Include names, a message or a gift note — we handcraft it to order."
+            "text": "<p>Include names, a message or a gift note — we handcraft it to order.</p>"
           }
         },
         {
           "type": "step",
           "settings": {
             "title": "Arrives gift-ready",
-            "text": "Beautifully packed and shipped worldwide, ready to give."
+            "text": "<p>Beautifully packed and shipped worldwide, ready to give.</p>"
           }
         }
       ]

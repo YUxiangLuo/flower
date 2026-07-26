@@ -75,21 +75,21 @@
           "type": "step",
           "settings": {
             "title": "Choose their keepsake",
-            "text": "Pick a design, or send us the flowers that mean something to them."
+            "text": "<p>Pick a design, or send us the flowers that mean something to them.</p>"
           }
         },
         "step-2": {
           "type": "step",
           "settings": {
             "title": "Add a personal note",
-            "text": "Include names, a message or a gift note — we handcraft it to order."
+            "text": "<p>Include names, a message or a gift note — we handcraft it to order.</p>"
           }
         },
         "step-3": {
           "type": "step",
           "settings": {
             "title": "Arrives gift-ready",
-            "text": "Beautifully packed and shipped worldwide, ready to give."
+            "text": "<p>Beautifully packed and shipped worldwide, ready to give.</p>"
           }
         }
       },
