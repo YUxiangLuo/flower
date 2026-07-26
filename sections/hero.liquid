@@ -21,10 +21,14 @@
   # The setting is the escape hatch the template check cannot cover: the section
   # can be added more than once, and a second hero on the home page would
   # otherwise claim a second h1. That one gets set to h2 by hand.
-  assign hero_heading_tag = section.settings.heading_level | default: 'h1'
-  if template.name != 'index'
-    assign hero_heading_tag = 'h2'
+  assign hero_owns_page_heading = false
+  if section.settings.heading_level == 'h1'
+    if template.name == 'index'
+      assign hero_owns_page_heading = true
+    endif
   endif
+
+  assign hero_page_heading = section.blocks.first.settings.heading
 %}
 
 {%- comment -%}
@@ -44,6 +48,16 @@
       aria-label="{{ 'sections.hero.label' | t }}"
     {% endif %}
   >
+    {%- comment -%}
+      The page heading, kept out of the carousel so rotating cannot take it
+      away. It repeats the first slide's words, which are on screen when the
+      page loads, and is hidden visually because that slide already shows them
+      at full size.
+    {%- endcomment -%}
+    {% if hero_owns_page_heading and hero_page_heading != blank %}
+      <h1 class="visually-hidden">{{ hero_page_heading }}</h1>
+    {% endif %}
+
     <div class="hero__slides">
       {% for block in section.blocks %}
         <div
@@ -91,17 +105,27 @@
             {% endif %}
 
             {%- comment -%}
-              Only the first slide can carry the page heading; the rest are h2
-              so they stay in the heading outline. They are inert until the
-              carousel rotates, and rotating clears aria-hidden — a heading
-              rendered as a <p> would then be visible on screen and absent from
-              the outline.
+              The page's h1 cannot live in here: a slide that rotates away is
+              given aria-hidden and inert, so an h1 on the first slide left the
+              page with no h1 at all the moment the carousel moved on. It sits
+              outside the slides instead.
+
+              Which is why the first slide's copy is not a heading when that h1
+              is present — the h1 above is already these exact words, and
+              marking them up twice reads them out twice. Later slides are h2:
+              nothing else carries their copy, and rotating clears aria-hidden,
+              so without a heading their words would be on screen and missing
+              from the outline.
             {%- endcomment -%}
             {% if block.settings.heading != blank %}
-              {% if forloop.first %}
-                <{{ hero_heading_tag }} class="hero__heading">
-                  {{- block.settings.heading -}}
-                </{{ hero_heading_tag }}>
+              {% if forloop.first and hero_owns_page_heading %}
+                {%- comment -%}
+                  Hidden from assistive technology, not just demoted from a
+                  heading: the h1 above is these same words, and leaving both
+                  in the tree reads them out twice. Nothing here is focusable
+                  or carries meaning the h1 does not.
+                {%- endcomment -%}
+                <p class="hero__heading" aria-hidden="true">{{ block.settings.heading }}</p>
               {% else %}
                 <h2 class="hero__heading">{{ block.settings.heading }}</h2>
               {% endif %}
