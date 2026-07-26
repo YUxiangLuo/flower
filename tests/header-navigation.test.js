@@ -17,6 +17,7 @@ const { bootSection, dispatchSectionEvent, stubMatchMedia, tick } = require('./h
 const { headerSection } = require('./helpers/fixtures.js');
 
 const HOVER = '(hover: hover)';
+const MOBILE = '(max-width: 749px)';
 
 function bootHeader(html = headerSection(), { hover = true } = {}) {
   return bootSection('header.liquid', html, {
@@ -318,6 +319,103 @@ test('a section re-rendered by the theme editor is wired against the fresh DOM',
   await settle(window);
 
   assert.equal(dropdown(window, 'gifts').open, true, 'the re-rendered header never got wired up');
+});
+
+/* The drawer is a <details>, which contains nothing: without help, tabbing off
+   its last link walks into the logo, the cart and the page underneath while the
+   panel still covers all of it. The script marks everything outside the
+   disclosure inert, so these assert on that attribute rather than on focus —
+   jsdom has no sequential focus navigation to drive. */
+
+const PAGE = '<main id="page"><a href="/one">One</a></main>';
+
+async function openDrawer(window) {
+  const menu = window.document.querySelector('.header__menu');
+  menu.open = true;
+  await settle(window);
+  return menu;
+}
+
+test('opening the mobile drawer takes the rest of the page out of reach', async () => {
+  const window = bootHeader(headerSection() + PAGE);
+  const page = window.document.getElementById('page');
+  const nav = window.document.querySelector('.header__nav');
+
+  assert.equal(page.hasAttribute('inert'), false, 'nothing is inert before the drawer opens');
+
+  const menu = await openDrawer(window);
+
+  assert.equal(page.hasAttribute('inert'), true, 'the page below the header is out of reach');
+  assert.equal(nav.hasAttribute('inert'), true, 'so is the rest of the header');
+  assert.equal(
+    menu.hasAttribute('inert'),
+    false,
+    'the disclosure itself stays reachable, summary included'
+  );
+
+  menu.open = false;
+  await settle(window);
+
+  assert.equal(page.hasAttribute('inert'), false, 'closing hands the page back');
+  assert.equal(nav.hasAttribute('inert'), false);
+});
+
+test('inert that was already there is left exactly as found', async () => {
+  /* The hero marks its off-screen slides inert. Releasing the drawer must not
+     hand those back and start a carousel reading out slides nobody can see. */
+  const window = bootHeader(headerSection() + '<main id="page" inert>held by someone else</main>');
+  const page = window.document.getElementById('page');
+
+  const menu = await openDrawer(window);
+  assert.equal(page.hasAttribute('inert'), true);
+
+  menu.open = false;
+  await settle(window);
+
+  assert.equal(page.hasAttribute('inert'), true, 'the attribute was not ours to remove');
+});
+
+test('growing past the mobile width closes the drawer and hands the page back', async () => {
+  /* The stylesheet stops displaying the drawer above this width, but a
+     <details> left open stays open — so the inert page and the scroll lock
+     keyed to [open] would both stay on with nothing on screen to turn them
+     off. Turning a phone to landscape is enough to hit it. */
+  let setMedia;
+  const window = bootSection('header.liquid', headerSection() + PAGE, {
+    beforeScript(win) {
+      setMedia = stubMatchMedia(win, { [HOVER]: false, [MOBILE]: true });
+    }
+  });
+
+  const menu = window.document.querySelector('.header__menu');
+  const page = window.document.getElementById('page');
+
+  menu.open = true;
+  await settle(window);
+  assert.equal(page.hasAttribute('inert'), true);
+
+  setMedia(MOBILE, false);
+  await settle(window);
+
+  assert.equal(menu.open, false, 'the drawer stayed open with no way on screen to close it');
+  assert.equal(page.hasAttribute('inert'), false, 'the page was left frozen behind a hidden panel');
+});
+
+test('unloading the section with the drawer open hands the page back', async () => {
+  const window = bootHeader(headerSection() + PAGE);
+  const section = window.document.getElementById('section-header');
+  const page = window.document.getElementById('page');
+
+  await openDrawer(window);
+  assert.equal(page.hasAttribute('inert'), true);
+
+  dispatchSectionEvent(window, 'shopify:section:unload', section);
+
+  assert.equal(
+    page.hasAttribute('inert'),
+    false,
+    'a section torn down mid-drawer would otherwise leave the page unusable'
+  );
 });
 
 test('re-initialising does not leave a second set of listeners behind', async () => {

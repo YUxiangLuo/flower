@@ -695,6 +695,67 @@
         if (event.target === drawer) drawer.close();
       });
 
+      /* A modal dialog already keeps focus inside itself, but tabbing off the
+         last control stops on the dialog element on the way round — a press
+         that moves the ring nowhere visible before the next one reaches the
+         close button. Closing the loop here removes that dead stop.
+
+         The title is deliberately absent from this list: it takes focus when
+         the drawer opens so the first thing announced is what opened, and
+         `tabindex="-1"` is what keeps it out of the cycle afterwards. */
+      var FOCUSABLE = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(',');
+
+      function tabbable() {
+        return Array.prototype.filter.call(drawer.querySelectorAll(FOCUSABLE), function (element) {
+          if (element.closest('[hidden]')) return false;
+          if (element.closest('[aria-hidden="true"]')) return false;
+          return true;
+        });
+      }
+
+      on(drawer, 'keydown', function (event) {
+        if (event.key !== 'Tab') return;
+
+        var items = tabbable();
+        if (items.length === 0) return;
+
+        var first = items[0];
+        var last = items[items.length - 1];
+        var active = document.activeElement;
+
+        /* The title holds focus when the drawer opens and carries
+           `tabindex="-1"`, so it sits outside this list. Going backwards from
+           it has nowhere above to land and stops on the dialog, which is the
+           same dead press this exists to remove — treat anything focused but
+           unlisted as sitting before the first control. */
+        var atStart = active === first;
+        if (!atStart) {
+          if (drawer.contains(active)) {
+            if (items.indexOf(active) === -1) atStart = true;
+          }
+        }
+
+        if (event.shiftKey) {
+          if (!atStart) return;
+          event.preventDefault();
+          last.focus();
+          return;
+        }
+
+        /* Forwards from the title is a normal move to the first control, which
+           the browser gets right on its own. */
+        if (active !== last) return;
+        event.preventDefault();
+        first.focus();
+      });
+
       on(document, 'cart:open', function () {
         open();
       });

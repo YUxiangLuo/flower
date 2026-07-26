@@ -184,7 +184,7 @@ function cartDrawerSection({ itemCount = 1, quantity = 1, marker = 'original' } 
         data-cart-page-url="/cart"
         data-status-error="Error">
   <div class="cart-drawer__contents" data-cart-drawer-contents
-       data-item-count="${itemCount}" data-marker="${marker}"
+       data-item-count="${itemCount}" data-marker="${marker}">
     <h2 data-cart-drawer-title tabindex="-1">Cart</h2>
     <button type="button" data-cart-drawer-close>Close</button>
     <p data-cart-drawer-status></p>

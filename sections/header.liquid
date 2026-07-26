@@ -921,6 +921,69 @@
         on(drawerClose, 'click', closeMenu);
       }
 
+      /* A <details> contains nothing, so Tab used to walk straight out of the
+         open panel into the logo, the cart link and whatever the page had under
+         it — the drawer still covering all of it. Marking everything outside
+         the disclosure inert hands containment to the browser instead of to a
+         key handler that would have to work out what is tabbable, which for a
+         panel of nested <details> submenus is a moving target.
+
+         Only siblings on the path up to <body> are touched, and only ones that
+         were not already inert, so the attribute where it is someone else's —
+         the hero's off-screen slides — is left exactly as found. Walking from
+         the <details> and not from the panel keeps the summary reachable, which
+         is the way out when the script has not run. */
+      var inerted = [];
+
+      function releaseBackground() {
+        inerted.forEach(function (element) {
+          element.removeAttribute('inert');
+        });
+        inerted = [];
+      }
+
+      function holdBackground(node) {
+        releaseBackground();
+        while (node && node !== document.body) {
+          var parent = node.parentElement;
+          if (!parent) break;
+          Array.prototype.forEach.call(parent.children, function (child) {
+            if (child === node) return;
+            if (child.hasAttribute('inert')) return;
+            child.setAttribute('inert', '');
+            inerted.push(child);
+          });
+          node = parent;
+        }
+      }
+
+      if (menu) {
+        on(menu, 'toggle', function () {
+          if (menu.open) holdBackground(menu);
+          else releaseBackground();
+        });
+
+        /* The drawer is a mobile control: past this width the stylesheet stops
+           displaying it, but a <details> left open stays open. Everything that
+           hangs off that — the inert page behind it and the scroll lock keyed
+           to [open] — would stay on with nothing on screen to turn it off, so
+           a phone turned to landscape could leave the page frozen with no way
+           back but a reload. Closing it here releases all of it at once.
+
+           The width is repeated from the stylesheet because a media query is
+           not readable from script; the two have to be changed together. */
+        var mobile = window.matchMedia('(max-width: 749px)');
+        if (mobile.addEventListener) {
+          on(mobile, 'change', function () {
+            if (mobile.matches) return;
+            if (!menu.open) return;
+            /* Closed without moving focus: the summary it would normally go to
+               is display:none by the time this runs. */
+            menu.open = false;
+          });
+        }
+      }
+
       /* Escape closes the open panel and hands focus back to its trigger, so
          keyboard users don't land at the top of the document. */
       on(header, 'keydown', function (event) {
@@ -943,6 +1006,9 @@
 
       header.headerCleanup = function () {
         window.clearTimeout(hoverTimer);
+        /* A section torn down with the drawer open would otherwise leave the
+           rest of the page inert and unusable. */
+        releaseBackground();
         teardown.forEach(function (off) {
           off();
         });

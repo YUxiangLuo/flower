@@ -731,3 +731,94 @@ test('without a drawer on the page the form posts normally', () => {
   assert.deepEqual(requests, [], 'the form went to fetch with nowhere to show the result');
   assert.equal(event.defaultPrevented, false, 'the plain form post was cancelled');
 });
+
+/* A modal <dialog> keeps focus inside itself, but tabbing off the last control
+   stops on the dialog element on the way round — one press that moves the ring
+   nowhere visible before the next reaches the close button. The section closes
+   that loop itself, so these drive Tab and assert where focus lands.
+
+   jsdom has no sequential focus navigation, which is exactly why this is
+   assertable: nothing moves focus here except the handler under test. */
+
+function bootOpenDrawer() {
+  const { window } = bootDrawer();
+  fire(window, 'cart:open', {});
+  return window;
+}
+
+const tabbables = (window) =>
+  Array.from(
+    window.document.querySelectorAll('[data-cart-drawer] button, [data-cart-drawer] a[href]')
+  );
+
+function pressTab(window, { shift = false } = {}) {
+  const event = new window.KeyboardEvent('keydown', {
+    key: 'Tab',
+    shiftKey: shift,
+    bubbles: true,
+    cancelable: true
+  });
+  window.document.activeElement.dispatchEvent(event);
+  return event;
+}
+
+test('tabbing off the last control returns to the first, with no stop in between', () => {
+  const window = bootOpenDrawer();
+  const items = tabbables(window);
+  const last = items[items.length - 1];
+
+  last.focus();
+  const event = pressTab(window);
+
+  assert.equal(event.defaultPrevented, true, 'the browser was not left to make the round trip');
+  assert.equal(
+    window.document.activeElement,
+    items[0],
+    'focus went straight to the first control rather than parking on the dialog'
+  );
+});
+
+test('shift-tabbing off the first control returns to the last', () => {
+  const window = bootOpenDrawer();
+  const items = tabbables(window);
+
+  items[0].focus();
+  const event = pressTab(window, { shift: true });
+
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(window.document.activeElement, items[items.length - 1]);
+});
+
+test('shift-tabbing off the title reaches the last control, not the dialog', () => {
+  const window = bootOpenDrawer();
+  const items = tabbables(window);
+
+  /* The title takes focus when the drawer opens and carries tabindex="-1", so
+     it sits outside the cycle. Going backwards from it has nothing above to
+     land on and stops on the dialog — the same dead press as tabbing off the
+     end, and the one a customer meets first. */
+  window.document.querySelector('[data-cart-drawer-title]').focus();
+  const event = pressTab(window, { shift: true });
+
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(window.document.activeElement, items[items.length - 1]);
+});
+
+test('tabbing through the middle of the drawer is left to the browser', () => {
+  const window = bootOpenDrawer();
+  const items = tabbables(window);
+
+  /* Forwards off the title is a plain move to the first control, and a middle
+     control has neighbours on both sides. Intercepting either would take over
+     navigation the browser already gets right. */
+  window.document.querySelector('[data-cart-drawer-title]').focus();
+  assert.equal(pressTab(window).defaultPrevented, false, 'the title was intercepted going forward');
+
+  items[1].focus();
+  assert.equal(pressTab(window).defaultPrevented, false, 'a middle control was intercepted');
+  assert.equal(
+    pressTab(window, { shift: true }).defaultPrevented,
+    false,
+    'a middle control was intercepted going backward'
+  );
+});
