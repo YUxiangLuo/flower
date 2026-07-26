@@ -3,27 +3,52 @@
   that merchants can drop onto any page and align as they like.
 {% endcomment %}
 
-<div class="richtext richtext--{{ section.settings.background }} full-width">
-  <div
-    class="richtext__inner richtext--{{ section.settings.content_width }}"
-    style="--align: {{ section.settings.alignment }};"
-  >
-    {% if section.settings.eyebrow != blank %}
-      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-    {% endif %}
-    {% if section.settings.heading != blank %}
-      <h2 class="richtext__heading">{{ section.settings.heading }}</h2>
-    {% endif %}
-    {% if section.settings.body != blank %}
-      <div class="richtext__body">{{ section.settings.body }}</div>
-    {% endif %}
-    {% if section.settings.button_label != blank and section.settings.button_link != blank %}
-      <a class="button button--outline richtext__button" href="{{ section.settings.button_link }}">
-        {{ section.settings.button_label }}
-      </a>
-    {% endif %}
+{% liquid
+  # A richtext setting emptied in the editor keeps a <p></p>, which is not
+  # blank. Stripping the tags is what tells "the merchant cleared this" apart
+  # from "the merchant wrote something".
+  assign richtext_body = section.settings.body | strip_html | strip
+
+  assign has_richtext = false
+  if section.settings.eyebrow != blank
+    assign has_richtext = true
+  elsif section.settings.heading != blank
+    assign has_richtext = true
+  elsif richtext_body != blank
+    assign has_richtext = true
+  elsif section.settings.button_label != blank and section.settings.button_link != blank
+    assign has_richtext = true
+  endif
+%}
+
+{%- comment -%}
+  Every child is guarded but the band around them was not, so clearing the copy
+  left a stripe of section padding behind. It stays up in the editor so the
+  merchant can select it while typing the first line in.
+{%- endcomment -%}
+{% if has_richtext or request.design_mode %}
+  <div class="richtext richtext--{{ section.settings.background }} full-width">
+    <div
+      class="richtext__inner richtext--{{ section.settings.content_width }}"
+      style="--align: {{ section.settings.alignment }};"
+    >
+      {% if section.settings.eyebrow != blank %}
+        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="richtext__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+      {% if richtext_body != blank %}
+        <div class="richtext__body">{{ section.settings.body }}</div>
+      {% endif %}
+      {% if section.settings.button_label != blank and section.settings.button_link != blank %}
+        <a class="button button--outline richtext__button" href="{{ section.settings.button_link }}">
+          {{ section.settings.button_label }}
+        </a>
+      {% endif %}
+    </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .richtext--page {

@@ -3,22 +3,30 @@
   Ideal for promotions, shipping notices, or seasonal messages.
 {% endcomment %}
 
-<aside
-  class="announcement full-width"
-  aria-label="{{ 'sections.announcement_bar.label' | t }}"
-  style="--bar-bg: {{ section.settings.background_color }}; --bar-text: {{ section.settings.text_color }};"
->
-  {% if section.settings.link != blank %}
-    <a class="announcement__inner" href="{{ section.settings.link }}">
-      <span>{{ section.settings.text }}</span>
-      {% if section.settings.show_arrow %}
-        <span class="announcement__arrow" aria-hidden="true">&rarr;</span>
-      {% endif %}
-    </a>
-  {% else %}
-    <p class="announcement__inner">{{ section.settings.text }}</p>
-  {% endif %}
-</aside>
+{%- comment -%}
+  The bar carries its own background colour, so without this guard clearing the
+  message leaves a coloured strip across the top of every page rather than
+  removing the bar. It stays up in the editor so the merchant can still select
+  it after emptying the field.
+{%- endcomment -%}
+{% if section.settings.text != blank or request.design_mode %}
+  <aside
+    class="announcement full-width"
+    aria-label="{{ 'sections.announcement_bar.label' | t }}"
+    style="--bar-bg: {{ section.settings.background_color }}; --bar-text: {{ section.settings.text_color }};"
+  >
+    {% if section.settings.link != blank %}
+      <a class="announcement__inner" href="{{ section.settings.link }}">
+        <span>{{ section.settings.text }}</span>
+        {% if section.settings.show_arrow %}
+          <span class="announcement__arrow" aria-hidden="true">&rarr;</span>
+        {% endif %}
+      </a>
+    {% else %}
+      <p class="announcement__inner">{{ section.settings.text }}</p>
+    {% endif %}
+  </aside>
+{% endif %}
 
 {% stylesheet %}
   .announcement {

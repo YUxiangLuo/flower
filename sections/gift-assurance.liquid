@@ -3,27 +3,55 @@
   worldwide shipping, lasting). Block-driven so merchants can edit the points.
 {% endcomment %}
 
-<div
-  class="giftassure full-width"
-  style="--giftassure-bg: {{ section.settings.background_color }}; --giftassure-text: {{ section.settings.text_color }};"
->
-  <ul class="giftassure__list" style="--columns: {{ section.blocks.size }}">
-    {% for block in section.blocks %}
-      <li class="giftassure__item" {{ block.shopify_attributes }}>
-        {% if block.settings.icon %}
-          {{
-            block.settings.icon
-            | image_url: width: 96, height: 96
-            | image_tag: loading: 'lazy', class: 'giftassure__icon', sizes: '24px', widths: '24, 48, 72, 96', alt: ''
-          }}
-        {% else %}
-          <span class="giftassure__dot" aria-hidden="true"></span>
+{% liquid
+  # A point counts when it carries anything at all, icon included. Requiring a
+  # label would silently drop a point a merchant had already configured.
+  assign assurance_count = 0
+  for block in section.blocks
+    if block.settings.label != blank
+      assign assurance_count = assurance_count | plus: 1
+    elsif block.settings.icon
+      assign assurance_count = assurance_count | plus: 1
+    endif
+  endfor
+%}
+
+{%- comment -%}
+  A strip with no points is a coloured band and nothing else. It stays up in
+  the editor so the merchant can select it while adding the first point.
+{%- endcomment -%}
+{% if assurance_count > 0 or request.design_mode %}
+  <div
+    class="giftassure full-width"
+    style="--giftassure-bg: {{ section.settings.background_color }}; --giftassure-text: {{ section.settings.text_color }};"
+  >
+    <ul class="giftassure__list" style="--columns: {{ assurance_count }}">
+      {% for block in section.blocks %}
+        {% assign point_has_content = false %}
+        {% if block.settings.label != blank %}
+          {% assign point_has_content = true %}
+        {% elsif block.settings.icon %}
+          {% assign point_has_content = true %}
         {% endif %}
-        <span class="giftassure__label">{{ block.settings.label }}</span>
-      </li>
-    {% endfor %}
-  </ul>
-</div>
+
+        {% if point_has_content %}
+          <li class="giftassure__item" {{ block.shopify_attributes }}>
+            {% if block.settings.icon %}
+              {{
+                block.settings.icon
+                | image_url: width: 96, height: 96
+                | image_tag: loading: 'lazy', class: 'giftassure__icon', sizes: '24px', widths: '24, 48, 72, 96', alt: ''
+              }}
+            {% else %}
+              <span class="giftassure__dot" aria-hidden="true"></span>
+            {% endif %}
+            <span class="giftassure__label">{{ block.settings.label }}</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
 
 {% stylesheet %}
   .giftassure {

@@ -3,38 +3,60 @@
   background image with a scrim; otherwise a solid colour.
 {% endcomment %}
 
-<div
-  class="giftcta full-width"
-  style="--giftcta-bg: {{ section.settings.background_color }}; --giftcta-text: {{ section.settings.text_color }}; --giftcta-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
->
-  {% if section.settings.background_image %}
-    <div class="giftcta__media">
-      {{
-        section.settings.background_image
-        | image_url: width: 2200
-        | image_tag: loading: 'lazy', class: 'giftcta__image', sizes: '100vw', widths: '900, 1400, 1800, 2200', alt: ''
-      }}
-      <div class="giftcta__scrim" aria-hidden="true"></div>
-    </div>
-  {% endif %}
+{% liquid
+  assign has_giftcta = false
+  if section.settings.eyebrow != blank
+    assign has_giftcta = true
+  elsif section.settings.heading != blank
+    assign has_giftcta = true
+  elsif section.settings.subheading != blank
+    assign has_giftcta = true
+  elsif section.settings.button_label != blank and section.settings.button_link != blank
+    assign has_giftcta = true
+  elsif section.settings.background_image
+    assign has_giftcta = true
+  endif
+%}
 
-  <div class="giftcta__inner">
-    {% if section.settings.eyebrow != blank %}
-      <p class="eyebrow giftcta__eyebrow">{{ section.settings.eyebrow }}</p>
+{%- comment -%}
+  The band paints its own background colour, so an emptied call to action would
+  otherwise close the page with a stripe of solid colour and nothing in it. It
+  stays up in the editor so the merchant can select it while filling it in.
+{%- endcomment -%}
+{% if has_giftcta or request.design_mode %}
+  <div
+    class="giftcta full-width"
+    style="--giftcta-bg: {{ section.settings.background_color }}; --giftcta-text: {{ section.settings.text_color }}; --giftcta-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+  >
+    {% if section.settings.background_image %}
+      <div class="giftcta__media">
+        {{
+          section.settings.background_image
+          | image_url: width: 2200
+          | image_tag: loading: 'lazy', class: 'giftcta__image', sizes: '100vw', widths: '900, 1400, 1800, 2200', alt: ''
+        }}
+        <div class="giftcta__scrim" aria-hidden="true"></div>
+      </div>
     {% endif %}
-    {% if section.settings.heading != blank %}
-      <h2 class="giftcta__heading">{{ section.settings.heading }}</h2>
-    {% endif %}
-    {% if section.settings.subheading != blank %}
-      <p class="giftcta__subheading">{{ section.settings.subheading }}</p>
-    {% endif %}
-    {% if section.settings.button_label != blank and section.settings.button_link != blank %}
-      <a class="button button--on-dark giftcta__button" href="{{ section.settings.button_link }}">
-        {{ section.settings.button_label }}
-      </a>
-    {% endif %}
+
+    <div class="giftcta__inner">
+      {% if section.settings.eyebrow != blank %}
+        <p class="eyebrow giftcta__eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+      {% if section.settings.heading != blank %}
+        <h2 class="giftcta__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+      {% if section.settings.subheading != blank %}
+        <p class="giftcta__subheading">{{ section.settings.subheading }}</p>
+      {% endif %}
+      {% if section.settings.button_label != blank and section.settings.button_link != blank %}
+        <a class="button button--on-dark giftcta__button" href="{{ section.settings.button_link }}">
+          {{ section.settings.button_label }}
+        </a>
+      {% endif %}
+    </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .giftcta {

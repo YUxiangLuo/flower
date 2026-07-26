@@ -5,48 +5,73 @@
   elsif request.design_mode
     assign show_media = true
   endif
+
+  # A richtext setting emptied in the editor keeps a <p></p>, which is not
+  # blank. Stripping the tags tells "the merchant cleared this" apart from
+  # "the merchant wrote something".
+  assign story_body = section.settings.body | strip_html | strip
+
+  assign has_story = false
+  if section.settings.eyebrow != blank
+    assign has_story = true
+  elsif section.settings.heading != blank
+    assign has_story = true
+  elsif story_body != blank
+    assign has_story = true
+  elsif section.settings.image != blank
+    assign has_story = true
+  elsif section.settings.button_label != blank and section.settings.button_link != blank
+    assign has_story = true
+  endif
 %}
 
-<div class="lasting lasting--{{ section.settings.background }}{% unless show_media %} lasting--no-media{% endunless %} full-width">
-  <div class="lasting__inner lasting--{{ section.settings.image_position }}">
-    {% if show_media %}
-      <div class="lasting__media">
-        {% if section.settings.image != blank %}
-          {%- comment -%}
-            Resolve the alt text first. A `| default:` written inside an
-            `image_tag` argument binds to the tag's output, not to the argument,
-            so the fallback would silently never apply.
-          {%- endcomment -%}
-          {% assign lasting_alt = section.settings.image.alt | default: section.settings.heading %}
-          {{
-            section.settings.image
-            | image_url: width: 1200
-            | image_tag: loading: 'lazy', class: 'lasting__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: lasting_alt
-          }}
-        {% else %}
-          {{ 'lifestyle-1' | placeholder_svg_tag: 'lasting__image lasting__image--placeholder' }}
+{%- comment -%}
+  Every child is guarded but the band around them was not, so clearing the
+  copy left a stripe of section padding behind. It stays up in the editor so
+  the merchant can select it while filling it in.
+{%- endcomment -%}
+{% if has_story or request.design_mode %}
+  <div class="lasting lasting--{{ section.settings.background }}{% unless show_media %} lasting--no-media{% endunless %} full-width">
+    <div class="lasting__inner lasting--{{ section.settings.image_position }}">
+      {% if show_media %}
+        <div class="lasting__media">
+          {% if section.settings.image != blank %}
+            {%- comment -%}
+              Resolve the alt text first. A `| default:` written inside an
+              `image_tag` argument binds to the tag's output, not to the argument,
+              so the fallback would silently never apply.
+            {%- endcomment -%}
+            {% assign lasting_alt = section.settings.image.alt | default: section.settings.heading %}
+            {{
+              section.settings.image
+              | image_url: width: 1200
+              | image_tag: loading: 'lazy', class: 'lasting__image', sizes: '(max-width: 749px) 100vw, 50vw', widths: '500, 750, 1000, 1200', alt: lasting_alt
+            }}
+          {% else %}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'lasting__image lasting__image--placeholder' }}
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="lasting__content">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="lasting__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+        {% if story_body != blank %}
+          <div class="lasting__body">{{ section.settings.body }}</div>
+        {% endif %}
+        {% if section.settings.button_label != blank and section.settings.button_link != blank %}
+          <a class="button button--outline lasting__button" href="{{ section.settings.button_link }}">
+            {{ section.settings.button_label }}
+          </a>
         {% endif %}
       </div>
-    {% endif %}
-
-    <div class="lasting__content">
-      {% if section.settings.eyebrow != blank %}
-        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="lasting__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-      {% if section.settings.body != blank %}
-        <div class="lasting__body">{{ section.settings.body }}</div>
-      {% endif %}
-      {% if section.settings.button_label != blank and section.settings.button_link != blank %}
-        <a class="button button--outline lasting__button" href="{{ section.settings.button_link }}">
-          {{ section.settings.button_label }}
-        </a>
-      {% endif %}
     </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .lasting--page {

@@ -3,38 +3,56 @@
   keyboard-accessible and needs no JavaScript. Each block is one question.
 {% endcomment %}
 
-<div class="faq faq--{{ section.settings.background }} full-width">
-  <div class="faq__inner">
-    <header class="faq__header">
-      {% if section.settings.eyebrow != blank %}
-        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="faq__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-    </header>
+{% liquid
+  assign question_count = 0
+  for block in section.blocks
+    if block.settings.question != blank
+      assign question_count = question_count | plus: 1
+    endif
+  endfor
+%}
 
-    <div class="faq__list">
-      {% for block in section.blocks %}
-        <details class="faq__item" {{ block.shopify_attributes }}>
-          <summary class="faq__question">
-            <span>{{ block.settings.question }}</span>
-            <svg class="faq__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="var(--icon-stroke-width)"
-                d="M4.5 7.5 10 13l5.5-5.5"
-              />
-            </svg>
-          </summary>
-          <div class="faq__answer">{{ block.settings.answer }}</div>
-        </details>
-      {% endfor %}
+{%- comment -%}
+  A heading over no questions is section padding and nothing else, so the band
+  only appears once there is something to answer. It stays up in the editor so
+  the merchant can select it while filling the first block in.
+{%- endcomment -%}
+{% if question_count > 0 or request.design_mode %}
+  <div class="faq faq--{{ section.settings.background }} full-width">
+    <div class="faq__inner">
+      <header class="faq__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="faq__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </header>
+
+      <div class="faq__list">
+        {% for block in section.blocks %}
+          {% if block.settings.question != blank %}
+            <details class="faq__item" {{ block.shopify_attributes }}>
+              <summary class="faq__question">
+                <span>{{ block.settings.question }}</span>
+                <svg class="faq__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="var(--icon-stroke-width)"
+                    d="M4.5 7.5 10 13l5.5-5.5"
+                  />
+                </svg>
+              </summary>
+              <div class="faq__answer">{{ block.settings.answer }}</div>
+            </details>
+          {% endif %}
+        {% endfor %}
+      </div>
     </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .faq--page {

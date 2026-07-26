@@ -4,32 +4,68 @@
   keepsake for someone is simple.
 {% endcomment %}
 
-<div class="giftsteps giftsteps--{{ section.settings.background }} full-width">
-  <div class="giftsteps__inner">
-    <header class="giftsteps__header">
-      {% if section.settings.eyebrow != blank %}
-        <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-      {% endif %}
-      {% if section.settings.heading != blank %}
-        <h2 class="giftsteps__heading">{{ section.settings.heading }}</h2>
-      {% endif %}
-    </header>
+{% liquid
+  # A step counts when it carries anything at all. Requiring a title would drop
+  # a step a merchant wrote only body copy for, and losing their words is worse
+  # than the empty band this guard exists to prevent.
+  assign step_count = 0
+  for block in section.blocks
+    if block.settings.title != blank
+      assign step_count = step_count | plus: 1
+    elsif block.settings.text != blank
+      assign step_count = step_count | plus: 1
+    endif
+  endfor
+%}
 
-    <ol class="giftsteps__list" style="--columns: {{ section.blocks.size }}">
-      {% for block in section.blocks %}
-        <li class="giftsteps__step" {{ block.shopify_attributes }}>
-          <span class="giftsteps__num" aria-hidden="true">{{ forloop.index }}</span>
+{%- comment -%}
+  A heading over no steps is section padding and nothing else. It stays up in
+  the editor so the merchant can select it while adding the first step.
+{%- endcomment -%}
+{% if step_count > 0 or request.design_mode %}
+  <div class="giftsteps giftsteps--{{ section.settings.background }} full-width">
+    <div class="giftsteps__inner">
+      <header class="giftsteps__header">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h2 class="giftsteps__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+      </header>
+
+      {%- comment -%}
+        The column count and the step numbers both follow the steps that render,
+        not the blocks that exist: an untitled block would otherwise widen the
+        row and take a number with it, leaving a gap in the sequence.
+      {%- endcomment -%}
+      <ol class="giftsteps__list" style="--columns: {{ step_count }}">
+        {% assign step_number = 0 %}
+        {% for block in section.blocks %}
+          {% assign step_has_content = false %}
           {% if block.settings.title != blank %}
-            <h3 class="giftsteps__step-title">{{ block.settings.title }}</h3>
+            {% assign step_has_content = true %}
+          {% elsif block.settings.text != blank %}
+            {% assign step_has_content = true %}
           {% endif %}
-          {% if block.settings.text != blank %}
-            <p class="giftsteps__step-text">{{ block.settings.text }}</p>
+
+          {% if step_has_content %}
+            {% assign step_number = step_number | plus: 1 %}
+            <li class="giftsteps__step" {{ block.shopify_attributes }}>
+              <span class="giftsteps__num" aria-hidden="true">{{ step_number }}</span>
+              {% if block.settings.title != blank %}
+                <h3 class="giftsteps__step-title">{{ block.settings.title }}</h3>
+              {% endif %}
+              {% if block.settings.text != blank %}
+                <p class="giftsteps__step-text">{{ block.settings.text }}</p>
+              {% endif %}
+            </li>
           {% endif %}
-        </li>
-      {% endfor %}
-    </ol>
+        {% endfor %}
+      </ol>
+    </div>
   </div>
-</div>
+{% endif %}
 
 {% stylesheet %}
   .giftsteps--page {
