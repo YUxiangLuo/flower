@@ -37,6 +37,7 @@
     "padding": "Padding",
     "page_margin": "Page margin",
     "page_width": "Page width",
+    "link_sort_info": "Picking from the list replaces the whole address, including any ?sort_by= it carried.",
     "show_payment_icons": "Show payment icons",
     "text_style": "Text style",
     "text": "Text"
@@ -197,7 +198,7 @@
       "title": "Title",
       "title_info": "Replaces the collection title. Required when no collection is selected.",
       "link": "Link",
-      "link_info": "Replaces the collection link. Required when no collection is selected."
+      "link_info": "Replaces the collection link. Required when no collection is selected. Picking from the list replaces the whole address, including any ?sort_by= it carried."
     },
     "featured_products": {
       "name": "Best sellers",
