@@ -10,6 +10,17 @@
       assign show_language_selector = true
     endif
   endif
+
+  # Count the columns beside the brand so the grid can name them. `auto-fit`
+  # would read the count off the container, but a track list holding an
+  # auto-repeat may not also hold an `fr` value — and the brand column is 1.4fr,
+  # so the whole declaration was being thrown away and the footer stacked into
+  # one column on every desktop page.
+  assign footer_columns = section.blocks.size
+  if section.settings.show_newsletter
+    assign footer_columns = footer_columns | plus: 1
+  endif
+  assign footer_columns = footer_columns | at_least: 1
 %}
 
 <footer
@@ -17,7 +28,7 @@
   style="--footer-bg: {{ section.settings.background_color }}; --footer-text: {{ section.settings.text_color }};"
 >
   <div class="footer__inner">
-    <div class="footer__top">
+    <div class="footer__top" style="--footer-columns: {{ footer_columns }}">
       <div class="footer__brand">
         <a class="footer__logo" href="{{ routes.root_url }}" style="--logo-width: {{ settings.logo_width }}px">
           {% render 'brand-mark', css_class: 'footer__logo-mark', width: settings.logo_width %}
@@ -176,9 +187,13 @@
     padding: var(--section-spacing) max(var(--page-margin), 3vw) 2.5rem;
   }
 
+  /* `minmax(0, 1.4fr)` and not a bare `1.4fr`: a flexible track's automatic
+     minimum is its content, so the brand column refused to shrink and pushed
+     the row past the page — a horizontal scrollbar from 990px up to about
+     1280px. Floored at zero it takes only what the link columns leave. */
   .footer__top {
     display: grid;
-    grid-template-columns: 1.4fr repeat(auto-fit, minmax(10rem, 1fr));
+    grid-template-columns: minmax(0, 1.4fr) repeat(var(--footer-columns), minmax(8rem, 1fr));
     gap: clamp(2rem, 4vw, 3.5rem);
     padding-bottom: 3rem;
   }
@@ -279,8 +294,18 @@
     max-width: 20rem;
   }
 
+  /* Grid and flex items are as wide as their content unless told otherwise, and
+     an <input> carries an intrinsic width of about twenty characters whatever
+     the box around it says. That was the widest thing in the footer: it held
+     the newsletter column open past its track and pushed the whole row off the
+     page. Floors of zero let both shrink to the space they were given. */
+  .footer__column {
+    min-width: 0;
+  }
+
   .footer__newsletter-field input {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: 0;
     color: inherit;
@@ -377,7 +402,11 @@
     border-radius: 3px;
   }
 
-  @media (max-width: 749px) {
+  /* Two columns below this. The full row costs four 10rem link columns plus
+     their gaps before the brand gets anything — around 830px — so holding it
+     lower leaves the brand column too narrow for a logo and a line of copy
+     even once it is allowed to shrink. Above it the brand clears 290px. */
+  @media (max-width: 1199px) {
     .footer__top {
       grid-template-columns: 1fr 1fr;
     }
