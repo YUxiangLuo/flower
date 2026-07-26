@@ -240,7 +240,8 @@
       "heading": "Heading",
       "columns": "Columns",
       "block_name": "Image",
-      "image": "Image"
+      "image": "Image",
+      "columns_info": "Applies above 990px. Narrower screens use two columns, and phones show a swipeable rail."
     },
     "creator": {
       "name": "Creator story",

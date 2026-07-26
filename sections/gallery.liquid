@@ -1,6 +1,10 @@
 {% comment %}
   An editorial image gallery showcasing finished pieces in real homes.
-  Each image is a block; the first item can be featured at double size.
+
+  Three layouts, one markup. Above 990px the heading sits in a column of its
+  own beside a masonry of images at their own proportions. Below that the
+  heading moves on top. Below 750px the same list becomes a snapping rail,
+  because a masonry one image wide is just a long column of pictures.
 {% endcomment %}
 
 {% liquid
@@ -16,32 +20,61 @@
 {% if has_gallery_images or request.design_mode %}
   <div class="gallery full-width">
     <div class="gallery__inner">
-      <header class="gallery__header">
-        {% if section.settings.eyebrow != blank %}
-          <p class="eyebrow">{{ section.settings.eyebrow }}</p>
-        {% endif %}
-        {% if section.settings.heading != blank %}
-          <h2 class="gallery__heading">{{ section.settings.heading }}</h2>
-        {% endif %}
-      </header>
+      {%- comment -%}
+        Guarded, unlike the single-column sections that can afford to leave an
+        empty header standing: here it owns a column, and an empty one would
+        hold a third of the width open for nothing.
+      {%- endcomment -%}
+      {% if section.settings.eyebrow != blank or section.settings.heading != blank %}
+        <header class="gallery__header">
+          {% if section.settings.eyebrow != blank %}
+            <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+          {% endif %}
+          {% if section.settings.heading != blank %}
+            <h2 class="gallery__heading">{{ section.settings.heading }}</h2>
+          {% endif %}
+        </header>
+      {% endif %}
 
-      <div class="gallery__grid" style="--columns: {{ section.settings.columns }}">
+      {%- comment -%}
+        The list carries its own overflow so the document never scrolls
+        sideways, and it is focusable because nothing inside it can take focus
+        — with only images in there, a keyboard-only customer could otherwise
+        never reach the cards past the edge of the viewport.
+
+        Above 750px it is a static masonry and the stop does nothing. That is
+        the width, not the device: a desktop window dragged narrow gets the
+        rail and needs the stop, and there is no way to make an attribute
+        follow a media query without script.
+      {%- endcomment -%}
+      <ul
+        class="gallery__grid"
+        role="list"
+        tabindex="0"
+        aria-label="{{ 'sections.gallery.rail_label' | t }}"
+        style="--columns: {{ section.settings.columns }}"
+      >
         {% for block in section.blocks %}
           {% if block.settings.image %}
-            <figure class="gallery__item" {{ block.shopify_attributes }}>
+            <li class="gallery__item" {{ block.shopify_attributes }}>
+              {%- comment -%}
+                No height and no crop: the masonry is built out of whatever
+                proportions the merchant uploaded, which is the whole point of
+                it. The rail crops these back to one ratio in CSS.
+              {%- endcomment -%}
               {{
                 block.settings.image
-                | image_url: width: 1000, height: 1000, crop: 'center'
-                | image_tag: loading: 'lazy', class: 'gallery__image', sizes: '(min-width: 990px) 25vw, 50vw', widths: '320, 480, 640, 800, 1000', alt: block.settings.image.alt
+                | image_url: width: 1000
+                | image_tag: loading: 'lazy', class: 'gallery__image', sizes: '(min-width: 990px) 22vw, (min-width: 750px) 45vw, 72vw', widths: '320, 480, 640, 800, 1000', alt: block.settings.image.alt
               }}
-            </figure>
+            </li>
           {% elsif request.design_mode %}
-            <figure class="gallery__item" {{ block.shopify_attributes }}>
+            <li class="gallery__item gallery__item--empty" {{ block.shopify_attributes }}>
               {{ 'lifestyle-1' | placeholder_svg_tag: 'gallery__image gallery__image--placeholder' }}
-            </figure>
+            </li>
           {% endif %}
         {% endfor %}
-      </div>
+      </ul>
     </div>
   </div>
 {% endif %}
@@ -56,11 +89,22 @@
     margin-inline: auto;
     padding-block: var(--section-spacing);
     padding-inline: var(--page-margin);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
   }
 
+  /* With no heading there is no left column to keep, so the images take the
+     whole width rather than sitting in the right two thirds of it. */
+  .gallery__inner:not(:has(.gallery__header)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Left-aligned and beside the images rather than centred above them: a
+     centred heading over a ragged masonry has no edge to line up with. */
   .gallery__header {
-    text-align: center;
-    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+    text-align: start;
   }
 
   .gallery__heading {
@@ -70,28 +114,44 @@
     line-height: 1.1;
   }
 
+  /* Multi-column rather than grid: grid rows align, so a row of images at
+     their own heights leaves a band of empty space under the shortest one.
+     The trade is that the merchant's block order flows down each column
+     before moving to the next, the way every masonry does. */
   .gallery__grid {
-    display: grid;
-    grid-template-columns: repeat(var(--columns), 1fr);
-    gap: clamp(0.5rem, 1.2vw, 1rem);
+    columns: var(--columns);
+    column-gap: clamp(0.5rem, 1.2vw, 1rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gallery__grid:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 4px;
   }
 
   .gallery__item {
+    break-inside: avoid;
+    margin-bottom: clamp(0.5rem, 1.2vw, 1rem);
     overflow: hidden;
-    aspect-ratio: 1 / 1;
     background-color: var(--color-surface-deep);
   }
 
   .gallery__image {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     transition: transform var(--duration-media) var(--ease-out);
   }
 
-  /* Center the placeholder art at a modest size so empty tiles read as
-     intentional image slots rather than blank cards. */
+  /* An empty slot has no image to take its proportions from, so it holds a
+     portrait tile to read as a slot rather than collapsing to nothing. */
+  .gallery__item--empty {
+    aspect-ratio: 4 / 5;
+  }
+
   .gallery__image--placeholder {
+    height: 100%;
     padding: 22%;
     object-fit: contain;
     opacity: 0.35;
@@ -102,8 +162,64 @@
   }
 
   @media (max-width: 989px) {
+    .gallery__inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: clamp(2rem, 4vw, 3.5rem);
+    }
+
     .gallery__grid {
-      grid-template-columns: repeat(2, 1fr);
+      columns: 2;
+    }
+  }
+
+  @media (max-width: 749px) {
+    /* One column of a masonry is just a tall stack, so the same list turns
+       into a rail. Tiles are narrower than the track and snap to its centre,
+       which is what leaves the neighbour showing on both sides — including
+       at the two ends, where the padding gives the first and last tile the
+       room to reach the middle. */
+    .gallery__grid {
+      --gallery-peek: 14%;
+
+      columns: auto;
+      display: grid;
+      grid-auto-flow: column;
+      /* 100% of the *content* box, which the padding has already narrowed by
+         one peek on each side — so the tile is exactly the track minus both
+         peeks. Subtracting the peek again here would take it off a width that
+         had already lost it, leaving the tile at 72% of 72%. */
+      grid-auto-columns: 100%;
+      gap: 0.75rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      padding-inline: var(--gallery-peek);
+      scroll-padding-inline: var(--gallery-peek);
+      padding-bottom: var(--space-xs);
+    }
+
+    /* The rail holds one ratio so its height does not jump from tile to tile
+       and the peek stays the same width all the way along. Proportions are
+       the masonry's job; a stable rail is this one's. */
+    .gallery__item {
+      scroll-snap-align: center;
+      aspect-ratio: 4 / 5;
+      margin-bottom: 0;
+    }
+
+    .gallery__image {
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery__image {
+      transition: none;
+    }
+
+    .gallery__item:hover .gallery__image:not(.gallery__image--placeholder) {
+      transform: none;
     }
   }
 {% endstylesheet %}
@@ -128,6 +244,7 @@
       "type": "select",
       "id": "columns",
       "label": "t:sections.gallery.columns",
+      "info": "t:sections.gallery.columns_info",
       "options": [
         { "value": "3", "label": "3" },
         { "value": "4", "label": "4" }

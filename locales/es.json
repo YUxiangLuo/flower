@@ -168,6 +168,9 @@
       "close": "Cerrar",
       "previous_media": "Imagen anterior",
       "next_media": "Imagen siguiente"
+    },
+    "gallery": {
+      "rail_label": "Galería, desplazable"
     }
   }
 }

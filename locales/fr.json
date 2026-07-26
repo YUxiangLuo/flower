@@ -168,6 +168,9 @@
       "close": "Fermer",
       "previous_media": "Image précédente",
       "next_media": "Image suivante"
+    },
+    "gallery": {
+      "rail_label": "Galerie, défilante"
     }
   }
 }

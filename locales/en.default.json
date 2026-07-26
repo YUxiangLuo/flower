@@ -168,6 +168,9 @@
       "close": "Close",
       "previous_media": "Previous image",
       "next_media": "Next image"
+    },
+    "gallery": {
+      "rail_label": "Gallery, scrollable"
     }
   }
 }
