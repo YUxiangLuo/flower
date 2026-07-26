@@ -131,6 +131,61 @@
               {% endif %}
             {% endfor %}
           </nav>
+
+          {%- comment -%}
+            The account icon is hidden from the bar below 750px, so this is the
+            only way into an account on a phone. A plain link rather than the
+            <shopify-account> element the bar uses: that element opens a menu
+            anchored to itself, which has nowhere to go inside a scrolling
+            panel, and the account page it points at carries the same menu.
+          {%- endcomment -%}
+          {% if shop.customer_accounts_enabled %}
+            <a class="header__drawer-account" href="{{ routes.account_url }}">
+              <span class="header__drawer-account-icon" aria-hidden="true">
+                {{- 'icon-account.svg' | inline_asset_content -}}
+              </span>
+              {{- 'sections.header.account' | t -}}
+            </a>
+          {% endif %}
+
+          {%- comment -%}
+            A second form rather than a moved one: the bar's copy is the only one
+            on a desktop, and the drawer it would move into is display:none
+            there. The page already carries two of these — the footer has its
+            own — and the change handler binds per select, so a third costs
+            nothing but the markup.
+
+            The label is visible here. In the bar the control sits alone and
+            reads as what it is; stacked under Account in a menu it does not.
+          {%- endcomment -%}
+          {% if show_language_selector %}
+            {% assign drawer_localization_form_id = 'HeaderDrawerLocalizationForm-' | append: section.id %}
+            {% form 'localization', id: drawer_localization_form_id, class: 'header__drawer-localization' %}
+              <label class="header__drawer-localization-label" for="HeaderDrawerLanguage-{{ section.id }}">
+                {{- 'sections.footer.language' | t -}}
+              </label>
+              <select
+                id="HeaderDrawerLanguage-{{ section.id }}"
+                class="header__localization-select header__drawer-localization-select"
+                name="locale_code"
+                data-localization-select
+              >
+                {% for available_language in localization.available_languages %}
+                  <option
+                    value="{{ available_language.iso_code }}"
+                    {% if available_language.iso_code == localization.language.iso_code %}selected{% endif %}
+                  >
+                    {{ available_language.endonym_name | capitalize | escape }}
+                  </option>
+                {% endfor %}
+              </select>
+              <noscript>
+                <button type="submit" class="header__localization-submit">
+                  {{- 'sections.footer.update_localization' | t -}}
+                </button>
+              </noscript>
+            {% endform %}
+          {% endif %}
         </div>
       </details>
     {% endif %}
@@ -720,6 +775,51 @@
     border-bottom: 1px solid var(--color-line);
   }
 
+  /* Sits apart from the menu rather than at the end of it: it is not a page the
+     merchant put in their navigation, so it reads at body size with the icon
+     from the bar instead of borrowing the nav links' display type. */
+  .header__drawer-account {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    color: var(--color-muted);
+    text-decoration: none;
+  }
+
+  .header__drawer-account-icon svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    max-width: none;
+  }
+
+  .header__drawer-account:hover,
+  .header__drawer-account:focus-visible {
+    color: var(--color-foreground);
+  }
+
+  .header__drawer-localization {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+  }
+
+  .header__drawer-localization-label {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  /* The bar's copy is squeezed in beside the icons; here there is room to give
+     the control a target a thumb can actually hit. 1rem is also the floor
+     below which mobile Safari zooms the viewport on focus, which would shove
+     the drawer sideways the moment the control is tapped. */
+  .header__drawer-localization-select {
+    font-size: 1rem;
+    padding: 0.7rem 2.25rem 0.7rem 0.9rem;
+  }
+
   .header__drawer-link:hover,
   .header__drawer-link:focus-visible {
     color: var(--color-accent);
@@ -797,6 +897,25 @@
        dropping this brings the actions back under that line and the name lands
        centred. */
     .header__search {
+      display: none;
+    }
+
+    /* Same reasoning, and the reason the name lands dead centre: the outer
+       columns are `1fr` each, so they stay equal only while neither one's
+       contents exceed its share. With these gone the right column holds one
+       1.4rem icon, exactly what the menu toggle holds on the left, and the
+       cart count is positioned so it adds no width of its own.
+
+       Both only move into the drawer, and the drawer only exists when the
+       merchant's menu has links in it — the header is the theme's only way
+       into an account, so hiding these unconditionally would strand a phone
+       outside it. Where :has() is unsupported the rules drop and both stay in
+       the bar, which is the old layout rather than a missing door. */
+    .header__inner:has(.header__menu) .header__actions shopify-account {
+      display: none;
+    }
+
+    .header__inner:has(.header__menu) .header__localization {
       display: none;
     }
 

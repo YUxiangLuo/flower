@@ -141,13 +141,14 @@
       "follow_instagram": "Follow us on Instagram"
     },
     "header": {
-      "menu": "Menu",
+      "account": "Account",
       "cart": {
         "one": "Cart, {{ count }} item",
         "other": "Cart, {{ count }} items"
       },
       "cart_label_one": "Cart, __COUNT__ item",
       "cart_label_other": "Cart, __COUNT__ items",
+      "menu": "Menu",
       "primary_navigation": "Primary navigation",
       "view_all": "View all {{ title }}"
     },
