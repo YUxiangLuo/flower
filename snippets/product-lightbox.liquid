@@ -9,7 +9,17 @@
 {% enddoc %}
 
 {% if image_media.size > 0 %}
-  <dialog class="product__lightbox" data-lightbox aria-label="{{ 'sections.product.gallery' | t }}">
+  {%- comment -%}
+    `scroll-lock` is read by critical.css to freeze the page behind an open
+    dialog. Without it the page keeps scrolling under the lightbox and the
+    customer is returned to a different place in the product page on close.
+  {%- endcomment -%}
+  <dialog
+    class="product__lightbox"
+    data-lightbox
+    scroll-lock
+    aria-label="{{ 'sections.product.gallery' | t }}"
+  >
     <button
       type="button"
       class="product__lightbox-close"

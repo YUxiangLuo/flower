@@ -18,7 +18,14 @@
     <div class="blog__grid" style="--columns: {{ section.settings.columns }}">
       {% for article in blog.articles %}
         <article class="blog-card">
-          <a class="blog-card__media" href="{{ article.url }}">
+          {%- comment -%}
+            The title below is the link that names this article. This one goes
+            to the same place and holds only artwork, so with no featured image
+            it was a link with nothing to announce it by. Marked decorative
+            rather than labelled, which also spares a screen reader the same
+            destination twice.
+          {%- endcomment -%}
+          <a class="blog-card__media" href="{{ article.url }}" tabindex="-1" aria-hidden="true">
             {% if article.image %}
               {{
                 article.image
