@@ -159,9 +159,13 @@
           {%- comment -%}
             Changing a selector applies it, the way the header's copy already
             worked — the button is only the way out when there is no script to
-            do it. The handler that binds these lives in the header section and
-            walks the whole document; every layout that renders this footer
-            renders that header too.
+            do it.
+
+            The handler that binds these lives in the header section and walks
+            the whole document, so this footer needs a header on the page to
+            work. Only the password layout renders one without the other, and
+            the schema below keeps this section off that template rather than
+            leaving the selectors to fail there in silence.
           {%- endcomment -%}
           <noscript>
             <button type="submit">{{ 'sections.footer.update_localization' | t }}</button>
@@ -534,6 +538,9 @@
     }
   ],
   "max_blocks": 4,
+  "disabled_on": {
+    "templates": ["password"]
+  },
   "presets": [
     {
       "name": "t:general.footer",
