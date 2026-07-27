@@ -119,29 +119,29 @@
         "step-1": {
           "type": "step",
           "settings": {
-            "title": "Commission Your Keepsake",
-            "text": "<p>Select the botanical artwork that perfectly tells your story, along with your preferred frame.<br/>Enter your Event Date and a custom Gift Note before checkout. Because our art is made-to-order, providing your event date ensures our studio can perfectly time the crafting process for your special day.<br/><br/>We highly recommend placing your order<strong>One Month</strong>prior to your event date.</p>"
+            "title": "Choose Your Keepsake",
+            "text": "<p>Select your botanical artwork and preferred frame, then add a personalisation note.</p>"
           }
         },
         "step-2": {
           "type": "step",
           "settings": {
-            "title": "The Art of Preservation",
-            "text": "<p>Once your commission is received, our studio gets to work. We do not use prints or artificial materials.<br/>We meticulously select, press, and dry real flower petals and botanicals. Because nature dictates this delicate process, it requires time and patience to ensure the lasting beauty, color, and structure of the flowers. No two pieces on earth will ever be exactly the same.</p>"
+            "title": "Flowers, Carefully Preserved",
+            "text": "<p>We press and dry real botanicals, preserving their natural colour and character.</p>"
           }
         },
         "step-3": {
           "type": "step",
           "settings": {
-            "title": "Handcrafted by Artisans",
-            "text": "<p>As your piece progresses, you’ll receive email updates on the status of your artwork.<br/><br/>Once the botanicals are fully prepared, we thoughtfully arrange them into a balanced composition, true to our aesthetic and craftsmanship standards. Each design is finalized by hand before framing.</p>"
+            "title": "Handcrafted for You",
+            "text": "<p>Our artists arrange and frame each piece by hand, with updates along the way.</p>"
           }
         },
         "step_aNcEyc": {
           "type": "step",
           "settings": {
-            "title": "Unbox Your Custom Piece",
-            "text": "<p>When your frame is complete, it is carefully packaged and shipped to you with secure delivery.<br/><br/>Your artwork arrives ready to display—timeless, personal, and made to be lived with.</p>"
+            "title": "Delivered Ready to Display",
+            "text": "<p>Your finished keepsake is securely packaged and shipped, ready to display or give.</p>"
           }
         }
       },
@@ -153,7 +153,7 @@
       ],
       "settings": {
         "eyebrow": "Gifting made easy",
-        "heading": "A thoughtful gift in three steps",
+        "heading": "A thoughtful gift in four steps",
         "background": "page",
         "overlay_opacity": 70
       }
