@@ -171,6 +171,8 @@
       "heading_level_h1": "Heading 1 (page title)",
       "heading_level_h2": "Heading 2",
       "image": "Image",
+      "mobile_image": "Mobile image",
+      "mobile_image_info": "Used on screens up to 749px. Falls back to Image when blank.",
       "overlay_opacity": "Overlay opacity",
       "eyebrow": "Eyebrow",
       "heading": "Heading",
