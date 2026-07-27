@@ -175,24 +175,28 @@
         "clip-1": {
           "type": "clip",
           "settings": {
+            "video": "shopify://files/videos/vizup-gif-fc36febd.mp4",
             "product": ""
           }
         },
         "clip-2": {
           "type": "clip",
           "settings": {
+            "video": "shopify://files/videos/vizup-gif-3902ad9d.mp4",
             "product": ""
           }
         },
         "clip-3": {
           "type": "clip",
           "settings": {
+            "video": "shopify://files/videos/vizup-gif-48d2aaef.mp4",
             "product": ""
           }
         },
         "clip-4": {
           "type": "clip",
           "settings": {
+            "video": "shopify://files/videos/vizup-videos-24220144.mp4",
             "product": ""
           }
         }
@@ -244,6 +248,7 @@
         "g-5",
         "g-6"
       ],
+      "disabled": true,
       "settings": {
         "eyebrow": "Our gallery",
         "heading": "Botanical elegance for every home",
@@ -283,6 +288,7 @@
         "t-2",
         "t-3"
       ],
+      "disabled": true,
       "settings": {
         "eyebrow": "",
         "heading": "Customer testimonials",
@@ -323,6 +329,7 @@
         "point-3",
         "point-4"
       ],
+      "disabled": true,
       "settings": {
         "background_color": "#2a3320",
         "text_color": "#fcfaf4"
@@ -331,18 +338,20 @@
     "creator": {
       "type": "creator-story",
       "settings": {
+        "image": "shopify://shop_images/Founder_image.jpg",
         "image_position": "left",
         "background": "page",
         "eyebrow": "Dried Petals Gallery",
         "heading": "Meet the creator",
-        "body": "<p>Every piece is handcrafted with care. Each petal is selected and pressed by hand, then composed into a keepsake designed to be treasured for years to come.</p>",
-        "signature": "With gratitude,",
+        "body": "<p>Hello, I’m Thomas—the founder of Dried Petals Gallery.</p><p>My love for flowers began in my grandmother’s garden. It was always filled with quiet color and life, and as a child I was drawn to the small details—the shape of petals, the rhythm of leaves, the way flowers changed with the seasons. That early closeness to nature stayed with me.</p><p>Years later, pressing flowers became my way of preserving those moments—slowing time and honoring beauty that would otherwise fade. What began as a personal practice grew into Dried Petals Gallery.</p><p>Today, every frame is handcrafted with care. Each petal is selected and arranged by hand, never rushed or mass-produced. Guided by respect for nature and sustainability, our designs are minimal, timeless, and made to live beautifully in your home for years to come.</p>",
+        "signature": "With gratitude, Thomas",
         "button_label": "Our story",
-        "button_link": ""
+        "button_link": "shopify://pages/our-story"
       }
     },
     "richtext": {
       "type": "rich-text",
+      "disabled": true,
       "settings": {
         "background": "surface",
         "content_width": "narrow",
@@ -392,6 +401,7 @@
     },
     "giftcta": {
       "type": "gift-cta",
+      "disabled": true,
       "settings": {
         "overlay_opacity": 55,
         "eyebrow": "Ready to give something lasting?",
