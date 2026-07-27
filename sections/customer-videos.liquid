@@ -69,7 +69,7 @@
                 </span>
               </button>
 
-              {% if block.settings.product %}
+              {% if block.settings.product != blank %}
                 <a class="clip__product" href="{{ block.settings.product.url }}">
                   <span class="clip__product-media">
                     {% if block.settings.product.featured_image %}
