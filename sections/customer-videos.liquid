@@ -280,8 +280,13 @@
   }
 
   .clips__viewer {
+    /* The global reset removes the browser's default dialog centering. */
+    position: fixed;
+    inset: 0;
     width: min(28rem, 92vw);
+    height: fit-content;
     max-height: 92vh;
+    margin: auto;
     padding: 0;
     border: 0;
     background-color: #000;
