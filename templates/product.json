@@ -12,17 +12,9 @@
     "main": {
       "type": "product",
       "blocks": {
-        "personalize-names": {
+        "personalize-note": {
           "type": "personalization_field",
-          "settings": { "label": "Names or message to include", "field_type": "text" }
-        },
-        "personalize-flowers": {
-          "type": "personalization_field",
-          "settings": { "label": "Tell us about your flowers", "field_type": "textarea" }
-        },
-        "personalize-gift": {
-          "type": "personalization_field",
-          "settings": { "label": "Gift note", "field_type": "textarea" }
+          "settings": { "label": "Personalisation note", "field_type": "textarea" }
         },
         "highlight-1": {
           "type": "highlight",
@@ -59,9 +51,7 @@
         }
       },
       "block_order": [
-        "personalize-names",
-        "personalize-flowers",
-        "personalize-gift",
+        "personalize-note",
         "highlight-1",
         "highlight-2",
         "highlight-3",
