@@ -194,7 +194,7 @@ function stubMatchMedia(window, initial = {}) {
 function stubIntersectionObserver(window) {
   const observers = [];
 
-  window.IntersectionObserver = function IntersectionObserver(callback) {
+  window.IntersectionObserver = function IntersectionObserver(callback, options = {}) {
     const targets = [];
     const observer = {
       observe(target) {
@@ -208,7 +208,7 @@ function stubIntersectionObserver(window) {
         targets.length = 0;
       }
     };
-    observers.push({ callback, targets, observer });
+    observers.push({ callback, targets, observer, options });
     return observer;
   };
 
@@ -220,6 +220,24 @@ function stubIntersectionObserver(window) {
       observers.forEach((entry) => {
         if (entry.targets.indexOf(target) === -1) return;
         entry.callback([{ target, isIntersecting }], entry.observer);
+      });
+    },
+    setIntersectionRatio(target, intersectionRatio) {
+      observers.forEach((entry) => {
+        if (entry.targets.indexOf(target) === -1) return;
+        const configured = entry.options.threshold;
+        const thresholds = Array.isArray(configured)
+          ? configured
+          : [configured === undefined ? 0 : configured];
+        const isIntersecting = intersectionRatio > 0;
+        const reached = thresholds.some(
+          (threshold) => isIntersecting && intersectionRatio >= threshold
+        );
+        if (!reached) return;
+        entry.callback(
+          [{ target, isIntersecting, intersectionRatio }],
+          entry.observer
+        );
       });
     }
   };

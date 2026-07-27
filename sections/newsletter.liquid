@@ -113,6 +113,18 @@
   .newsletter__success {
     color: var(--color-accent-strong);
     font-size: 0.95rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity var(--duration-ui) var(--ease-out),
+      transform var(--duration-ui) var(--ease-out);
+  }
+
+  @starting-style {
+    .newsletter__success {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
   }
 
   .newsletter__error {
@@ -124,6 +136,20 @@
   @media (max-width: 749px) {
     .newsletter__field {
       flex-direction: column;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .newsletter__success {
+      transform: none;
+      transition: opacity 160ms var(--ease-out);
+    }
+
+    @starting-style {
+      .newsletter__success {
+        opacity: 0;
+        transform: none;
+      }
     }
   }
 {% endstylesheet %}

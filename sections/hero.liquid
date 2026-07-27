@@ -325,6 +325,9 @@
   }
 
   .hero__button {
+    --hero-button-press-scale: 0.98;
+    --hero-button-press-duration: 120ms;
+
     align-self: flex-start;
     margin-top: 0.75rem;
     padding: 0.9rem 2.4rem;
@@ -334,7 +337,10 @@
     color: #fff;
     text-decoration: none;
     border: 1px solid rgb(255 255 255 / 0.7);
-    transition: background-color 0.4s ease, color 0.4s ease;
+    transition:
+      background-color 0.4s ease,
+      color 0.4s ease,
+      transform var(--hero-button-press-duration) var(--ease-out);
   }
 
   .hero--center .hero__button {
@@ -345,6 +351,10 @@
   .hero__button:focus-visible {
     background-color: #fff;
     color: var(--color-foreground);
+  }
+
+  .hero__button:active {
+    transform: scale(var(--hero-button-press-scale));
   }
 
   .hero__controls {
@@ -411,6 +421,11 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .hero__button {
+      --hero-button-press-scale: 0.995;
+      --hero-button-press-duration: 80ms;
+    }
+
     .hero__slide,
     .hero__slide[data-active] {
       transition: none;

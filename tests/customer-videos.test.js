@@ -6,10 +6,10 @@
    clip playing off screen, looks identical in the source and behaves nothing
    alike on a phone.
 
-   What is deliberately not asserted here: the focus trap, the top layer and
-   Escape-to-close on the viewer. Those are the browser's, which is why the
-   section uses <dialog>, and a passing assertion against the jsdom stub would
-   say nothing about a real page. */
+   What is deliberately not asserted here: the focus trap and the top layer.
+   Those are the browser's, which is why the section uses <dialog>. Escape now
+   passes through the section's cancel handler so the exit transition can
+   finish, and that small piece of application logic is covered below. */
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -123,6 +123,61 @@ test('closing the viewer clears it and hands the clip back to the rail', () => {
   assert.equal(page.viewer().open, false);
   assert.equal(page.stage().querySelector('video'), null, 'the copy is discarded');
   assert.equal(page.videoIn(card).paused, false, 'the on-screen clip resumes');
+});
+
+test('the viewer stays open until its exit transition finishes', () => {
+  const page = boot();
+  const [card] = page.cards();
+  const viewer = page.viewer();
+  const nativeGetComputedStyle = page.window.getComputedStyle.bind(page.window);
+
+  page.window.getComputedStyle = (element) => {
+    if (element === viewer) {
+      return {
+        transitionDuration: '0.4s, 0.4s',
+        transitionDelay: '0s, 0s'
+      };
+    }
+    return nativeGetComputedStyle(element);
+  };
+
+  page.observer.setVisible(card, true);
+  card.querySelector('[data-clip-open]').click();
+  page.window.document.querySelector('[data-clips-close]').click();
+
+  assert.equal(viewer.open, true, 'the dialog remains in the top layer while fading out');
+  assert.equal(viewer.hasAttribute('data-closing'), true);
+  assert.ok(page.stage().querySelector('video'), 'the viewer content remains until close');
+  assert.equal(page.videoIn(card).paused, true, 'the rail stays paused during the exit');
+
+  viewer.dispatchEvent(new page.window.Event('transitionend', { bubbles: true }));
+
+  assert.equal(viewer.open, false);
+  assert.equal(viewer.hasAttribute('data-closing'), false);
+  assert.equal(page.stage().querySelector('video'), null);
+  assert.equal(page.videoIn(card).paused, false);
+});
+
+test('Escape uses the same animated exit path', () => {
+  const page = boot();
+  const [card] = page.cards();
+  const viewer = page.viewer();
+
+  page.window.getComputedStyle = () => ({
+    transitionDuration: '0.4s',
+    transitionDelay: '0s'
+  });
+
+  card.querySelector('[data-clip-open]').click();
+  const cancel = new page.window.Event('cancel', { cancelable: true });
+  viewer.dispatchEvent(cancel);
+
+  assert.equal(cancel.defaultPrevented, true);
+  assert.equal(viewer.open, true);
+  assert.equal(viewer.hasAttribute('data-closing'), true);
+
+  viewer.dispatchEvent(new page.window.Event('transitionend', { bubbles: true }));
+  assert.equal(viewer.open, false);
 });
 
 test('clicking the backdrop closes the viewer, clicking the video does not', () => {

@@ -160,6 +160,9 @@ body {
 }
 
 .button {
+  --button-press-scale: 0.98;
+  --button-press-duration: 120ms;
+
   display: inline-block;
   padding: 0.9rem 2.4rem;
   font-size: 0.8rem;
@@ -169,8 +172,15 @@ body {
   cursor: pointer;
   border: 1px solid transparent;
   background-color: transparent;
-  transition: background-color var(--duration-ui) ease, color var(--duration-ui) ease,
-    border-color var(--duration-ui) ease;
+  transition:
+    background-color var(--duration-ui) ease,
+    color var(--duration-ui) ease,
+    border-color var(--duration-ui) ease,
+    transform var(--button-press-duration) var(--ease-out);
+}
+
+.button:active {
+  transform: scale(var(--button-press-scale));
 }
 
 /* Outline button for light bands: foreground border that fills on hover. */
@@ -209,6 +219,13 @@ body {
 .button--on-dark:focus-visible {
   background-color: transparent;
   color: var(--button-bg, #fff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    --button-press-scale: 0.995;
+    --button-press-duration: 80ms;
+  }
 }
 
 /* Visually hide content while keeping it available to screen readers. */

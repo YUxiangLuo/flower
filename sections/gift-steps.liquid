@@ -37,6 +37,7 @@
   <div
     class="giftsteps giftsteps--{{ section.settings.background }} full-width"
     style="--giftsteps-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+    data-giftsteps-motion
   >
     {% if section.settings.background_image %}
       <div class="giftsteps__media">
@@ -80,7 +81,11 @@
 
           {% if step_has_content %}
             {% assign step_number = step_number | plus: 1 %}
-            <li class="giftsteps__step" {{ block.shopify_attributes }}>
+            <li
+              class="giftsteps__step"
+              style="--giftsteps-step-index: {{ step_number | minus: 1 }};"
+              {{ block.shopify_attributes }}
+            >
               {%- comment -%}
                 The icon replaces the numeral rather than joining it: two marks
                 stacked above the same title read as two separate cues.
@@ -218,6 +223,23 @@
     border-radius: var(--style-border-radius-inputs);
   }
 
+  /* JavaScript adds the pending state only after confirming that an observer
+     is available, so unsupported browsers never receive hidden content. The
+     ready state is applied one layout later, before pending is removed, which
+     prevents a visible card from first animating backwards into its start
+     position. */
+  .giftsteps[data-motion-pending] .giftsteps__step {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  .giftsteps[data-motion-ready] .giftsteps__step {
+    transition:
+      opacity var(--duration-ui) var(--ease-out),
+      transform var(--duration-ui) var(--ease-out);
+    transition-delay: calc(var(--giftsteps-step-index) * 60ms);
+  }
+
   /* 2.5rem of icon plus 0.75rem of margin occupies the same 3.25rem the numeral
      circle does, so titles stay on one line across a row that mixes the two. */
   .giftsteps__icon {
@@ -270,7 +292,100 @@
       gap: var(--space-lg);
     }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .giftsteps[data-motion-pending] .giftsteps__step {
+      transform: none;
+    }
+
+    .giftsteps[data-motion-ready] .giftsteps__step {
+      transition: opacity 160ms var(--ease-out);
+      transition-delay: 0ms;
+    }
+  }
 {% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    function initMotion(root) {
+      var list = root.querySelector('.giftsteps__list');
+      if (!list) return null;
+
+      var observer = null;
+
+      function reveal() {
+        if (root.hasAttribute('data-motion-visible')) return;
+        root.setAttribute('data-motion-visible', '');
+        root.removeAttribute('data-motion-pending');
+        if (observer) {
+          observer.disconnect();
+          observer = null;
+        }
+      }
+
+      /* Keep the walkthrough fully visible in the editor and in browsers that
+         cannot observe viewport entry. Motion is an enhancement, never a
+         prerequisite for reading the steps. */
+      if (
+        typeof window.IntersectionObserver !== 'function' ||
+        (window.Shopify && window.Shopify.designMode)
+      ) {
+        reveal();
+      } else {
+        root.setAttribute('data-motion-pending', '');
+        /* Commit the hidden start state before enabling transitions. */
+        root.getBoundingClientRect();
+        root.setAttribute('data-motion-ready', '');
+
+        observer = new window.IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) reveal();
+            });
+          },
+          /* A zero threshold is intentional: the list can be several viewport
+             heights tall on mobile or under zoom, so a percentage of the whole
+             list might never fit inside the root. isIntersecting still waits
+             until real content reaches the upper 90% of the viewport. */
+          { threshold: 0, rootMargin: '0px 0px -10% 0px' }
+        );
+        observer.observe(list);
+      }
+
+      return function cleanup() {
+        if (observer) observer.disconnect();
+        observer = null;
+        root.removeAttribute('data-motion-pending');
+        root.removeAttribute('data-motion-ready');
+        root.removeAttribute('data-motion-visible');
+      };
+    }
+
+    function init(scope) {
+      scope.querySelectorAll('[data-giftsteps-motion]').forEach(function (root) {
+        if (root.giftstepsMotionCleanup) root.giftstepsMotionCleanup();
+        root.giftstepsMotionCleanup = initMotion(root);
+      });
+    }
+
+    function destroy(scope) {
+      scope.querySelectorAll('[data-giftsteps-motion]').forEach(function (root) {
+        if (root.giftstepsMotionCleanup) {
+          root.giftstepsMotionCleanup();
+          root.giftstepsMotionCleanup = null;
+        }
+      });
+    }
+
+    init(document);
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      destroy(event.target);
+    });
+  })();
+{% endjavascript %}
 
 {% schema %}
 {

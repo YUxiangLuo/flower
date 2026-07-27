@@ -281,6 +281,22 @@ function customerVideosSection({ id = 'clips', clips = 2, empty = false } = {}) 
 </div>`;
 }
 
+function giftStepsSection({ id = 'steps', steps = 4 } = {}) {
+  const items = Array.from(
+    { length: steps },
+    (unused, i) => `<li class="giftsteps__step" style="--giftsteps-step-index: ${i}">
+      <span>${i + 1}</span>
+    </li>`
+  ).join('');
+
+  return `
+<div class="shopify-section" id="section-${id}">
+  <div class="giftsteps" data-giftsteps-motion>
+    <ol class="giftsteps__list">${items}</ol>
+  </div>
+</div>`;
+}
+
 function productRecommendationsSection({
   id = 'related',
   source = 'collection',
@@ -315,6 +331,7 @@ module.exports = {
   cartDrawerSection,
   collectionSection,
   customerVideosSection,
+  giftStepsSection,
   headerSection,
   heroSection,
   productRecommendationsSection

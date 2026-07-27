@@ -286,10 +286,46 @@
     border: 0;
     background-color: #000;
     overflow: hidden;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity var(--duration-ui) var(--ease-out),
+      transform var(--duration-ui) var(--ease-out);
+  }
+
+  .clips__viewer[open]:not([data-closing]) {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .clips__viewer[data-closing] {
+    opacity: 0;
+    transform: scale(0.97);
   }
 
   .clips__viewer::backdrop {
     background-color: rgb(0 0 0 / 0.8);
+    opacity: 0;
+    transition: opacity var(--duration-ui) var(--ease-out);
+  }
+
+  .clips__viewer[open]:not([data-closing])::backdrop {
+    opacity: 1;
+  }
+
+  .clips__viewer[data-closing]::backdrop {
+    opacity: 0;
+  }
+
+  @starting-style {
+    .clips__viewer[open]:not([data-closing]) {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+
+    .clips__viewer[open]:not([data-closing])::backdrop {
+      opacity: 0;
+    }
   }
 
   .clips__viewer-close {
@@ -327,12 +363,21 @@
     }
   }
 
-  /* Nothing here animates on its own when the preference is set — the script
-     leaves every clip paused on its poster — so this only stills the trims. */
   @media (prefers-reduced-motion: reduce) {
     .clip__badge,
     .clip__product-arrow {
       transition: none;
+    }
+
+    .clips__viewer,
+    .clips__viewer::backdrop {
+      transition: opacity 160ms var(--ease-out);
+    }
+
+    .clips__viewer,
+    .clips__viewer[open]:not([data-closing]),
+    .clips__viewer[data-closing] {
+      transform: none;
     }
   }
 {% endstylesheet %}
@@ -347,6 +392,7 @@
       var stage = root.querySelector('[data-clips-stage]');
       var closer = root.querySelector('[data-clips-close]');
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var closeTimer = null;
 
       /* Track every listener so the section can be torn down cleanly when the
          theme editor reloads it. */
@@ -396,6 +442,50 @@
         });
       }
 
+      function timeToMs(value) {
+        var text = String(value || '').trim();
+        var amount = parseFloat(text);
+        if (!amount) return 0;
+        return text.slice(-2) === 'ms' ? amount : amount * 1000;
+      }
+
+      function viewerTransitionMs() {
+        if (!viewer || typeof window.getComputedStyle !== 'function') return 0;
+        var styles = window.getComputedStyle(viewer);
+        var durations = String(styles.transitionDuration || '0s').split(',');
+        var delays = String(styles.transitionDelay || '0s').split(',');
+        var count = Math.max(durations.length, delays.length);
+        var longest = 0;
+
+        for (var i = 0; i < count; i++) {
+          var duration = timeToMs(durations[i % durations.length]);
+          var delay = timeToMs(delays[i % delays.length]);
+          longest = Math.max(longest, duration + delay);
+        }
+        return longest;
+      }
+
+      function finishViewerClose() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+        if (viewer && viewer.open) viewer.close();
+      }
+
+      function requestViewerClose() {
+        if (!viewer || !viewer.open || viewer.hasAttribute('data-closing')) return;
+        viewer.setAttribute('data-closing', '');
+        var wait = viewerTransitionMs();
+        if (wait <= 0) {
+          finishViewerClose();
+          return;
+        }
+        /* transitionend normally finishes first; this fallback covers a
+           backgrounded tab or a browser that cancels the transition. */
+        closeTimer = setTimeout(finishViewerClose, wait + 50);
+      }
+
       /* Without IntersectionObserver nothing autoplays and every clip sits on
          its poster, which is a usable page rather than a broken one. */
       if (typeof window.IntersectionObserver === 'function') {
@@ -434,6 +524,11 @@
         full.loop = true;
         stage.appendChild(full);
 
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+        viewer.removeAttribute('data-closing');
         viewer.showModal();
         sync();
         attemptPlay(full);
@@ -452,21 +547,40 @@
            backdrop below — so the clean-up is registered once here rather than
            on each of them. */
         on(viewer, 'close', function () {
+          if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = null;
+          }
+          viewer.removeAttribute('data-closing');
           if (stage) stage.textContent = '';
           sync();
+        });
+
+        on(viewer, 'transitionend', function (event) {
+          if (event.target === viewer && viewer.hasAttribute('data-closing')) {
+            finishViewerClose();
+          }
+        });
+
+        /* Escape normally closes a dialog before its exit state can render.
+           Keep the native cancel event, but defer close() until the same
+           transition used by the button and backdrop has completed. */
+        on(viewer, 'cancel', function (event) {
+          event.preventDefault();
+          requestViewerClose();
         });
 
         /* A dialog's backdrop is the dialog element itself, so a click that
            lands on it and not on the video means the customer clicked outside.
            A modal <dialog> does not light-dismiss on its own. */
         on(viewer, 'click', function (event) {
-          if (event.target === viewer) viewer.close();
+          if (event.target === viewer) requestViewerClose();
         });
       }
 
       if (closer && viewer) {
         on(closer, 'click', function () {
-          viewer.close();
+          requestViewerClose();
         });
       }
 
@@ -478,12 +592,20 @@
       sync();
 
       return function cleanup() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+        onScreen = [];
+        if (viewer) {
+          viewer.removeAttribute('data-closing');
+          if (viewer.open) viewer.close();
+        }
         cards.forEach(function (card) {
           var video = videoOf(card);
           if (video) video.pause();
         });
         if (stage) stage.textContent = '';
-        onScreen = [];
         teardown.forEach(function (off) {
           off();
         });
