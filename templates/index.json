@@ -155,7 +155,7 @@
       "settings": {
         "eyebrow": "Ready to send",
         "heading": "Best-selling gifts",
-        "collection": "",
+        "collection": "best-sellers",
         "products_to_show": 4,
         "columns": 4,
         "show_view_all": true
