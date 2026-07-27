@@ -15,7 +15,7 @@
       "type": "announcement-bar",
       "settings": {
         "text": "20% off selected products",
-        "link": "",
+        "link": "shopify://collections/pressed-flower-art",
         "show_arrow": true,
         "background_color": "#2a3320",
         "text_color": "#fcfaf4"
