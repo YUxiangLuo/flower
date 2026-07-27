@@ -16,11 +16,17 @@
       "blocks": {
         "col-1": {
           "type": "menu",
-          "settings": { "heading": "Customer service", "menu": "footer" }
+          "settings": {
+            "heading": "Customer service",
+            "menu": "footer"
+          }
         },
         "col-2": {
           "type": "menu",
-          "settings": { "heading": "Quick links", "menu": "main-menu" }
+          "settings": {
+            "heading": "Quick links",
+            "menu": "main-menu"
+          }
         },
         "col-3": {
           "type": "text",
@@ -30,12 +36,25 @@
           }
         }
       },
-      "block_order": ["col-1", "col-2", "col-3"],
+      "block_order": [
+        "col-1",
+        "col-2",
+        "col-3"
+      ],
       "settings": {
-        "show_newsletter": true,
-        "show_payment_icons": true
+        "tagline": "Handcrafted keepsakes made from real pressed flowers, designed to be treasured for years.",
+        "social_facebook": "https://www.facebook.com/profile.php?id=61556947152284",
+        "social_instagram": "https://www.instagram.com/driedpetals_gallery/",
+        "show_newsletter": false,
+        "newsletter_heading": "Subscribe to our emails",
+        "show_payment_icons": true,
+        "show_localization": true,
+        "background_color": "#2a3320",
+        "text_color": "#fcfaf4"
       }
     }
   },
-  "order": ["footer"]
+  "order": [
+    "footer"
+  ]
 }
