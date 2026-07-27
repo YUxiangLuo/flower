@@ -68,7 +68,7 @@
         "occasion-1": {
           "type": "occasion",
           "settings": {
-            "collection": "",
+            "collection": "anniversary-gifts",
             "title": "The anniversary collection",
             "link": "/collections/all?sort_by=created-descending"
           }
@@ -76,7 +76,7 @@
         "occasion-2": {
           "type": "occasion",
           "settings": {
-            "collection": "",
+            "collection": "birthday-gifts",
             "title": "The birthday keepsake",
             "link": "/collections/all?sort_by=created-descending"
           }
@@ -84,7 +84,7 @@
         "occasion-3": {
           "type": "occasion",
           "settings": {
-            "collection": "",
+            "collection": "gifts-for-mom",
             "title": "Everlasting gifts for mum",
             "link": "/collections/all?sort_by=created-descending"
           }
