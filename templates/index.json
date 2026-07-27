@@ -16,7 +16,7 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
-            "overlay_opacity": 50,
+            "overlay_opacity": 30,
             "eyebrow": "The gift that lasts",
             "heading": "Flowers they'll keep for years, not days",
             "subheading": "Handcrafted pressed-flower keepsakes, made to outlive the occasion.",
@@ -28,7 +28,7 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/02_citrus_sunshine_vow_mediterranean_terrace_gift_4x3_2k.png",
-            "overlay_opacity": 50,
+            "overlay_opacity": 30,
             "eyebrow": "For every occasion",
             "heading": "A keepsake for the moments that matter",
             "subheading": "Anniversaries, birthdays, thank-yous — pressed by hand and made to last.",
@@ -40,7 +40,7 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/03_burgundy_bouquet_modern_apartment_anniversary_4x3_2k.png",
-            "overlay_opacity": 50,
+            "overlay_opacity": 30,
             "eyebrow": "Yours alone",
             "heading": "Built around the flowers that mean something to them",
             "subheading": "Send us the stems from the day, or choose their birth flowers.",
