@@ -20,8 +20,11 @@ if rg -n --pcre2 "\{%\s*form\s+'customer'(?![^%]*\bid:)" sections; then
   report_failure "Every customer form must declare a unique id."
 fi
 
-if rg -n '"quote"\s*:' templates; then
-  report_failure "Customer review fixtures must not be committed in JSON templates."
+# Theme Editor saves blank schema defaults back into JSON templates. Allow
+# blank/whitespace-only testimonial fields while still blocking seeded review
+# copy (including JSON escape sequences) from being committed as a fixture.
+if rg -n --pcre2 '"quote"\s*:\s*"(?:\\.|[^"\\])*(?:\\.|[^\s"\\])(?:\\.|[^"\\])*"' templates; then
+  report_failure "Non-empty customer review fixtures must not be committed in JSON templates."
 fi
 
 structured_data_count="$(
