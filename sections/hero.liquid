@@ -273,10 +273,11 @@
   .hero__scrim {
     position: absolute;
     inset: 0;
+    /* --scrim is already a percentage from the block setting. */
     background: linear-gradient(
       to top,
-      rgb(0 0 0 / calc(var(--scrim) * 0.9 / 100)),
-      rgb(0 0 0 / calc(var(--scrim) / 100))
+      rgb(0 0 0 / calc(var(--scrim) * 0.9)),
+      rgb(0 0 0 / var(--scrim))
     );
   }
 
