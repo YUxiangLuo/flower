@@ -103,13 +103,14 @@
     "lasting": {
       "type": "lasting-gift",
       "settings": {
+        "image": "shopify://shop_images/pressed_flower_crafting_on_clear_acrylic_process_1x1_2k.jpg",
         "image_position": "left",
         "background": "surface-deep",
         "eyebrow": "A keepsake, not a bouquet",
         "heading": "The gift that never wilts",
         "body": "<p>Fresh flowers fade within the week. A pressed-flower keepsake holds the colour and meaning of the moment for years — a gift they'll keep on the wall long after the occasion has passed.</p>",
         "button_label": "Shop keepsakes",
-        "button_link": ""
+        "button_link": "shopify://collections/best-sellers"
       }
     },
     "giftflow": {
