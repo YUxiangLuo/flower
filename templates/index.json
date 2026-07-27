@@ -15,6 +15,8 @@
         "slide-1": {
           "type": "slide",
           "settings": {
+            "image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
+            "overlay_opacity": 50,
             "eyebrow": "The gift that lasts",
             "heading": "Flowers they'll keep for years, not days",
             "subheading": "Handcrafted pressed-flower keepsakes, made to outlive the occasion.",
@@ -25,40 +27,74 @@
         "slide-2": {
           "type": "slide",
           "settings": {
+            "image": "shopify://shop_images/02_citrus_sunshine_vow_mediterranean_terrace_gift_4x3_2k.png",
+            "overlay_opacity": 50,
             "eyebrow": "For every occasion",
             "heading": "A keepsake for the moments that matter",
-            "subheading": "Anniversaries, birthdays, thank-yous — pressed by hand and made to last."
+            "subheading": "Anniversaries, birthdays, thank-yous — pressed by hand and made to last.",
+            "button_label": "Discover your keepsake",
+            "button_link": ""
           }
         },
         "slide-3": {
           "type": "slide",
           "settings": {
+            "image": "shopify://shop_images/03_burgundy_bouquet_modern_apartment_anniversary_4x3_2k.png",
+            "overlay_opacity": 50,
             "eyebrow": "Yours alone",
             "heading": "Built around the flowers that mean something to them",
-            "subheading": "Send us the stems from the day, or choose their birth flowers."
+            "subheading": "Send us the stems from the day, or choose their birth flowers.",
+            "button_label": "Discover your keepsake",
+            "button_link": "shopify://collections/best-sellers"
           }
         }
       },
-      "block_order": ["slide-1", "slide-2", "slide-3"],
-      "settings": {}
+      "block_order": [
+        "slide-1",
+        "slide-2",
+        "slide-3"
+      ],
+      "settings": {
+        "autoplay": true,
+        "autoplay_interval": 6,
+        "heading_level": "h1",
+        "content_position": "center",
+        "content_width": 66
+      }
     },
     "occasion": {
       "type": "shop-by-occasion",
       "blocks": {
         "occasion-1": {
           "type": "occasion",
-          "settings": { "title": "The anniversary collection", "link": "/collections/all?sort_by=created-descending" }
+          "settings": {
+            "collection": "",
+            "title": "The anniversary collection",
+            "link": "/collections/all?sort_by=created-descending"
+          }
         },
         "occasion-2": {
           "type": "occasion",
-          "settings": { "title": "The birthday keepsake", "link": "/collections/all?sort_by=created-descending" }
+          "settings": {
+            "collection": "",
+            "title": "The birthday keepsake",
+            "link": "/collections/all?sort_by=created-descending"
+          }
         },
         "occasion-3": {
           "type": "occasion",
-          "settings": { "title": "Everlasting gifts for mum", "link": "/collections/all?sort_by=created-descending" }
+          "settings": {
+            "collection": "",
+            "title": "Everlasting gifts for mum",
+            "link": "/collections/all?sort_by=created-descending"
+          }
         }
       },
-      "block_order": ["occasion-1", "occasion-2", "occasion-3"],
+      "block_order": [
+        "occasion-1",
+        "occasion-2",
+        "occasion-3"
+      ],
       "settings": {
         "eyebrow": "Gifts for every moment",
         "heading": "Shop by occasion"
@@ -66,7 +102,15 @@
     },
     "lasting": {
       "type": "lasting-gift",
-      "settings": { "background": "surface-deep" }
+      "settings": {
+        "image_position": "left",
+        "background": "surface-deep",
+        "eyebrow": "A keepsake, not a bouquet",
+        "heading": "The gift that never wilts",
+        "body": "<p>Fresh flowers fade within the week. A pressed-flower keepsake holds the colour and meaning of the moment for years — a gift they'll keep on the wall long after the occasion has passed.</p>",
+        "button_label": "Shop keepsakes",
+        "button_link": ""
+      }
     },
     "giftflow": {
       "type": "gift-steps",
@@ -93,68 +137,213 @@
           }
         }
       },
-      "block_order": ["step-1", "step-2", "step-3"],
-      "settings": {}
+      "block_order": [
+        "step-1",
+        "step-2",
+        "step-3"
+      ],
+      "settings": {
+        "eyebrow": "Gifting made easy",
+        "heading": "A thoughtful gift in three steps",
+        "background": "page",
+        "overlay_opacity": 70
+      }
     },
     "featured": {
       "type": "featured-products",
       "settings": {
         "eyebrow": "Ready to send",
-        "heading": "Best-selling gifts"
+        "heading": "Best-selling gifts",
+        "collection": "",
+        "products_to_show": 4,
+        "columns": 4,
+        "show_view_all": true
       }
     },
     "clips": {
       "type": "customer-videos",
       "blocks": {
-        "clip-1": { "type": "clip", "settings": {} },
-        "clip-2": { "type": "clip", "settings": {} },
-        "clip-3": { "type": "clip", "settings": {} },
-        "clip-4": { "type": "clip", "settings": {} }
+        "clip-1": {
+          "type": "clip",
+          "settings": {
+            "product": ""
+          }
+        },
+        "clip-2": {
+          "type": "clip",
+          "settings": {
+            "product": ""
+          }
+        },
+        "clip-3": {
+          "type": "clip",
+          "settings": {
+            "product": ""
+          }
+        },
+        "clip-4": {
+          "type": "clip",
+          "settings": {
+            "product": ""
+          }
+        }
       },
-      "block_order": ["clip-1", "clip-2", "clip-3", "clip-4"],
-      "settings": {}
+      "block_order": [
+        "clip-1",
+        "clip-2",
+        "clip-3",
+        "clip-4"
+      ],
+      "settings": {
+        "eyebrow": "Straight from the doorstep",
+        "heading": "Real customers, real keepsakes"
+      }
     },
     "lookbook": {
       "type": "gallery",
       "blocks": {
-        "g-1": { "type": "image", "settings": {} },
-        "g-2": { "type": "image", "settings": {} },
-        "g-3": { "type": "image", "settings": {} },
-        "g-4": { "type": "image", "settings": {} },
-        "g-5": { "type": "image", "settings": {} },
-        "g-6": { "type": "image", "settings": {} }
+        "g-1": {
+          "type": "image",
+          "settings": {}
+        },
+        "g-2": {
+          "type": "image",
+          "settings": {}
+        },
+        "g-3": {
+          "type": "image",
+          "settings": {}
+        },
+        "g-4": {
+          "type": "image",
+          "settings": {}
+        },
+        "g-5": {
+          "type": "image",
+          "settings": {}
+        },
+        "g-6": {
+          "type": "image",
+          "settings": {}
+        }
       },
-      "block_order": ["g-1", "g-2", "g-3", "g-4", "g-5", "g-6"],
-      "settings": {}
+      "block_order": [
+        "g-1",
+        "g-2",
+        "g-3",
+        "g-4",
+        "g-5",
+        "g-6"
+      ],
+      "settings": {
+        "eyebrow": "Our gallery",
+        "heading": "Botanical elegance for every home",
+        "columns": "3"
+      }
     },
     "reviews": {
       "type": "testimonials",
       "blocks": {
-        "t-1": { "type": "testimonial", "settings": {} },
-        "t-2": { "type": "testimonial", "settings": {} },
-        "t-3": { "type": "testimonial", "settings": {} }
+        "t-1": {
+          "type": "testimonial",
+          "settings": {
+            "rating": 0,
+            "quote": "",
+            "author": ""
+          }
+        },
+        "t-2": {
+          "type": "testimonial",
+          "settings": {
+            "rating": 0,
+            "quote": "",
+            "author": ""
+          }
+        },
+        "t-3": {
+          "type": "testimonial",
+          "settings": {
+            "rating": 0,
+            "quote": "",
+            "author": ""
+          }
+        }
       },
-      "block_order": ["t-1", "t-2", "t-3"],
-      "settings": {}
+      "block_order": [
+        "t-1",
+        "t-2",
+        "t-3"
+      ],
+      "settings": {
+        "eyebrow": "",
+        "heading": "Customer testimonials",
+        "columns": "3"
+      }
     },
     "assurance": {
       "type": "gift-assurance",
       "blocks": {
-        "point-1": { "type": "point", "settings": { "label": "Arrives gift-ready" } },
-        "point-2": { "type": "point", "settings": { "label": "Add a free gift note" } },
-        "point-3": { "type": "point", "settings": { "label": "Ships worldwide" } },
-        "point-4": { "type": "point", "settings": { "label": "A gift that lasts for years" } }
+        "point-1": {
+          "type": "point",
+          "settings": {
+            "label": "Arrives gift-ready"
+          }
+        },
+        "point-2": {
+          "type": "point",
+          "settings": {
+            "label": "Add a free gift note"
+          }
+        },
+        "point-3": {
+          "type": "point",
+          "settings": {
+            "label": "Ships worldwide"
+          }
+        },
+        "point-4": {
+          "type": "point",
+          "settings": {
+            "label": "A gift that lasts for years"
+          }
+        }
       },
-      "block_order": ["point-1", "point-2", "point-3", "point-4"],
-      "settings": {}
+      "block_order": [
+        "point-1",
+        "point-2",
+        "point-3",
+        "point-4"
+      ],
+      "settings": {
+        "background_color": "#2a3320",
+        "text_color": "#fcfaf4"
+      }
     },
     "creator": {
       "type": "creator-story",
-      "settings": {}
+      "settings": {
+        "image_position": "left",
+        "background": "page",
+        "eyebrow": "Dried Petals Gallery",
+        "heading": "Meet the creator",
+        "body": "<p>Every piece is handcrafted with care. Each petal is selected and pressed by hand, then composed into a keepsake designed to be treasured for years to come.</p>",
+        "signature": "With gratitude,",
+        "button_label": "Our story",
+        "button_link": ""
+      }
     },
     "richtext": {
       "type": "rich-text",
-      "settings": { "background": "surface" }
+      "settings": {
+        "background": "surface",
+        "content_width": "narrow",
+        "alignment": "center",
+        "eyebrow": "Our promise",
+        "heading": "Made by hand, made to last",
+        "body": "<p>Every keepsake begins with real flowers, pressed and arranged by hand. We take our time so the piece you give holds its colour and meaning for years to come.</p>",
+        "button_label": "",
+        "button_link": ""
+      }
     },
     "questions": {
       "type": "faq",
@@ -181,20 +370,38 @@
           }
         }
       },
-      "block_order": ["q1", "q2", "q3"],
-      "settings": { "background": "page" }
+      "block_order": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "settings": {
+        "eyebrow": "Good to know",
+        "heading": "Frequently asked questions",
+        "background": "page"
+      }
     },
     "giftcta": {
       "type": "gift-cta",
       "settings": {
+        "overlay_opacity": 55,
+        "eyebrow": "Ready to give something lasting?",
+        "heading": "Find the perfect gift",
+        "subheading": "A handcrafted keepsake they'll keep long after the flowers would have faded.",
+        "button_label": "Shop gifts",
+        "button_link": "/collections/all?sort_by=created-descending",
         "background_color": "#2a3320",
-        "text_color": "#fcfaf4",
-        "button_link": "/collections/all?sort_by=created-descending"
+        "text_color": "#fcfaf4"
       }
     },
     "signup": {
       "type": "newsletter",
-      "settings": { "background": "surface" }
+      "settings": {
+        "background": "surface",
+        "eyebrow": "Stay in bloom",
+        "heading": "Join our list for early access and gifting ideas",
+        "subheading": "New keepsakes, seasonal collections and the occasional offer — straight to your inbox."
+      }
     }
   },
   "order": [
