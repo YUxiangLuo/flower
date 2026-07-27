@@ -167,7 +167,12 @@
       "go_to_media": "Afficher l'image {{ index }}",
       "close": "Fermer",
       "previous_media": "Image précédente",
-      "next_media": "Image suivante"
+      "next_media": "Image suivante",
+      "loading_image": "Chargement de l’image {{ index }} sur {{ count }}…",
+      "image_position": "Image {{ index }} sur {{ count }}",
+      "image_loaded": "Image {{ index }} sur {{ count }} chargée.",
+      "image_error": "Cette image n’a pas pu être chargée.",
+      "retry_image": "Réessayer"
     },
     "gallery": {
       "rail_label": "Galerie, défilante"

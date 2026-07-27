@@ -47,6 +47,7 @@
               type="button"
               class="product__zoom"
               data-zoom-open="{{ forloop.index0 }}"
+              data-preview="{{ media.preview_image | image_url: width: 800 }}"
               data-full="{{ media.preview_image | image_url: width: 2048 }}"
               aria-label="{{ 'sections.product.zoom' | t }}"
             >
@@ -74,6 +75,26 @@
         {{ 'product-1' | placeholder_svg_tag: 'product__image product__image--placeholder' }}
       </div>
     {% endif %}
+
+    <div class="product__media-status product__gallery-status" data-gallery-status hidden>
+      <span class="product__media-spinner" data-gallery-spinner aria-hidden="true"></span>
+      <span data-gallery-status-text></span>
+      <button
+        type="button"
+        class="product__media-retry"
+        data-gallery-retry
+        hidden
+      >
+        {{- 'sections.product.retry_image' | t -}}
+      </button>
+    </div>
+    <p
+      class="visually-hidden"
+      data-gallery-live
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></p>
   </div>
 
   {% if product.media.size > 1 %}

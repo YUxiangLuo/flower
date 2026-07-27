@@ -7,7 +7,7 @@
 /* Two options (S/M) across two media items. Variant 11 (S) is featured on
    media 1, variant 12 (M) on media 2; the S/L combination does not exist,
    which is the invalid-option case. */
-function productSection({ id = 'a', selected = 'S' } = {}) {
+function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}) {
   const variants = [
     { id: 11, options: ['S'], available: true },
     { id: 12, options: ['M'], available: true }
@@ -22,19 +22,56 @@ function productSection({ id = 'a', selected = 'S' } = {}) {
   return `
 <div class="product" data-product data-pid="${id}"
      data-cart-add-url="/cart/add.js"
-     data-status-adding="Adding" data-status-add-error="Add error">
+     data-status-adding="Adding" data-status-add-error="Add error"
+     data-media-loading-template="Loading image __INDEX__ of __COUNT__…"
+     data-media-position-template="Image __INDEX__ of __COUNT__"
+     data-media-loaded-template="Image __INDEX__ of __COUNT__ loaded."
+     data-media-error="Image error">
   <div data-gallery>
     <div data-stage-item data-media-id="1" class="is-active">
-      <img src="one.jpg" alt="one">
-      <button type="button" data-zoom-open="0" data-full="one-full.jpg">zoom</button>
+      <img src="one.jpg" srcset="one-400.jpg 400w, one-800.jpg 800w" sizes="50vw" alt="one">
+      <button type="button" data-zoom-open="0"
+              data-preview="one-preview.jpg" data-full="one-full.jpg">zoom</button>
     </div>
     <div data-stage-item data-media-id="2">
-      <img src="two.jpg" alt="two">
-      <button type="button" data-zoom-open="1" data-full="two-full.jpg">zoom</button>
+      <img src="two.jpg" srcset="two-400.jpg 400w, two-800.jpg 800w" sizes="50vw" alt="two">
+      <button type="button" data-zoom-open="1"
+              data-preview="two-preview.jpg" data-full="two-full.jpg">zoom</button>
     </div>
-    <button type="button" data-thumb data-media-id="1">t1</button>
-    <button type="button" data-thumb data-media-id="2">t2</button>
+    ${videoFallback ? `
+    <div data-stage-item data-media-id="3">
+      <video><img src="video-fallback.jpg"
+                  srcset="video-fallback-400.jpg 400w, video-fallback-800.jpg 800w"
+                  sizes="50vw" alt="video fallback"></video>
+    </div>` : ''}
+    <div data-gallery-status hidden>
+      <span data-gallery-spinner></span>
+      <span data-gallery-status-text></span>
+      <button type="button" data-gallery-retry hidden>Retry</button>
+    </div>
+    <p data-gallery-live></p>
+    <button type="button" data-thumb data-media-id="1"><img src="one-thumb.jpg" alt="">t1</button>
+    <button type="button" data-thumb data-media-id="2"><img src="two-thumb.jpg" alt="">t2</button>
+    ${videoFallback
+      ? '<button type="button" data-thumb data-media-id="3"><img src="video-thumb.jpg" alt="">t3</button>'
+      : ''}
   </div>
+
+  <dialog data-lightbox>
+    <button type="button" data-lightbox-close>close</button>
+    <button type="button" data-lightbox-prev>previous</button>
+    <img data-lightbox-image alt="">
+    <div data-lightbox-loader hidden>
+      <span data-lightbox-loader-text></span>
+    </div>
+    <div>
+      <span data-lightbox-counter></span>
+      <span data-lightbox-error hidden></span>
+      <button type="button" data-lightbox-retry hidden>Retry</button>
+    </div>
+    <p data-lightbox-live></p>
+    <button type="button" data-lightbox-next>next</button>
+  </dialog>
 
   <script type="application/json" data-variants>${JSON.stringify(variants)}</script>
   <script type="application/json" data-variant-media>${JSON.stringify(variantMedia)}</script>

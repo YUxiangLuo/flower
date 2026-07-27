@@ -20,6 +20,10 @@
   data-cart-add-url="{{ routes.cart_add_url }}.js"
   data-status-adding="{{ 'product.adding_to_cart' | t | escape }}"
   data-status-add-error="{{ 'product.add_to_cart_error' | t | escape }}"
+  data-media-loading-template="{{ 'sections.product.loading_image' | t: index: '__INDEX__', count: '__COUNT__' | escape }}"
+  data-media-position-template="{{ 'sections.product.image_position' | t: index: '__INDEX__', count: '__COUNT__' | escape }}"
+  data-media-loaded-template="{{ 'sections.product.image_loaded' | t: index: '__INDEX__', count: '__COUNT__' | escape }}"
+  data-media-error="{{ 'sections.product.image_error' | t | escape }}"
 >
   <div class="product__top">
     {% render 'product-media-gallery', product: product %}
@@ -165,6 +169,15 @@
     aspect-ratio: 1 / 1;
   }
 
+  .product__stage-item .product__image {
+    transition: opacity 180ms ease, filter 180ms ease;
+  }
+
+  .product__stage-item.is-loading .product__image {
+    opacity: 0.62;
+    filter: saturate(0.8);
+  }
+
   /* Must follow the base rule: same specificity, so source order decides. The
      fallback covers media whose preview image carries no ratio. */
   .product__stage-item--native {
@@ -253,6 +266,66 @@
     width: 2.8rem;
     height: 2.8rem;
     max-width: none;
+  }
+
+  .product__media-status,
+  .product__lightbox-loader,
+  .product__lightbox-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+  }
+
+  .product__gallery-status {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: max-content;
+    max-width: calc(100% - 2rem);
+    color: var(--color-foreground);
+    background-color: var(--color-background);
+    box-shadow: 0 0.5rem 1.5rem rgb(43 42 28 / 0.14);
+    transform: translate(-50%, -50%);
+  }
+
+  .product__media-spinner {
+    flex: 0 0 auto;
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid currentcolor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: product-media-spin 700ms linear infinite;
+  }
+
+  .product__media-retry {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid currentcolor;
+    border-radius: 999px;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+  }
+
+  .product__media-status[hidden],
+  .product__lightbox-loader[hidden],
+  .product__media-spinner[hidden],
+  .product__media-retry[hidden] {
+    display: none;
+  }
+
+  @keyframes product-media-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* Buy box */
@@ -712,11 +785,49 @@
     max-width: 92vw;
     max-height: 92vh;
     object-fit: contain;
+    transition: opacity 180ms ease, filter 180ms ease;
+  }
+
+  .product__lightbox[aria-busy='true'] .product__lightbox-image {
+    width: min(92vw, 92vh);
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    opacity: 0.52;
+    filter: blur(5px);
+  }
+
+  .product__lightbox-loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: max-content;
+    max-width: calc(100vw - 5rem);
+    color: #fff;
+    background-color: rgb(0 0 0 / 0.72);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .product__lightbox-meta {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    z-index: 2;
+    min-height: 2.25rem;
+    color: #fff;
+    background-color: rgb(0 0 0 / 0.58);
+    transform: translateX(-50%);
+  }
+
+  .product__lightbox-counter {
+    font-variant-numeric: tabular-nums;
   }
 
   .product__lightbox-close,
   .product__lightbox-nav {
     position: fixed;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -784,6 +895,29 @@
       width: 2.5rem;
       height: 2.5rem;
     }
+
+    .product__lightbox-nav--prev {
+      left: 0.5rem;
+    }
+
+    .product__lightbox-nav--next {
+      right: 0.5rem;
+    }
+
+    .product__lightbox-meta {
+      bottom: 0.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product__media-spinner {
+      animation: none;
+    }
+
+    .product__stage-item .product__image,
+    .product__lightbox-image {
+      transition: none;
+    }
   }
 {% endstylesheet %}
 
@@ -793,10 +927,77 @@
       var gallery = root.querySelector('[data-gallery]');
       if (!gallery) return;
       var items = Array.prototype.slice.call(gallery.querySelectorAll('[data-stage-item]'));
+      if (!items.length) return;
       var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-thumb]'));
       var lightbox = root.querySelector('[data-lightbox]');
       var lightboxImg = lightbox ? lightbox.querySelector('[data-lightbox-image]') : null;
-      var index = 0;
+      var galleryStatus = gallery.querySelector('[data-gallery-status]');
+      var galleryStatusText = gallery.querySelector('[data-gallery-status-text]');
+      var gallerySpinner = gallery.querySelector('[data-gallery-spinner]');
+      var galleryRetry = gallery.querySelector('[data-gallery-retry]');
+      var galleryLive = gallery.querySelector('[data-gallery-live]');
+      var lightboxLoader = lightbox ? lightbox.querySelector('[data-lightbox-loader]') : null;
+      var lightboxLoaderText = lightbox
+        ? lightbox.querySelector('[data-lightbox-loader-text]')
+        : null;
+      var lightboxCounter = lightbox ? lightbox.querySelector('[data-lightbox-counter]') : null;
+      var lightboxError = lightbox ? lightbox.querySelector('[data-lightbox-error]') : null;
+      var lightboxRetry = lightbox ? lightbox.querySelector('[data-lightbox-retry]') : null;
+      var lightboxLive = lightbox ? lightbox.querySelector('[data-lightbox-live]') : null;
+      var activeIndex = items.findIndex(function (item) {
+        return item.classList.contains('is-active');
+      });
+      var index = activeIndex >= 0 ? activeIndex : 0;
+      var galleryRequest = 0;
+      var lightboxRequest = 0;
+      var galleryDisposed = false;
+      var galleryImageCleanup = null;
+      var lightboxStageCleanup = null;
+      var fullLoader = null;
+      var nextFrame = window.requestAnimationFrame
+        ? window.requestAnimationFrame.bind(window)
+        : function (callback) {
+            return window.setTimeout(callback, 0);
+          };
+
+      var loadingTemplate =
+        root.getAttribute('data-media-loading-template') ||
+        'Loading image __INDEX__ of __COUNT__…';
+      var positionTemplate =
+        root.getAttribute('data-media-position-template') || 'Image __INDEX__ of __COUNT__';
+      var loadedTemplate =
+        root.getAttribute('data-media-loaded-template') ||
+        'Image __INDEX__ of __COUNT__ loaded.';
+      var mediaError = root.getAttribute('data-media-error') || 'This image could not be loaded.';
+
+      function formatMessage(template, position, count) {
+        return template
+          .replace(/__INDEX__/g, String(position))
+          .replace(/__COUNT__/g, String(count));
+      }
+
+      function galleryMessage(template, mediaIndex) {
+        return formatMessage(template, mediaIndex + 1, items.length);
+      }
+
+      function decodeImage(image) {
+        if (!image || typeof image.decode !== 'function') return Promise.resolve();
+        return image.decode().catch(function () {
+          /* A completed image is still usable when decode() is unsupported by
+             the format or rejects after the resource itself loaded. */
+        });
+      }
+
+      function setImagePriority(image, active) {
+        if (!image) return;
+        if (active) {
+          image.loading = 'eager';
+          image.setAttribute('fetchpriority', 'high');
+        } else {
+          image.loading = 'lazy';
+          image.setAttribute('fetchpriority', 'auto');
+        }
+      }
 
       function pauseMedia(item) {
         item.querySelectorAll('video').forEach(function (video) {
@@ -815,29 +1016,167 @@
         });
       }
 
-      /* Cache a high-resolution source for each image so the lightbox shows
-         full detail. Only image media carry a zoom button; video/model media
-         render a poster <img> too, so key off the button, not the <img>, and
-         map non-image media to null. */
-      var sources = items.map(function (item) {
+      /* Keep the actual fallback image for every media item. Shopify's video
+         markup can include an <img>, and that image needs the same loading,
+         error, and retry lifecycle as a regular product image. */
+      var galleryImages = items.map(function (item) {
+        return item.querySelector('img');
+      });
+
+      /* Only image media carry a zoom button. Keep the stage and thumbnail
+         elements with their explicit preview/full URLs: the stage's selected
+         currentSrc is the lightbox preview, while the full URL is requested
+         only after that preview is visible. */
+      var sources = items.map(function (item, itemIndex) {
         var btn = item.querySelector('[data-zoom-open]');
         if (!btn) return null;
-        var img = item.querySelector('img');
-        var full = btn.getAttribute('data-full');
+        var img = galleryImages[itemIndex];
         return {
-          src: full || (img && (img.currentSrc || img.src)) || '',
-          alt: (img && img.getAttribute('alt')) || ''
+          preview: btn.getAttribute('data-preview') || '',
+          full: btn.getAttribute('data-full') || '',
+          alt: (img && img.getAttribute('alt')) || '',
+          image: img,
+          thumbImage: thumbs[itemIndex] ? thumbs[itemIndex].querySelector('img') : null
         };
       });
 
-      function show(next) {
+      var imageIndexes = [];
+      sources.forEach(function (source, mediaIndex) {
+        if (source) imageIndexes.push(mediaIndex);
+      });
+
+      function imagePosition(mediaIndex) {
+        var position = imageIndexes.indexOf(mediaIndex);
+        return {
+          index: position >= 0 ? position + 1 : 1,
+          count: imageIndexes.length || 1
+        };
+      }
+
+      function setGalleryState(state, mediaIndex) {
+        var item = items[mediaIndex];
+        var loading = state === 'loading';
+        var error = state === 'error';
+        if (item) {
+          item.classList.toggle('is-loading', loading);
+          if (loading) item.setAttribute('aria-busy', 'true');
+          else item.removeAttribute('aria-busy');
+        }
+        if (!galleryStatus) return;
+
+        galleryStatus.hidden = !(loading || error);
+        if (gallerySpinner) gallerySpinner.hidden = !loading;
+        if (galleryRetry) galleryRetry.hidden = !error;
+        if (galleryStatusText) {
+          galleryStatusText.textContent = loading
+            ? galleryMessage(loadingTemplate, mediaIndex)
+            : error
+              ? mediaError
+              : '';
+        }
+        if (galleryLive) {
+          if (loading) galleryLive.textContent = galleryMessage(loadingTemplate, mediaIndex);
+          else if (error) galleryLive.textContent = mediaError;
+          else if (state === 'loaded') {
+            galleryLive.textContent = galleryMessage(loadedTemplate, mediaIndex);
+          } else {
+            galleryLive.textContent = '';
+          }
+        }
+      }
+
+      function stopWatchingGalleryImage() {
+        if (!galleryImageCleanup) return;
+        galleryImageCleanup();
+        galleryImageCleanup = null;
+      }
+
+      function monitorGalleryImage(mediaIndex) {
+        galleryRequest += 1;
+        var request = galleryRequest;
+        stopWatchingGalleryImage();
+        var image = galleryImages[mediaIndex];
+        if (!image) {
+          setGalleryState('idle', mediaIndex);
+          return;
+        }
+
+        setImagePriority(image, true);
+
+        function cleanup() {
+          image.removeEventListener('load', onLoad);
+          image.removeEventListener('error', onError);
+        }
+
+        function finish(state) {
+          if (request !== galleryRequest || index !== mediaIndex) return;
+          cleanup();
+          galleryImageCleanup = null;
+          setGalleryState(state, mediaIndex);
+        }
+
+        function onLoad() {
+          decodeImage(image).then(function () {
+            finish('loaded');
+          });
+        }
+
+        function onError() {
+          finish('error');
+        }
+
+        image.addEventListener('load', onLoad);
+        image.addEventListener('error', onError);
+        galleryImageCleanup = cleanup;
+
+        if (image.complete) {
+          if (image.naturalWidth > 0) onLoad();
+          else onError();
+        } else {
+          setGalleryState('loading', mediaIndex);
+        }
+      }
+
+      function restartGalleryImage(mediaIndex) {
+        var image = galleryImages[mediaIndex];
+        if (!image) return;
+
+        galleryRequest += 1;
+        stopWatchingGalleryImage();
+        setGalleryState('loading', mediaIndex);
+
+        var src = image.getAttribute('src');
+        var srcset = image.getAttribute('srcset');
+        var sizes = image.getAttribute('sizes');
+        image.removeAttribute('src');
+        image.removeAttribute('srcset');
+        nextFrame(function () {
+          if (sizes !== null) image.setAttribute('sizes', sizes);
+          if (srcset !== null) image.setAttribute('srcset', srcset);
+          if (src !== null) image.setAttribute('src', src);
+
+          /* Selection changes must never strand the retried image without its
+             sources. Restore first; only the active item needs fresh
+             monitoring and high fetch priority. */
+          var active = !galleryDisposed && index === mediaIndex;
+          setImagePriority(image, active);
+          if (active) monitorGalleryImage(mediaIndex);
+        });
+      }
+
+      function show(next, scrollThumb) {
         if (next < 0) next = items.length - 1;
         if (next >= items.length) next = 0;
         index = next;
         items.forEach(function (item, i) {
           var active = i === index;
           item.classList.toggle('is-active', active);
-          if (!active) pauseMedia(item);
+          if (!active) {
+            item.classList.remove('is-loading');
+            item.removeAttribute('aria-busy');
+            pauseMedia(item);
+          }
+          setImagePriority(galleryImages[i], active);
         });
         thumbs.forEach(function (thumb, i) {
           var active = i === index;
@@ -845,9 +1184,10 @@
           thumb.setAttribute('aria-current', active ? 'true' : 'false');
         });
         /* Don't scroll the page behind an open lightbox. */
-        if (thumbs[index] && (!lightbox || !lightbox.open)) {
+        if (scrollThumb !== false && thumbs[index] && (!lightbox || !lightbox.open)) {
           thumbs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
         }
+        monitorGalleryImage(index);
       }
 
       /* Let the buy box switch the gallery to a variant's featured media. */
@@ -881,27 +1221,236 @@
         }
       });
 
+      function cancelFullLoader() {
+        if (!fullLoader) return;
+        fullLoader.onload = null;
+        fullLoader.onerror = null;
+        if (typeof fullLoader.removeAttribute === 'function') {
+          fullLoader.removeAttribute('src');
+        }
+        fullLoader = null;
+      }
+
+      function stopWaitingForStage() {
+        if (!lightboxStageCleanup) return;
+        lightboxStageCleanup();
+        lightboxStageCleanup = null;
+      }
 
       if (lightbox && lightboxImg && typeof lightbox.showModal === 'function') {
+        function setLightboxState(state, mediaIndex) {
+          var position = imagePosition(mediaIndex);
+          var loading = state === 'loading';
+          var error = state === 'error';
+
+          if (lightboxCounter) {
+            lightboxCounter.textContent = formatMessage(
+              positionTemplate,
+              position.index,
+              position.count
+            );
+          }
+          if (loading) lightbox.setAttribute('aria-busy', 'true');
+          else lightbox.removeAttribute('aria-busy');
+          if (lightboxLoader) lightboxLoader.hidden = !loading;
+          if (lightboxLoaderText) {
+            lightboxLoaderText.textContent = loading
+              ? formatMessage(loadingTemplate, position.index, position.count)
+              : '';
+          }
+          if (lightboxError) {
+            lightboxError.hidden = !error;
+            lightboxError.textContent = error ? mediaError : '';
+          }
+          if (lightboxRetry) lightboxRetry.hidden = !error;
+          if (lightboxLive) {
+            if (loading) {
+              lightboxLive.textContent = formatMessage(
+                loadingTemplate,
+                position.index,
+                position.count
+              );
+            } else if (error) {
+              lightboxLive.textContent = mediaError;
+            } else if (state === 'loaded') {
+              lightboxLive.textContent = formatMessage(
+                loadedTemplate,
+                position.index,
+                position.count
+              );
+            } else {
+              lightboxLive.textContent = '';
+            }
+          }
+        }
+
+        function upgradeLightbox(source, previewUrl, mediaIndex, request) {
+          if (!source.full) return;
+          if (new URL(source.full, document.baseURI).href === new URL(previewUrl, document.baseURI).href) {
+            return;
+          }
+
+          var loader = new Image();
+          fullLoader = loader;
+          loader.decoding = 'async';
+          loader.fetchPriority = 'low';
+          loader.onload = function () {
+            decodeImage(loader).then(function () {
+              if (
+                request !== lightboxRequest ||
+                index !== mediaIndex ||
+                !lightbox.open ||
+                fullLoader !== loader
+              ) {
+                return;
+              }
+              lightboxImg.onload = null;
+              lightboxImg.onerror = null;
+              lightboxImg.src = source.full;
+              fullLoader = null;
+            });
+          };
+          loader.onerror = function () {
+            if (fullLoader === loader) fullLoader = null;
+          };
+          loader.src = source.full;
+        }
+
+        function loadLightboxPreview(mediaIndex) {
+          var source = sources[mediaIndex];
+          if (!source) return;
+          lightboxRequest += 1;
+          var request = lightboxRequest;
+          cancelFullLoader();
+          stopWaitingForStage();
+          lightboxImg.onload = null;
+          lightboxImg.onerror = null;
+          lightboxImg.alt = source.alt;
+          setLightboxState('loading', mediaIndex);
+
+          /* A loaded thumbnail gives immediate visual continuity. It remains
+             deliberately dimmed under the loader until the stage candidate is
+             decoded, so it never masquerades as the finished image. */
+          var thumbUrl =
+            source.thumbImage &&
+            (source.thumbImage.currentSrc || source.thumbImage.getAttribute('src'));
+          if (thumbUrl) lightboxImg.src = thumbUrl;
+          else lightboxImg.removeAttribute('src');
+
+          function loadPreviewUrl(previewUrl) {
+            if (!previewUrl) {
+              setLightboxState('error', mediaIndex);
+              return;
+            }
+
+            var targetUrl = new URL(previewUrl, document.baseURI).href;
+            var settled = false;
+
+            function matchesTarget() {
+              var current = lightboxImg.currentSrc || lightboxImg.src;
+              return current && new URL(current, document.baseURI).href === targetUrl;
+            }
+
+            function finishPreview() {
+              if (
+                settled ||
+                request !== lightboxRequest ||
+                index !== mediaIndex ||
+                !lightbox.open ||
+                !matchesTarget()
+              ) {
+                return;
+              }
+              settled = true;
+              decodeImage(lightboxImg).then(function () {
+                if (
+                  request !== lightboxRequest ||
+                  index !== mediaIndex ||
+                  !lightbox.open ||
+                  !matchesTarget()
+                ) {
+                  return;
+                }
+                lightboxImg.onload = null;
+                lightboxImg.onerror = null;
+                setLightboxState('loaded', mediaIndex);
+                upgradeLightbox(source, previewUrl, mediaIndex, request);
+              });
+            }
+
+            function failPreview() {
+              if (
+                request !== lightboxRequest ||
+                index !== mediaIndex ||
+                !lightbox.open ||
+                !matchesTarget()
+              ) {
+                return;
+              }
+              lightboxImg.onload = null;
+              lightboxImg.onerror = null;
+              setLightboxState('error', mediaIndex);
+            }
+
+            lightboxImg.onload = finishPreview;
+            lightboxImg.onerror = failPreview;
+            lightboxImg.src = previewUrl;
+            if (lightboxImg.complete) {
+              if (lightboxImg.naturalWidth > 0) finishPreview();
+              else failPreview();
+            }
+          }
+
+          /* Chromium can keep currentSrc empty for a formerly hidden lazy
+             image until that image finishes loading. Listen to the stage
+             image instead of guessing a fixed-width fallback: as soon as the
+             browser exposes its selected responsive candidate, the lightbox
+             uses that exact URL and shares the request/cache entry. */
+          function useStageCandidate() {
+            if (request !== lightboxRequest || index !== mediaIndex || !lightbox.open) return false;
+            var previewUrl = source.image && source.image.currentSrc;
+            if (!previewUrl) return false;
+            stopWaitingForStage();
+            loadPreviewUrl(previewUrl);
+            return true;
+          }
+
+          function onStageLoad() {
+            if (request !== lightboxRequest || index !== mediaIndex || !lightbox.open) return;
+            var previewUrl = (source.image && source.image.currentSrc) || source.preview;
+            stopWaitingForStage();
+            loadPreviewUrl(previewUrl);
+          }
+
+          function onStageError() {
+            if (request !== lightboxRequest || index !== mediaIndex || !lightbox.open) return;
+            stopWaitingForStage();
+            setLightboxState('error', mediaIndex);
+          }
+
+          if (!source.image) {
+            loadPreviewUrl(source.preview);
+          } else {
+            source.image.addEventListener('load', onStageLoad);
+            source.image.addEventListener('error', onStageError);
+            lightboxStageCleanup = function () {
+              source.image.removeEventListener('load', onStageLoad);
+              source.image.removeEventListener('error', onStageError);
+            };
+
+            if (!useStageCandidate() && source.image.complete) {
+              if (source.image.naturalWidth > 0) onStageLoad();
+              else onStageError();
+            }
+          }
+        }
+
         function openLightbox(i) {
           var source = sources[i];
           if (!source) return;
-          show(i);
-          lightboxImg.alt = source.alt;
-          /* Show the already-loaded gallery image immediately so switching
-             feels instant, then upgrade to the full-resolution source once it
-             downloads. Guard the swap so it's ignored if the user navigated on
-             before it finished. */
-          var stageImg = items[i].querySelector('img');
-          lightboxImg.src = (stageImg && (stageImg.currentSrc || stageImg.src)) || source.src;
-          if (source.src) {
-            var full = new Image();
-            full.onload = function () {
-              if (index === i) lightboxImg.src = source.src;
-            };
-            full.src = source.src;
-          }
+          show(i, false);
           if (!lightbox.open) lightbox.showModal();
+          loadLightboxPreview(i);
         }
 
         gallery.querySelectorAll('[data-zoom-open]').forEach(function (btn) {
@@ -930,17 +1479,65 @@
         if (prev) prev.addEventListener('click', function () { move(-1); });
         if (nextBtn) nextBtn.addEventListener('click', function () { move(1); });
         if (close) close.addEventListener('click', function () { lightbox.close(); });
+        if (lightboxRetry) {
+          lightboxRetry.addEventListener('click', function () {
+            var retryIndex = index;
+            setLightboxState('loading', retryIndex);
+            restartGalleryImage(retryIndex);
+            lightboxImg.removeAttribute('src');
+            nextFrame(function () {
+              if (index === retryIndex && lightbox.open) loadLightboxPreview(retryIndex);
+            });
+          });
+        }
 
         lightbox.addEventListener('keydown', function (event) {
-          if (event.key === 'ArrowRight') move(1);
-          else if (event.key === 'ArrowLeft') move(-1);
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            move(1);
+          } else if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            move(-1);
+          }
         });
 
         /* Click on the backdrop (outside the image) closes. */
         lightbox.addEventListener('click', function (event) {
           if (event.target === lightbox) lightbox.close();
         });
+        lightbox.addEventListener('close', function () {
+          lightboxRequest += 1;
+          cancelFullLoader();
+          stopWaitingForStage();
+          lightboxImg.onload = null;
+          lightboxImg.onerror = null;
+          setLightboxState('idle', index);
+        });
       }
+
+      if (galleryRetry) {
+        galleryRetry.addEventListener('click', function () {
+          restartGalleryImage(index);
+        });
+      }
+
+      /* Register loading state for the server-rendered active item even when
+         there is no variant picker to call selectMedia during buy-box setup. */
+      show(index, false);
+
+      root.galleryCleanup = function () {
+        galleryDisposed = true;
+        galleryRequest += 1;
+        lightboxRequest += 1;
+        stopWatchingGalleryImage();
+        cancelFullLoader();
+        stopWaitingForStage();
+        if (lightboxImg) {
+          lightboxImg.onload = null;
+          lightboxImg.onerror = null;
+        }
+        if (lightbox && lightbox.open) lightbox.close();
+      };
     }
 
     function initBuyBox(root) {
@@ -1215,6 +1812,11 @@
     initFrom(document);
     document.addEventListener('shopify:section:load', function (event) {
       initFrom(event.target);
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      event.target.querySelectorAll('[data-product]').forEach(function (root) {
+        if (typeof root.galleryCleanup === 'function') root.galleryCleanup();
+      });
     });
   })();
 {% endjavascript %}

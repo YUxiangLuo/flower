@@ -39,8 +39,37 @@
       </button>
     {% endif %}
     {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
-    <img class="product__lightbox-image" data-lightbox-image alt="">
+    <img class="product__lightbox-image" data-lightbox-image decoding="async" alt="">
     {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
+    <div class="product__lightbox-loader" data-lightbox-loader hidden>
+      <span class="product__media-spinner" aria-hidden="true"></span>
+      <span data-lightbox-loader-text></span>
+    </div>
+    <div class="product__lightbox-meta">
+      <span
+        class="product__lightbox-counter"
+        data-lightbox-counter
+        aria-hidden="true"
+      >
+        1 / {{ image_media.size }}
+      </span>
+      <span data-lightbox-error hidden></span>
+      <button
+        type="button"
+        class="product__media-retry product__lightbox-retry"
+        data-lightbox-retry
+        hidden
+      >
+        {{- 'sections.product.retry_image' | t -}}
+      </button>
+    </div>
+    <p
+      class="visually-hidden"
+      data-lightbox-live
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></p>
     {% if image_media.size > 1 %}
       <button
         type="button"
