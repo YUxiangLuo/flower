@@ -16,7 +16,7 @@
   <header
     class="collection__header{% if collection.image %} collection__header--media{% endif %}"
     {%- if collection.image %}
-      style="--collection-media: url('{{ collection.image | image_url: width: 420 | escape }}');"
+      style="--collection-media: url('{{ collection.image | image_url: width: 1500 | escape }}');"
     {%- endif %}
   >
     <h1 class="collection__title">{{ collection.title }}</h1>
@@ -232,8 +232,8 @@
       padding-block-start: 0;
     }
 
-    /* Keep the existing soft photographic treatment, then use the same dark
-       scrim pattern as the hero so near-white copy reads over the artwork. */
+    /* Keep the photograph crisp, then use the same dark scrim pattern as the
+       hero so near-white copy reads over the artwork. */
     .collection__header--media {
       position: relative;
       isolation: isolate;
@@ -257,19 +257,12 @@
       background-image: var(--collection-media);
       background-size: cover;
       background-position: center;
-      /* Most of the softening is already done: the source is requested at
-         420px and stretched, which costs a few kilobytes instead of a
-         full-width blur on a phone GPU. The rest takes it past "slightly out of
-         focus" — a recognisable photograph behind the words is what made the
-         band read as text dropped on an image rather than as a printed page. */
-      filter: blur(6px) saturate(0.55);
-      /* Overscan, or the blur feathers the artwork's own edges into the page. */
-      transform: scale(1.08);
+      filter: saturate(0.55);
     }
 
     .collection__header--media::after {
       z-index: -1;
-      background-color: rgb(0 0 0 / 0.35);
+      background-color: rgb(0 0 0 / 0.5);
     }
 
     .collection__header--media .collection__title,
