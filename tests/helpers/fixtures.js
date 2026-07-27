@@ -29,14 +29,16 @@ function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}
      data-media-error="Image error">
   <div data-gallery>
     <div data-stage-item data-media-id="1" class="is-active">
-      <img src="one.jpg" srcset="one-400.jpg 400w, one-800.jpg 800w" sizes="50vw" alt="one">
       <button type="button" data-zoom-open="0"
-              data-preview="one-preview.jpg" data-full="one-full.jpg">zoom</button>
+              data-preview="one-preview.jpg" data-full="one-full.jpg">
+        <img src="one.jpg" srcset="one-400.jpg 400w, one-800.jpg 800w" sizes="50vw" alt="one">
+      </button>
     </div>
     <div data-stage-item data-media-id="2">
-      <img src="two.jpg" srcset="two-400.jpg 400w, two-800.jpg 800w" sizes="50vw" alt="two">
       <button type="button" data-zoom-open="1"
-              data-preview="two-preview.jpg" data-full="two-full.jpg">zoom</button>
+              data-preview="two-preview.jpg" data-full="two-full.jpg">
+        <img src="two.jpg" srcset="two-400.jpg 400w, two-800.jpg 800w" sizes="50vw" alt="two">
+      </button>
     </div>
     ${videoFallback ? `
     <div data-stage-item data-media-id="3">
@@ -53,10 +55,10 @@ function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}
     </div>
     <p data-gallery-live></p>
     <div data-thumbs>
-      <button type="button" data-thumb data-media-id="1"><img src="one-thumb.jpg" alt="">t1</button>
-      <button type="button" data-thumb data-media-id="2"><img src="two-thumb.jpg" alt="">t2</button>
+      <button type="button" data-thumb="0"><img src="one-thumb.jpg" alt="">t1</button>
+      <button type="button" data-thumb="1"><img src="two-thumb.jpg" alt="">t2</button>
       ${videoFallback
-        ? '<button type="button" data-thumb data-media-id="3"><img src="video-thumb.jpg" alt="">t3</button>'
+        ? '<button type="button" data-thumb="2"><img src="video-thumb.jpg" alt="">t3</button>'
         : ''}
     </div>
   </div>

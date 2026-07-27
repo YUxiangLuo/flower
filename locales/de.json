@@ -172,8 +172,8 @@
     "product": {
       "zoom": "Bild vergrößern",
       "gallery": "Produktgalerie",
-      "thumbnails": "Produktbilder",
-      "go_to_media": "Bild {{ index }} anzeigen",
+      "thumbnails": "Produktmedien",
+      "go_to_media": "Medium {{ index }} anzeigen",
       "previous_gallery_item": "Vorheriges Galerieelement",
       "next_gallery_item": "Nächstes Galerieelement",
       "close": "Schließen",

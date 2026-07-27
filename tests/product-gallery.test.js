@@ -17,7 +17,8 @@ function installImageHarness(window) {
     states.set(image, {
       complete: isThumb,
       naturalWidth: isThumb ? 200 : 0,
-      currentSrc: image.hasAttribute('data-lightbox-image') ? null : ''
+      currentSrc: image.hasAttribute('data-lightbox-image') ? null : '',
+      decodePromise: null
     });
   });
 
@@ -57,6 +58,14 @@ function installImageHarness(window) {
           state.naturalWidth = 0;
         }
       }
+    }
+  });
+
+  Object.defineProperty(prototype, 'decode', {
+    configurable: true,
+    value() {
+      const state = states.get(this);
+      return state && state.decodePromise ? state.decodePromise : Promise.resolve();
     }
   });
 
@@ -107,6 +116,22 @@ function installImageHarness(window) {
       state.complete = false;
       state.naturalWidth = 0;
     },
+    cache(image) {
+      const state = stateFor(image);
+      state.complete = true;
+      state.naturalWidth = 800;
+    },
+    holdDecode(image) {
+      const state = stateFor(image);
+      let release;
+      state.decodePromise = new Promise((resolve) => {
+        release = resolve;
+      });
+      return () => {
+        state.decodePromise = null;
+        release();
+      };
+    },
     setCurrentSrc(image, value) {
       stateFor(image).currentSrc = new URL(value, window.document.baseURI).href;
     },
@@ -147,28 +172,80 @@ function click(window, element) {
   element.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
+function pointer(window, element, type, options = {}) {
+  const event = new window.PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    pointerId: 1,
+    pointerType: 'touch',
+    isPrimary: true,
+    clientX: 0,
+    clientY: 0,
+    ...options
+  });
+  element.dispatchEvent(event);
+  return event;
+}
+
+function pointerClick(window, element, options = {}) {
+  return pointer(window, element, 'click', {
+    detail: 1,
+    ...options
+  });
+}
+
+function swipe(window, element, options = {}) {
+  const {
+    startX = 200,
+    startY = 100,
+    endX = 100,
+    endY = 100,
+    pointerType = 'touch'
+  } = options;
+
+  pointer(window, element, 'pointerdown', {
+    clientX: startX,
+    clientY: startY,
+    pointerType
+  });
+  const moveEvent = pointer(window, element, 'pointermove', {
+    clientX: endX,
+    clientY: endY,
+    pointerType
+  });
+  pointer(window, element, 'pointerup', {
+    clientX: endX,
+    clientY: endY,
+    pointerType
+  });
+
+  return moveEvent;
+}
+
+function activeMediaId(root) {
+  return root.querySelector('[data-stage-item].is-active').getAttribute('data-media-id');
+}
+
 test('the stage arrows step through every media item, wrap, and keep thumbnails in sync', () => {
   const { window, root, lightbox } = bootGallery({ videoFallback: true });
-  const activeMediaId = () =>
-    root.querySelector('[data-stage-item].is-active').getAttribute('data-media-id');
   const thumbs = Array.from(root.querySelectorAll('[data-thumb]'));
   const previous = root.querySelector('[data-gallery-prev]');
   const next = root.querySelector('[data-gallery-next]');
 
-  assert.equal(activeMediaId(), '1');
+  assert.equal(activeMediaId(root), '1');
 
   click(window, next);
-  assert.equal(activeMediaId(), '2');
+  assert.equal(activeMediaId(root), '2');
   assert.equal(thumbs[1].getAttribute('aria-current'), 'true');
 
   click(window, next);
-  assert.equal(activeMediaId(), '3', 'the stage control skipped non-image media');
+  assert.equal(activeMediaId(root), '3', 'the stage control skipped non-image media');
 
   click(window, next);
-  assert.equal(activeMediaId(), '1', 'next did not wrap to the first media item');
+  assert.equal(activeMediaId(root), '1', 'next did not wrap to the first media item');
 
   click(window, previous);
-  assert.equal(activeMediaId(), '3', 'previous did not wrap to the last media item');
+  assert.equal(activeMediaId(root), '3', 'previous did not wrap to the last media item');
   assert.equal(thumbs[2].getAttribute('aria-current'), 'true');
   assert.equal(lightbox.open, false, 'stage navigation unexpectedly opened the lightbox');
 });
@@ -190,6 +267,168 @@ test('stage arrows scroll only the thumbnail rail, never the document', () => {
 
   assert.equal(rail.scrollLeft, 70, 'the active thumbnail stayed outside the rail viewport');
   assert.equal(documentScrolls, 0, 'stage navigation invoked document-scrolling behavior');
+});
+
+test('touch swipes traverse image media, skip video, and wrap', () => {
+  const { window, root, lightbox } = bootGallery({ videoFallback: true });
+  const gallery = root.querySelector('[data-gallery]');
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+  const secondZoom = root.querySelector('[data-zoom-open="1"]');
+  const firstImage = firstZoom.querySelector('img');
+  const secondImage = secondZoom.querySelector('img');
+
+  assert.equal(gallery.hasAttribute('data-gallery-swipe-enabled'), true);
+  assert.equal(activeMediaId(root), '1');
+
+  swipe(window, firstImage);
+  assert.equal(activeMediaId(root), '2');
+
+  swipe(window, secondImage);
+  assert.equal(activeMediaId(root), '1');
+
+  swipe(window, firstImage, { startX: 100, endX: 200 });
+  assert.equal(activeMediaId(root), '2');
+  assert.equal(root.querySelectorAll('[data-thumb]')[1].getAttribute('aria-current'), 'true');
+  assert.equal(lightbox.open, false);
+});
+
+test('a completed image drag suppresses its zoom click while a tap still opens the lightbox', () => {
+  const { window, root, lightbox } = bootGallery();
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+  const secondZoom = root.querySelector('[data-zoom-open="1"]');
+  const firstImage = firstZoom.querySelector('img');
+
+  swipe(window, firstImage);
+  pointerClick(window, firstImage);
+  assert.equal(lightbox.open, false);
+
+  click(window, secondZoom);
+  assert.equal(lightbox.open, true);
+});
+
+test('a new touch clears stale click suppression left by a short drag', () => {
+  const { window, root, lightbox } = bootGallery();
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+  const firstImage = firstZoom.querySelector('img');
+
+  swipe(window, firstImage, { endX: 170 });
+
+  pointer(window, firstImage, 'pointerdown', { clientX: 200, clientY: 100 });
+  pointer(window, firstImage, 'pointerup', { clientX: 200, clientY: 100 });
+  pointerClick(window, firstImage);
+
+  assert.equal(lightbox.open, true);
+});
+
+test('new mouse and keyboard activations are not mistaken for a prior touch drag', () => {
+  {
+    const { window, root, lightbox } = bootGallery();
+    const firstZoom = root.querySelector('[data-zoom-open="0"]');
+    const firstImage = firstZoom.querySelector('img');
+
+    swipe(window, firstImage, { endX: 170 });
+    pointer(window, firstImage, 'pointerdown', {
+      pointerId: 2,
+      pointerType: 'mouse',
+      clientX: 200,
+      clientY: 100
+    });
+    pointer(window, firstImage, 'pointerup', {
+      pointerId: 2,
+      pointerType: 'mouse',
+      clientX: 200,
+      clientY: 100
+    });
+    pointerClick(window, firstImage, {
+      pointerId: 2,
+      pointerType: 'mouse'
+    });
+
+    assert.equal(lightbox.open, true);
+  }
+
+  {
+    const { window, root, lightbox } = bootGallery();
+    const firstZoom = root.querySelector('[data-zoom-open="0"]');
+
+    swipe(window, firstZoom.querySelector('img'), { endX: 170 });
+    click(window, firstZoom);
+
+    assert.equal(lightbox.open, true);
+  }
+});
+
+test('short horizontal drags and vertical gestures do not change the active image', () => {
+  const { window, root, lightbox } = bootGallery();
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+  const firstImage = firstZoom.querySelector('img');
+
+  const shortMove = swipe(window, firstImage, { endX: 170 });
+  assert.equal(shortMove.defaultPrevented, true);
+  assert.equal(activeMediaId(root), '1');
+
+  pointerClick(window, firstImage);
+  assert.equal(lightbox.open, false);
+
+  const verticalMove = swipe(window, firstImage, {
+    endX: 190,
+    endY: 180
+  });
+  assert.equal(verticalMove.defaultPrevented, false);
+  assert.equal(activeMediaId(root), '1');
+
+  const diagonalMove = swipe(window, firstImage, {
+    endX: 150,
+    endY: 145
+  });
+  assert.equal(diagonalMove.defaultPrevented, false);
+  assert.equal(activeMediaId(root), '1');
+
+  click(window, firstZoom);
+  assert.equal(lightbox.open, true);
+});
+
+test('closing after lightbox navigation focuses the active stage image', () => {
+  const { window, root, lightbox } = bootGallery();
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+  const secondZoom = root.querySelector('[data-zoom-open="1"]');
+
+  firstZoom.focus();
+  click(window, firstZoom);
+  click(window, root.querySelector('[data-lightbox-next]'));
+  click(window, root.querySelector('[data-lightbox-close]'));
+
+  assert.equal(lightbox.open, false);
+  assert.equal(activeMediaId(root), '2');
+  assert.equal(window.document.activeElement, secondZoom);
+});
+
+test('mouse drags and touch gestures on non-image media are ignored', () => {
+  const { window, root } = bootGallery({ videoFallback: true });
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+
+  swipe(window, firstZoom.querySelector('img'), { pointerType: 'mouse' });
+  assert.equal(activeMediaId(root), '1');
+
+  click(window, root.querySelectorAll('[data-thumb]')[2]);
+  assert.equal(activeMediaId(root), '3');
+
+  swipe(window, root.querySelector('[data-stage-item][data-media-id="3"] video'));
+  assert.equal(activeMediaId(root), '3');
+});
+
+test('a cancelled image swipe does not switch media or suppress the following tap', () => {
+  const { window, root, lightbox } = bootGallery();
+  const firstZoom = root.querySelector('[data-zoom-open="0"]');
+  const firstImage = firstZoom.querySelector('img');
+
+  pointer(window, firstImage, 'pointerdown', { clientX: 200, clientY: 100 });
+  pointer(window, firstImage, 'pointermove', { clientX: 100, clientY: 100 });
+  pointer(window, firstImage, 'pointercancel', { clientX: 100, clientY: 100 });
+
+  assert.equal(activeMediaId(root), '1');
+  click(window, firstZoom);
+  assert.equal(lightbox.open, true);
 });
 
 test('the lightbox shares the active gallery preview before requesting the full image', async () => {
@@ -336,6 +575,34 @@ test('the PDP gallery communicates loading, failure, retry, and completion', asy
   await tick(window);
   assert.equal(status.hidden, true);
   assert.equal(root.querySelector('[data-gallery-live]').textContent, 'Image 2 of 2 loaded.');
+});
+
+test('a cached image replaces the previous error state while decode is pending', async () => {
+  const gallery = bootGallery();
+  const { window, root, images, stageImages } = gallery;
+  const status = root.querySelector('[data-gallery-status]');
+  const statusText = root.querySelector('[data-gallery-status-text]');
+  const retry = root.querySelector('[data-gallery-retry]');
+
+  images.error(stageImages[0]);
+  await tick(window);
+  assert.equal(statusText.textContent, 'Image error');
+
+  images.cache(stageImages[1]);
+  const releaseDecode = images.holdDecode(stageImages[1]);
+  click(window, root.querySelectorAll('[data-thumb]')[1]);
+
+  assert.equal(status.hidden, false);
+  assert.equal(statusText.textContent, 'Loading image 2 of 2…');
+  assert.equal(retry.hidden, true);
+  assert.equal(
+    stageImages[1].closest('[data-stage-item]').getAttribute('aria-busy'),
+    'true'
+  );
+
+  releaseDecode();
+  await tick(window);
+  assert.equal(status.hidden, true);
 });
 
 test('an uploaded video fallback image can recover through the gallery retry', async () => {

@@ -255,6 +255,12 @@
     cursor: zoom-in;
   }
 
+  .product__gallery[data-gallery-swipe-enabled] .product__zoom {
+    /* Preserve page scrolling while reserving horizontal touch gestures for
+       image navigation. Mouse input and non-image media are unaffected. */
+    touch-action: pan-y pinch-zoom;
+  }
+
   .product__image {
     width: 100%;
     height: 100%;
@@ -1018,6 +1024,13 @@
       var galleryImageCleanup = null;
       var lightboxStageCleanup = null;
       var fullLoader = null;
+      var swipe = null;
+      var suppressedZoom = null;
+      var suppressedPointerId = null;
+      var suppressZoomClickUntil = 0;
+      var swipeThreshold = 48;
+      var dragThreshold = 12;
+      var horizontalRatio = 1.25;
       var nextFrame = window.requestAnimationFrame
         ? window.requestAnimationFrame.bind(window)
         : function (callback) {
@@ -1108,6 +1121,8 @@
       sources.forEach(function (source, mediaIndex) {
         if (source) imageIndexes.push(mediaIndex);
       });
+      var swipeEnabled = imageIndexes.length > 1 && typeof window.PointerEvent === 'function';
+      if (swipeEnabled) gallery.setAttribute('data-gallery-swipe-enabled', '');
 
       function imagePosition(mediaIndex) {
         var position = imageIndexes.indexOf(mediaIndex);
@@ -1166,6 +1181,9 @@
         }
 
         setImagePriority(image, true);
+        /* A cached image can still spend time in decode(). Replace any status
+           left by the previous media before waiting for that promise. */
+        setGalleryState('loading', mediaIndex);
 
         function cleanup() {
           image.removeEventListener('load', onLoad);
@@ -1196,8 +1214,6 @@
         if (image.complete) {
           if (image.naturalWidth > 0) onLoad();
           else onError();
-        } else {
-          setGalleryState('loading', mediaIndex);
         }
       }
 
@@ -1268,6 +1284,133 @@
         monitorGalleryImage(index);
       }
 
+      function moveStageImage(step) {
+        var position = imageIndexes.indexOf(index);
+        if (position < 0 || imageIndexes.length < 2) return;
+        var nextPosition = (position + step + imageIndexes.length) % imageIndexes.length;
+        show(imageIndexes[nextPosition]);
+      }
+
+      function zoomFromEvent(event) {
+        if (!event.target || typeof event.target.closest !== 'function') return null;
+        var zoom = event.target.closest('[data-zoom-open]');
+        if (!zoom || !gallery.contains(zoom)) return null;
+        return zoom;
+      }
+
+      function clearZoomClickSuppression() {
+        suppressedZoom = null;
+        suppressedPointerId = null;
+        suppressZoomClickUntil = 0;
+      }
+
+      function onSwipeStart(event) {
+        /* A compatibility click from the previous touch would already have
+           fired before another pointerdown. Clear any unused suppression so
+           a genuine new pointer sequence is never mistaken for that drag. */
+        if (event.isPrimary !== false) {
+          clearZoomClickSuppression();
+        }
+        if (
+          !swipeEnabled ||
+          galleryDisposed ||
+          event.pointerType !== 'touch' ||
+          event.isPrimary === false
+        ) {
+          return;
+        }
+        var zoom = zoomFromEvent(event);
+        if (!zoom) return;
+        var mediaIndex = parseInt(zoom.getAttribute('data-zoom-open'), 10);
+        if (mediaIndex !== index || !sources[mediaIndex]) return;
+        swipe = {
+          pointerId: event.pointerId,
+          zoom: zoom,
+          startX: event.clientX,
+          startY: event.clientY,
+          lastX: event.clientX,
+          lastY: event.clientY
+        };
+      }
+
+      function onSwipeMove(event) {
+        if (!swipe || event.pointerId !== swipe.pointerId) return;
+        swipe.lastX = event.clientX;
+        swipe.lastY = event.clientY;
+        var deltaX = swipe.lastX - swipe.startX;
+        var deltaY = swipe.lastY - swipe.startY;
+        if (
+          Math.abs(deltaX) >= dragThreshold &&
+          Math.abs(deltaX) > Math.abs(deltaY) * horizontalRatio &&
+          event.cancelable
+        ) {
+          event.preventDefault();
+        }
+      }
+
+      function finishSwipe(event, cancelled) {
+        if (!swipe || event.pointerId !== swipe.pointerId) return;
+        var gesture = swipe;
+        swipe = null;
+        if (cancelled) return;
+
+        var endX = typeof event.clientX === 'number' ? event.clientX : gesture.lastX;
+        var endY = typeof event.clientY === 'number' ? event.clientY : gesture.lastY;
+        var deltaX = endX - gesture.startX;
+        var deltaY = endY - gesture.startY;
+        var distanceX = Math.abs(deltaX);
+        var distanceY = Math.abs(deltaY);
+        var horizontal =
+          distanceX >= dragThreshold && distanceX > distanceY * horizontalRatio;
+
+        if (horizontal) {
+          suppressedZoom = gesture.zoom;
+          suppressedPointerId = gesture.pointerId;
+          suppressZoomClickUntil = Date.now() + 500;
+        }
+        if (distanceX >= swipeThreshold && distanceX > distanceY * horizontalRatio) {
+          moveStageImage(deltaX < 0 ? 1 : -1);
+        }
+      }
+
+      if (swipeEnabled) {
+        gallery.addEventListener('pointerdown', onSwipeStart);
+        gallery.addEventListener('pointermove', onSwipeMove);
+        gallery.addEventListener('pointerup', function (event) {
+          finishSwipe(event, false);
+        });
+        gallery.addEventListener('pointercancel', function (event) {
+          finishSwipe(event, true);
+        });
+        gallery.addEventListener(
+          'click',
+          function (event) {
+            var zoom = zoomFromEvent(event);
+            var pointerType = event.pointerType || '';
+            var sameTouchPointer =
+              pointerType === 'touch' &&
+              (typeof event.pointerId !== 'number' ||
+                event.pointerId === suppressedPointerId);
+            /* Older Pointer Events implementations expose the compatibility
+               click as a MouseEvent. detail > 0 keeps keyboard, assistive-
+               technology, and programmatic activation out of this fallback. */
+            var legacyTouchClick = !pointerType && event.detail > 0;
+            if (
+              !zoom ||
+              zoom !== suppressedZoom ||
+              Date.now() > suppressZoomClickUntil ||
+              (!sameTouchPointer && !legacyTouchClick)
+            ) {
+              return;
+            }
+            clearZoomClickSuppression();
+            event.preventDefault();
+            event.stopPropagation();
+          },
+          true
+        );
+      }
+
       /* Let the buy box switch the gallery to a variant's featured media. */
       root.selectMedia = function (mediaId) {
         for (var i = 0; i < items.length; i++) {
@@ -1324,6 +1467,18 @@
         if (!lightboxStageCleanup) return;
         lightboxStageCleanup();
         lightboxStageCleanup = null;
+      }
+
+      function focusActiveGalleryControl() {
+        var activeItem = items[index];
+        var target = activeItem ? activeItem.querySelector('[data-zoom-open]') : null;
+        if (!target && thumbs[index]) target = thumbs[index];
+        if (!target || typeof target.focus !== 'function') return;
+        try {
+          target.focus({ preventScroll: true });
+        } catch (error) {
+          target.focus();
+        }
       }
 
       if (lightbox && lightboxImg && typeof lightbox.showModal === 'function') {
@@ -1601,6 +1756,10 @@
           lightboxImg.onload = null;
           lightboxImg.onerror = null;
           setLightboxState('idle', index);
+          /* Native focus restoration targets the button that opened the
+             dialog. After lightbox navigation that button is hidden, so move
+             focus to the zoom control for the image now shown on the stage. */
+          if (!galleryDisposed) focusActiveGalleryControl();
         });
       }
 
@@ -1618,6 +1777,9 @@
         galleryDisposed = true;
         galleryRequest += 1;
         lightboxRequest += 1;
+        swipe = null;
+        clearZoomClickSuppression();
+        gallery.removeAttribute('data-gallery-swipe-enabled');
         stopWatchingGalleryImage();
         cancelFullLoader();
         stopWaitingForStage();
