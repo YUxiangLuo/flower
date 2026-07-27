@@ -44,17 +44,21 @@ function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}
                   srcset="video-fallback-400.jpg 400w, video-fallback-800.jpg 800w"
                   sizes="50vw" alt="video fallback"></video>
     </div>` : ''}
+    <button type="button" data-gallery-prev>previous media</button>
+    <button type="button" data-gallery-next>next media</button>
     <div data-gallery-status hidden>
       <span data-gallery-spinner></span>
       <span data-gallery-status-text></span>
       <button type="button" data-gallery-retry hidden>Retry</button>
     </div>
     <p data-gallery-live></p>
-    <button type="button" data-thumb data-media-id="1"><img src="one-thumb.jpg" alt="">t1</button>
-    <button type="button" data-thumb data-media-id="2"><img src="two-thumb.jpg" alt="">t2</button>
-    ${videoFallback
-      ? '<button type="button" data-thumb data-media-id="3"><img src="video-thumb.jpg" alt="">t3</button>'
-      : ''}
+    <div data-thumbs>
+      <button type="button" data-thumb data-media-id="1"><img src="one-thumb.jpg" alt="">t1</button>
+      <button type="button" data-thumb data-media-id="2"><img src="two-thumb.jpg" alt="">t2</button>
+      ${videoFallback
+        ? '<button type="button" data-thumb data-media-id="3"><img src="video-thumb.jpg" alt="">t3</button>'
+        : ''}
+    </div>
   </div>
 
   <dialog data-lightbox>

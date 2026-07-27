@@ -147,6 +147,51 @@ function click(window, element) {
   element.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
+test('the stage arrows step through every media item, wrap, and keep thumbnails in sync', () => {
+  const { window, root, lightbox } = bootGallery({ videoFallback: true });
+  const activeMediaId = () =>
+    root.querySelector('[data-stage-item].is-active').getAttribute('data-media-id');
+  const thumbs = Array.from(root.querySelectorAll('[data-thumb]'));
+  const previous = root.querySelector('[data-gallery-prev]');
+  const next = root.querySelector('[data-gallery-next]');
+
+  assert.equal(activeMediaId(), '1');
+
+  click(window, next);
+  assert.equal(activeMediaId(), '2');
+  assert.equal(thumbs[1].getAttribute('aria-current'), 'true');
+
+  click(window, next);
+  assert.equal(activeMediaId(), '3', 'the stage control skipped non-image media');
+
+  click(window, next);
+  assert.equal(activeMediaId(), '1', 'next did not wrap to the first media item');
+
+  click(window, previous);
+  assert.equal(activeMediaId(), '3', 'previous did not wrap to the last media item');
+  assert.equal(thumbs[2].getAttribute('aria-current'), 'true');
+  assert.equal(lightbox.open, false, 'stage navigation unexpectedly opened the lightbox');
+});
+
+test('stage arrows scroll only the thumbnail rail, never the document', () => {
+  const { window, root } = bootGallery();
+  const rail = root.querySelector('[data-thumbs]');
+  const thumbs = Array.from(root.querySelectorAll('[data-thumb]'));
+  let documentScrolls = 0;
+
+  window.Element.prototype.scrollIntoView = () => {
+    documentScrolls += 1;
+  };
+  rail.scrollLeft = 0;
+  rail.getBoundingClientRect = () => ({ left: 0, right: 100 });
+  thumbs[1].getBoundingClientRect = () => ({ left: 120, right: 170 });
+
+  click(window, root.querySelector('[data-gallery-next]'));
+
+  assert.equal(rail.scrollLeft, 70, 'the active thumbnail stayed outside the rail viewport');
+  assert.equal(documentScrolls, 0, 'stage navigation invoked document-scrolling behavior');
+});
+
 test('the lightbox shares the active gallery preview before requesting the full image', async () => {
   const gallery = bootGallery();
   const { window, root, images, stageImages, lightbox, lightboxImage } = gallery;

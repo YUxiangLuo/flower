@@ -76,6 +76,25 @@
       </div>
     {% endif %}
 
+    {% if product.media.size > 1 %}
+      <button
+        type="button"
+        class="product__stage-nav product__stage-nav--prev"
+        data-gallery-prev
+        aria-label="{{ 'sections.product.previous_gallery_item' | t }}"
+      >
+        {{- 'icon-chevron.svg' | inline_asset_content -}}
+      </button>
+      <button
+        type="button"
+        class="product__stage-nav product__stage-nav--next"
+        data-gallery-next
+        aria-label="{{ 'sections.product.next_gallery_item' | t }}"
+      >
+        {{- 'icon-chevron.svg' | inline_asset_content -}}
+      </button>
+    {% endif %}
+
     <div class="product__media-status product__gallery-status" data-gallery-status hidden>
       <span class="product__media-spinner" data-gallery-spinner aria-hidden="true"></span>
       <span data-gallery-status-text></span>

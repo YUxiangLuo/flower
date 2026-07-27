@@ -162,6 +162,58 @@
     position: relative;
   }
 
+  .product__stage-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: var(--color-foreground);
+    background-color: transparent;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition:
+      color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .product__stage-nav--prev {
+    left: 0.75rem;
+  }
+
+  .product__stage-nav--next {
+    right: 0.75rem;
+  }
+
+  .product__stage-nav svg {
+    width: 1.8rem;
+    height: 1.8rem;
+    max-width: none;
+    filter: drop-shadow(0 0 2px var(--color-background));
+  }
+
+  .product__stage-nav--next svg {
+    transform: rotate(180deg);
+  }
+
+  .product__stage-nav:hover,
+  .product__stage-nav:focus-visible {
+    background-color: var(--color-background);
+    box-shadow: 0 0.35rem 1.1rem rgb(43 42 28 / 0.18);
+  }
+
+  .product__stage-nav:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 2px;
+  }
+
   .product__stage-item {
     display: none;
     overflow: hidden;
@@ -882,6 +934,14 @@
       position: static;
     }
 
+    .product__stage-nav--prev {
+      left: 0.35rem;
+    }
+
+    .product__stage-nav--next {
+      right: 0.35rem;
+    }
+
     .product__story {
       grid-template-columns: 1fr;
       margin-top: 2.5rem;
@@ -915,6 +975,7 @@
     }
 
     .product__stage-item .product__image,
+    .product__stage-nav,
     .product__lightbox-image {
       transition: none;
     }
@@ -929,6 +990,9 @@
       var items = Array.prototype.slice.call(gallery.querySelectorAll('[data-stage-item]'));
       if (!items.length) return;
       var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-thumb]'));
+      var thumbRail = gallery.querySelector('[data-thumbs]');
+      var galleryPrev = gallery.querySelector('[data-gallery-prev]');
+      var galleryNext = gallery.querySelector('[data-gallery-next]');
       var lightbox = root.querySelector('[data-lightbox]');
       var lightboxImg = lightbox ? lightbox.querySelector('[data-lightbox-image]') : null;
       var galleryStatus = gallery.querySelector('[data-gallery-status]');
@@ -1164,6 +1228,19 @@
         });
       }
 
+      function scrollThumbHorizontally(thumb) {
+        if (!thumbRail || !thumb || typeof thumb.getBoundingClientRect !== 'function') return;
+        var railRect = thumbRail.getBoundingClientRect();
+        var thumbRect = thumb.getBoundingClientRect();
+        var delta = 0;
+        if (thumbRect.left < railRect.left) {
+          delta = thumbRect.left - railRect.left;
+        } else if (thumbRect.right > railRect.right) {
+          delta = thumbRect.right - railRect.right;
+        }
+        if (delta) thumbRail.scrollLeft += delta;
+      }
+
       function show(next, scrollThumb) {
         if (next < 0) next = items.length - 1;
         if (next >= items.length) next = 0;
@@ -1183,9 +1260,10 @@
           thumb.classList.toggle('is-active', active);
           thumb.setAttribute('aria-current', active ? 'true' : 'false');
         });
-        /* Don't scroll the page behind an open lightbox. */
+        /* Keep the active thumbnail visible without scrollIntoView(), which
+           can move the document vertically when the rail is off-screen. */
         if (scrollThumb !== false && thumbs[index] && (!lightbox || !lightbox.open)) {
-          thumbs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          scrollThumbHorizontally(thumbs[index]);
         }
         monitorGalleryImage(index);
       }
@@ -1205,6 +1283,17 @@
           show(i);
         });
       });
+
+      if (galleryPrev) {
+        galleryPrev.addEventListener('click', function () {
+          show(index - 1);
+        });
+      }
+      if (galleryNext) {
+        galleryNext.addEventListener('click', function () {
+          show(index + 1);
+        });
+      }
 
       /* Left/right arrows move between media when a thumbnail has focus. */
       gallery.addEventListener('keydown', function (event) {
