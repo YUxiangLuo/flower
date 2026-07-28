@@ -84,7 +84,7 @@
                 argument, so the fallback would silently never apply.
               {%- endcomment -%}
               {% assign hero_alt = hero_image.alt | default: block.settings.heading %}
-              <picture class="hero__picture">
+              {%- capture hero_picture -%}
                 {% if block.settings.mobile_image != blank %}
                   <source
                     media="(max-width: 749px)"
@@ -99,7 +99,6 @@
                   >
                 {% endif %}
 
-                {% comment %} Only the first slide is above the fold. {% endcomment %}
                 {% if forloop.first %}
                   {{
                     hero_image
@@ -112,6 +111,27 @@
                     | image_url: width: 2400
                     | image_tag: loading: 'lazy', class: 'hero__image', sizes: '100vw', widths: '600, 900, 1200, 1800, 2400', alt: hero_alt
                   }}
+                {% endif %}
+              {%- endcapture -%}
+
+              <picture class="hero__picture">
+                {%- comment -%}
+                  Only the first slide is above the fold, but `loading="lazy"`
+                  cannot express that here: every slide shares one grid cell, so
+                  the ones behind are inside the viewport too, and the browser
+                  decides from layout geometry — `visibility: hidden` still lays
+                  out. Left as markup, all eight slides would download at once
+                  and share bandwidth with the LCP image.
+
+                  Hand the later slides' URLs over in data-* instead and let the
+                  carousel promote them one slide ahead of the rotation. No
+                  <noscript> copy: without script the carousel never rotates, so
+                  the first slide is the only one those customers can reach.
+                {%- endcomment -%}
+                {% if forloop.first %}
+                  {{ hero_picture }}
+                {% else %}
+                  {{ hero_picture | replace: ' src=', ' data-src=' | replace: ' srcset=', ' data-srcset=' }}
                 {% endif %}
               </picture>
             {% elsif request.design_mode %}
@@ -510,6 +530,39 @@
         });
       }
 
+      /* The slides behind the active one carry their URLs in data-src and
+         data-srcset rather than in src and srcset — the markup explains why
+         `loading="lazy"` cannot defer a slide that shares the active one's grid
+         cell. Promote them here instead, one slide ahead of the rotation, so
+         the incoming artwork has a full interval to arrive and the first slide
+         never shares its bandwidth with one nobody has asked for.
+
+         Order matters inside a slide: document order puts <source> before
+         <img>, and an <img> handed its src first would choose from its own
+         srcset straight away and re-evaluate only once the <source> gained
+         one — on a phone, that fetches the desktop crop and then the mobile
+         one. querySelectorAll returns document order, so the loop preserves
+         it. */
+      function hydrate(slide) {
+        if (!slide) return;
+        slide.querySelectorAll('[data-srcset], [data-src]').forEach(function (node) {
+          var srcset = node.getAttribute('data-srcset');
+          var src = node.getAttribute('data-src');
+          if (srcset !== null) {
+            node.removeAttribute('data-srcset');
+            node.setAttribute('srcset', srcset);
+          }
+          if (src !== null) {
+            node.removeAttribute('data-src');
+            node.setAttribute('src', src);
+          }
+        });
+      }
+
+      function warm(at) {
+        hydrate(slides[((at % slides.length) + slides.length) % slides.length]);
+      }
+
       /* Read the crossfade length off the stylesheet so the two can't drift.
          A measured 0 is a real answer — reduced motion sets `transition: none`
          — and must not be mistaken for "nothing to read", or the outgoing slide
@@ -521,6 +574,12 @@
         var previous = index;
         index = (next + slides.length) % slides.length;
         if (index === previous) return;
+
+        /* The incoming slide is normally already warm; a jump from the dots is
+           the case that isn't. Warming the one after it keeps the rotation a
+           slide ahead of itself from here on. */
+        warm(index);
+        warm(index + 1);
 
         /* Autoplay never stops, so a slide can rotate away from under a
            keyboard user. `inert` on the element holding focus drops it to
@@ -620,6 +679,21 @@
       if (reduced.addEventListener) on(reduced, 'change', start);
 
       start();
+
+      /* Whatever is on screen needs its artwork now, load event or not: a
+         carousel re-initialised by the theme editor can be sitting on a slide
+         that was never promoted. */
+      warm(index);
+
+      /* Not before load: until the page has finished, the only hero image worth
+         bandwidth is the one on screen. Re-initialising after that — the theme
+         editor reloading the section — warms straight away, because there is no
+         second load event coming. */
+      function warmNext() {
+        warm(index + 1);
+      }
+      if (document.readyState === 'complete') warmNext();
+      else on(window, 'load', warmNext);
 
       return function cleanup() {
         stop();

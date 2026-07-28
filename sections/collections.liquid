@@ -29,7 +29,8 @@
         collection_items: section.settings.selected_collections,
         columns: section.settings.columns,
         show_description: section.settings.show_description,
-        image_sizes: collection_image_sizes
+        image_sizes: collection_image_sizes,
+        eager_rows: 2
       %}
       {% render 'pagination', paginate: paginate %}
     {% endpaginate %}
@@ -39,7 +40,8 @@
         collection_items: collections,
         columns: section.settings.columns,
         show_description: section.settings.show_description,
-        image_sizes: collection_image_sizes
+        image_sizes: collection_image_sizes,
+        eager_rows: 2
       %}
       {% render 'pagination', paginate: paginate %}
     {% endpaginate %}

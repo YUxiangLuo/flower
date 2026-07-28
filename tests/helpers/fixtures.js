@@ -7,7 +7,17 @@
 /* Two options (S/M) across two media items. Variant 11 (S) is featured on
    media 1, variant 12 (M) on media 2; the S/L combination does not exist,
    which is the invalid-option case. */
-function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}) {
+/* `embed` appends an external-video item; `embedFirst` makes it the media the
+   page opens on. Its iframe carries data-src and no src, the way the section
+   renders one: an iframe fetches its src whether or not anything is showing it,
+   so the URL is withheld until the gallery shows that item. */
+function productSection({
+  id = 'a',
+  selected = 'S',
+  videoFallback = false,
+  embed = false,
+  embedFirst = false
+} = {}) {
   const variants = [
     { id: 11, options: ['S'], available: true },
     { id: 12, options: ['M'], available: true }
@@ -19,6 +29,53 @@ function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}
                id="opt-${id}-${value}" data-option-input
                ${value === selected ? 'checked' : ''}>`;
 
+  const embedItem = `
+    <div data-stage-item data-media-id="4">
+      <iframe class="product__image" title="external clip"
+              data-src="https://www.youtube.com/embed/keepsake"></iframe>
+    </div>`;
+
+  const stageItems = [
+    `
+    <div data-stage-item data-media-id="1"${embedFirst ? '' : ' class="is-active"'}>
+      <button type="button" data-zoom-open="${embedFirst ? 1 : 0}"
+              data-preview="one-preview.jpg" data-full="one-full.jpg">
+        <img src="one.jpg" srcset="one-400.jpg 400w, one-800.jpg 800w" sizes="50vw" alt="one">
+      </button>
+    </div>`,
+    `
+    <div data-stage-item data-media-id="2">
+      <button type="button" data-zoom-open="${embedFirst ? 2 : 1}"
+              data-preview="two-preview.jpg" data-full="two-full.jpg">
+        <img src="two.jpg" srcset="two-400.jpg 400w, two-800.jpg 800w" sizes="50vw" alt="two">
+      </button>
+    </div>`
+  ];
+
+  if (videoFallback) {
+    stageItems.push(`
+    <div data-stage-item data-media-id="3">
+      <video><img src="video-fallback.jpg"
+                  srcset="video-fallback-400.jpg 400w, video-fallback-800.jpg 800w"
+                  sizes="50vw" alt="video fallback"></video>
+    </div>`);
+  }
+
+  if (embedFirst) stageItems.unshift(embedItem.replace('<div data-stage-item', '<div class="is-active" data-stage-item'));
+  else if (embed) stageItems.push(embedItem);
+
+  const thumbLabels = ['one-thumb.jpg', 'two-thumb.jpg'];
+  if (videoFallback) thumbLabels.push('video-thumb.jpg');
+  if (embedFirst) thumbLabels.unshift('embed-thumb.jpg');
+  else if (embed) thumbLabels.push('embed-thumb.jpg');
+
+  const thumbs = thumbLabels
+    .map(
+      (src, i) =>
+        `<button type="button" data-thumb="${i}"><img src="${src}" alt="">t${i + 1}</button>`
+    )
+    .join('\n      ');
+
   return `
 <div class="product" data-product data-pid="${id}"
      data-cart-add-url="/cart/add.js"
@@ -28,24 +85,7 @@ function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}
      data-media-loaded-template="Image __INDEX__ of __COUNT__ loaded."
      data-media-error="Image error">
   <div data-gallery>
-    <div data-stage-item data-media-id="1" class="is-active">
-      <button type="button" data-zoom-open="0"
-              data-preview="one-preview.jpg" data-full="one-full.jpg">
-        <img src="one.jpg" srcset="one-400.jpg 400w, one-800.jpg 800w" sizes="50vw" alt="one">
-      </button>
-    </div>
-    <div data-stage-item data-media-id="2">
-      <button type="button" data-zoom-open="1"
-              data-preview="two-preview.jpg" data-full="two-full.jpg">
-        <img src="two.jpg" srcset="two-400.jpg 400w, two-800.jpg 800w" sizes="50vw" alt="two">
-      </button>
-    </div>
-    ${videoFallback ? `
-    <div data-stage-item data-media-id="3">
-      <video><img src="video-fallback.jpg"
-                  srcset="video-fallback-400.jpg 400w, video-fallback-800.jpg 800w"
-                  sizes="50vw" alt="video fallback"></video>
-    </div>` : ''}
+    ${stageItems.join('')}
     <button type="button" data-gallery-prev>previous media</button>
     <button type="button" data-gallery-next>next media</button>
     <div data-gallery-status hidden>
@@ -55,11 +95,7 @@ function productSection({ id = 'a', selected = 'S', videoFallback = false } = {}
     </div>
     <p data-gallery-live></p>
     <div data-thumbs>
-      <button type="button" data-thumb="0"><img src="one-thumb.jpg" alt="">t1</button>
-      <button type="button" data-thumb="1"><img src="two-thumb.jpg" alt="">t2</button>
-      ${videoFallback
-        ? '<button type="button" data-thumb="2"><img src="video-thumb.jpg" alt="">t3</button>'
-        : ''}
+      ${thumbs}
     </div>
   </div>
 
@@ -130,6 +166,25 @@ function cartSection({ quantity = 1, marker = 'original' } = {}) {
    dispatches load/unload against it. `interval` is milliseconds; tests keep it
    short so autoplay can be observed without long waits. */
 function heroSection({ id = 'hero', slides = 3, autoplay = true, interval = 60, active = 0 } = {}) {
+  /* Artwork is deferred by position in the markup, not by which slide happens
+     to be showing: the section renders the first slide's URLs into src and
+     srcset and every later slide's into data-src and data-srcset, because they
+     all share one grid cell and lazy loading cannot tell them apart. Keyed to
+     `i === 0` here for the same reason it is keyed to `forloop.first` there. */
+  const media = (i) => {
+    const attr = i === 0 ? '' : 'data-';
+    const priority = i === 0 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
+    return `
+        <div class="hero__media">
+          <picture class="hero__picture">
+            <source media="(max-width: 749px)" sizes="100vw"
+                    ${attr}srcset="/mobile-${i}-750.jpg 750w">
+            <img class="hero__image" data-image="${i}" alt="Slide ${i}" sizes="100vw" ${priority}
+                 ${attr}srcset="/desktop-${i}-1200.jpg 1200w" ${attr}src="/desktop-${i}-1200.jpg">
+          </picture>
+        </div>`;
+  };
+
   /* Each slide carries a link, the way a real slide carries its call to
      action — that is what a keyboard user can be focused on when the carousel
      rotates out from under them. */
@@ -137,6 +192,7 @@ function heroSection({ id = 'hero', slides = 3, autoplay = true, interval = 60, 
       <div class="hero__slide" data-hero-slide
            data-slide="${i}"
            ${i === active ? 'data-active' : 'aria-hidden="true" inert'}>
+        ${media(i)}
         <p class="hero__heading">Slide ${i}</p>
         <a class="hero__button" data-slide-cta="${i}" href="/slide-${i}">Shop ${i}</a>
       </div>`;

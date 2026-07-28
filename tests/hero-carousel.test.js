@@ -346,3 +346,112 @@ test('a single-slide hero initialises and unloads without a carousel', async () 
 
   assert.equal(activeIndex(window), 0, 'unloading a hero with nothing to rotate changed the slide');
 });
+
+/* Deferred artwork. Every slide sits in the same grid cell, so the ones behind
+   the active one are inside the viewport and `loading="lazy"` does not defer
+   them — the browser decides from layout geometry, and `visibility: hidden`
+   still lays out. The section therefore ships their URLs in data-src and
+   data-srcset, and these rules cover the promotion that has to make up for it:
+   nothing extra during load, the next slide ready before the crossfade needs
+   it, and sources ahead of images so a phone does not fetch the desktop crop
+   first. */
+
+const mediaOf = (window, i, id = 'hero') => {
+  const slide = slidesOf(window, id)[i];
+  return { source: slide.querySelector('source'), image: slide.querySelector('img') };
+};
+
+const isDeferred = ({ source, image }) =>
+  !source.hasAttribute('srcset') &&
+  source.hasAttribute('data-srcset') &&
+  !image.hasAttribute('src') &&
+  !image.hasAttribute('srcset') &&
+  image.hasAttribute('data-src');
+
+const isPromoted = ({ source, image }) =>
+  source.hasAttribute('srcset') &&
+  !source.hasAttribute('data-srcset') &&
+  image.hasAttribute('src') &&
+  image.hasAttribute('srcset') &&
+  !image.hasAttribute('data-src');
+
+test('slides behind the first request no artwork while the page is still loading', () => {
+  const { window } = bootHero(heroSection({ autoplay: false }));
+
+  assert.equal(
+    mediaOf(window, 0).image.getAttribute('src'),
+    '/desktop-0-1200.jpg',
+    'the slide on screen must carry its own URL, not wait for script'
+  );
+  assert.ok(isDeferred(mediaOf(window, 1)), 'the second slide fetched during load');
+  assert.ok(isDeferred(mediaOf(window, 2)), 'the third slide fetched during load');
+});
+
+test('the slide after the one on screen is promoted once the page has loaded', async () => {
+  const { window } = bootHero(heroSection({ autoplay: false }));
+
+  await tick(window, 0);
+
+  assert.ok(isPromoted(mediaOf(window, 1)), 'the next slide was never promoted');
+  assert.ok(isDeferred(mediaOf(window, 2)), 'promotion ran further ahead than the next slide');
+});
+
+test('a promoted slide is given its sources before its image', async () => {
+  const { window } = bootHero(heroSection({ autoplay: false }));
+  const { source, image } = mediaOf(window, 1);
+
+  /* An <img> handed its src first picks from its own srcset immediately and
+     re-evaluates only once the <source> has one — on a phone that is the
+     desktop crop, fetched and then thrown away. */
+  const order = [];
+  const observer = new window.MutationObserver((records) => {
+    records.forEach((record) => {
+      if (record.target === source && record.attributeName === 'srcset') order.push('source');
+      if (record.target === image && record.attributeName === 'src') order.push('image');
+    });
+  });
+  observer.observe(slidesOf(window)[1], {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ['src', 'srcset']
+  });
+
+  await tick(window, 0);
+  observer.disconnect();
+
+  assert.deepEqual(order, ['source', 'image'], 'the image was given its src before the source');
+});
+
+test('jumping to a slide promotes it and the one after it', async () => {
+  const { window } = bootHero(heroSection({ slides: 5, autoplay: false }));
+
+  await tick(window, 0);
+  assert.ok(isDeferred(mediaOf(window, 3)), 'the fixture should start with slide four deferred');
+
+  heroEl(window)
+    .querySelectorAll('[data-hero-dot]')[3]
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 3);
+  assert.ok(isPromoted(mediaOf(window, 3)), 'the slide the customer asked for has no artwork');
+  assert.ok(isPromoted(mediaOf(window, 4)), 'the jump left the rotation with nothing warmed ahead');
+});
+
+test('autoplay stays one slide ahead of itself', async () => {
+  const { window } = bootHero(heroSection({ slides: 4, interval: 60 }));
+
+  await tick(window, 100);
+
+  assert.equal(activeIndex(window), 1);
+  assert.ok(isPromoted(mediaOf(window, 2)), 'the slide about to arrive was not promoted');
+  assert.ok(isDeferred(mediaOf(window, 3)), 'autoplay promoted further ahead than it needs to');
+});
+
+test('a carousel re-initialised on a later slide promotes what is on screen', () => {
+  const { window } = bootHero(heroSection({ autoplay: false, active: 2 }));
+
+  assert.ok(
+    isPromoted(mediaOf(window, 2)),
+    'a carousel that had already rotated was left showing an empty slide'
+  );
+});

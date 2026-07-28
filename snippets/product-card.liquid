@@ -5,10 +5,12 @@
   @param {number} [image_size] - The rendered image width/height in pixels (defaults to 600)
   @param {string} [heading_level] - Heading element for the product title (defaults to h2)
   @param {number} [columns] - Number of desktop columns in the containing grid (defaults to 4)
+  @param {boolean} [eager] - Load the image immediately instead of deferring it. Set it on the cards in the grid's first row and nowhere else.
 
   @example
   {% render 'product-card', product: product %}
   {% render 'product-card', product: product, image_size: 800 %}
+  {% render 'product-card', product: product, eager: true %}
 {% enddoc %}
 
 {% liquid
@@ -41,11 +43,33 @@
 <a class="product-card" href="{{ product.url }}">
   <div class="product-card__media">
     {% if product.featured_image %}
-      {{
-        product.featured_image
-        | image_url: width: image_size, height: image_size, crop: 'center'
-        | image_tag: loading: 'lazy', class: 'product-card__image', sizes: image_sizes, widths: image_widths, alt: card_alt
-      }}
+      {%- comment -%}
+        A deferred image is not discovered by the preload scanner and is queued
+        at low priority once layout has run, which is the wrong treatment for a
+        card that is on screen when the page opens — that image is often the
+        page's largest paint. Callers mark the few cards that qualify; everyone
+        else gets the default, because eagerly loading a grid is how a
+        collection page ends up fetching twenty-four full-size images at once.
+
+        Eager, but not `fetchpriority: 'high'`. A card is only a candidate for
+        the largest paint, never a certainty: on a phone the collection header's
+        own artwork usually wins, and that one is preloaded. Raising a grid
+        image above it would have the two fighting over the same connection.
+        Eager already buys the thing that was missing — discovery during parse.
+      {%- endcomment -%}
+      {% if eager %}
+        {{
+          product.featured_image
+          | image_url: width: image_size, height: image_size, crop: 'center'
+          | image_tag: loading: 'eager', class: 'product-card__image', sizes: image_sizes, widths: image_widths, alt: card_alt
+        }}
+      {% else %}
+        {{
+          product.featured_image
+          | image_url: width: image_size, height: image_size, crop: 'center'
+          | image_tag: loading: 'lazy', class: 'product-card__image', sizes: image_sizes, widths: image_widths, alt: card_alt
+        }}
+      {% endif %}
     {% else %}
       {{ 'product-1' | placeholder_svg_tag: 'product-card__image product-card__image--placeholder' }}
     {% endif %}

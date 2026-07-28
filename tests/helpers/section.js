@@ -216,10 +216,17 @@ function stubIntersectionObserver(window) {
     observed() {
       return observers.reduce((all, entry) => all.concat(entry.targets), []);
     },
+    /* A real entry always carries a ratio alongside the flag, and a section
+       that picks between several visible targets reads it, so report the
+       whole-element case rather than leaving it undefined. `setIntersectionRatio`
+       below is for the partial ones. */
     setVisible(target, isIntersecting) {
       observers.forEach((entry) => {
         if (entry.targets.indexOf(target) === -1) return;
-        entry.callback([{ target, isIntersecting }], entry.observer);
+        entry.callback(
+          [{ target, isIntersecting, intersectionRatio: isIntersecting ? 1 : 0 }],
+          entry.observer
+        );
       });
     },
     setIntersectionRatio(target, intersectionRatio) {
