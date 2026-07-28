@@ -509,6 +509,8 @@
       var interval = parseInt(hero.getAttribute('data-interval'), 10) || 6000;
       var timer = null;
       var leaveTimer = null;
+      var transitionRequest = 0;
+      var disposed = false;
 
       /* Start from whichever slide is actually on screen rather than assuming
          the first. Re-initialising against a carousel that had already rotated
@@ -543,8 +545,13 @@
          one — on a phone, that fetches the desktop crop and then the mobile
          one. querySelectorAll returns document order, so the loop preserves
          it. */
-      function hydrate(slide) {
-        if (!slide) return;
+      function hydrate(slide, urgent) {
+        if (!slide) return null;
+        var image = slide.querySelector('img');
+        if (image && urgent) {
+          image.loading = 'eager';
+          image.setAttribute('fetchpriority', 'high');
+        }
         slide.querySelectorAll('[data-srcset], [data-src]').forEach(function (node) {
           var srcset = node.getAttribute('data-srcset');
           var src = node.getAttribute('data-src');
@@ -557,10 +564,57 @@
             node.setAttribute('src', src);
           }
         });
+        return image;
       }
 
       function warm(at) {
         hydrate(slides[((at % slides.length) + slides.length) % slides.length]);
+      }
+
+      function whenArtworkReady(image, ready) {
+        if (!image) {
+          ready();
+          return;
+        }
+
+        function decodeThenReady() {
+          if (image.complete && image.naturalWidth === 0) {
+            ready();
+            return;
+          }
+          if (typeof image.decode !== 'function') {
+            ready();
+            return;
+          }
+
+          var decoding;
+          try {
+            decoding = image.decode();
+          } catch (error) {
+            ready();
+            return;
+          }
+          Promise.resolve(decoding).catch(function () {}).then(ready);
+        }
+
+        if (image.complete) {
+          decodeThenReady();
+          return;
+        }
+
+        var settled = false;
+        function settle(event) {
+          if (settled) return;
+          settled = true;
+          image.removeEventListener('load', settle);
+          image.removeEventListener('error', settle);
+          if (event && event.type === 'error') ready();
+          else decodeThenReady();
+        }
+
+        image.addEventListener('load', settle);
+        image.addEventListener('error', settle);
+        if (image.complete) settle();
       }
 
       /* Read the crossfade length off the stylesheet so the two can't drift.
@@ -570,85 +624,106 @@
       var measuredFade = parseFloat(getComputedStyle(slides[0]).transitionDuration);
       var fade = (isNaN(measuredFade) ? 1.2 : measuredFade) * 1000;
 
-      function show(next) {
-        var previous = index;
-        index = (next + slides.length) % slides.length;
-        if (index === previous) return;
-
-        /* The incoming slide is normally already warm; a jump from the dots is
-           the case that isn't. Warming the one after it keeps the rotation a
-           slide ahead of itself from here on. */
-        warm(index);
-        warm(index + 1);
-
-        /* Autoplay never stops, so a slide can rotate away from under a
-           keyboard user. `inert` on the element holding focus drops it to
-           <body> and loses their place in the tab order entirely, so hand focus
-           to the incoming slide's dot first: it sits outside the slides, is
-           always focusable, and its aria-current says where they now are.
-           preventScroll matters — the hero may be far above the viewport by
-           now, and focusing must not yank the page back up to it. */
-        var outgoing = slides[previous];
-        if (dots[index] && outgoing.contains(document.activeElement)) {
-          try {
-            dots[index].focus({ preventScroll: true });
-          } catch (error) {
-            dots[index].focus();
-          }
+      function show(next, complete) {
+        var target = (next + slides.length) % slides.length;
+        var request = ++transitionRequest;
+        if (target === index) {
+          if (complete) complete();
+          return;
         }
 
-        clearTimeout(leaveTimer);
-        slides.forEach(function (slide, i) {
-          slide.removeAttribute('data-leaving');
-          if (i === index) {
-            slide.setAttribute('data-active', '');
-            slide.removeAttribute('aria-hidden');
-            slide.removeAttribute('inert');
-          } else {
-            slide.removeAttribute('data-active');
-            slide.setAttribute('aria-hidden', 'true');
-            slide.setAttribute('inert', '');
+        /* A nearby slide is normally already warm; wrapping backwards or
+           jumping from a dot may target one with no request yet. Connect that
+           artwork at high priority, but keep the current slide visible until
+           the selected image has loaded and decoded. Only then warm the slide
+           after it, so the requested artwork does not compete with a speculative
+           fetch on a slow connection. */
+        var image = hydrate(slides[target], true);
+        whenArtworkReady(image, function () {
+          if (disposed || request !== transitionRequest) return;
+
+          var previous = index;
+          if (target === previous) {
+            if (complete) complete();
+            return;
           }
-        });
+          index = target;
 
-        /* Hold the outgoing slide opaque below the incoming one until the
-           fade is over, so the background never shows through. */
-        outgoing.setAttribute('data-leaving', '');
-        leaveTimer = setTimeout(function () {
-          outgoing.removeAttribute('data-leaving');
-        }, fade);
+          /* Autoplay never permanently stops, so a slide can rotate away from
+             under a keyboard user. `inert` on the element holding focus drops
+             it to <body> and loses their place in the tab order entirely, so
+             hand focus to the incoming slide's dot first: it sits outside the
+             slides, is always focusable, and its aria-current says where they
+             now are. preventScroll matters — the hero may be far above the
+             viewport by now, and focusing must not yank the page back up. */
+          var outgoing = slides[previous];
+          if (dots[index] && outgoing.contains(document.activeElement)) {
+            try {
+              dots[index].focus({ preventScroll: true });
+            } catch (error) {
+              dots[index].focus();
+            }
+          }
 
-        dots.forEach(function (dot, i) {
-          if (i === index) dot.setAttribute('aria-current', 'true');
-          else dot.removeAttribute('aria-current');
+          clearTimeout(leaveTimer);
+          slides.forEach(function (slide, i) {
+            slide.removeAttribute('data-leaving');
+            if (i === index) {
+              slide.setAttribute('data-active', '');
+              slide.removeAttribute('aria-hidden');
+              slide.removeAttribute('inert');
+            } else {
+              slide.removeAttribute('data-active');
+              slide.setAttribute('aria-hidden', 'true');
+              slide.setAttribute('inert', '');
+            }
+          });
+
+          /* Hold the outgoing slide opaque below the incoming one until the
+             fade is over, so the background never shows through. */
+          outgoing.setAttribute('data-leaving', '');
+          leaveTimer = setTimeout(function () {
+            outgoing.removeAttribute('data-leaving');
+          }, fade);
+
+          dots.forEach(function (dot, i) {
+            if (i === index) dot.setAttribute('aria-current', 'true');
+            else dot.removeAttribute('aria-current');
+          });
+
+          warm(index + 1);
+          if (complete) complete();
         });
       }
 
       function stop() {
         if (timer) {
-          clearInterval(timer);
+          clearTimeout(timer);
           timer = null;
         }
       }
 
-      /* Nothing the customer does stops autoplay. Pausing on hover or on focus
-         meant a full-bleed hero, which is most of the viewport, could park the
-         carousel for the rest of the visit — see goTo below for the one thing
-         that touches the timer, and it only ever restarts it. */
+      /* Nothing the customer does permanently stops autoplay. Pausing on hover
+         or on focus meant a full-bleed hero, which is most of the viewport,
+         could park the carousel for the rest of the visit. A one-shot timer
+         starts only after activation, so a slow image still receives its full
+         interval on screen. */
       function start() {
         stop();
+        if (disposed || document.hidden) return;
         if (hero.getAttribute('data-autoplay') !== 'true') return;
         if (reduced.matches) return;
-        timer = setInterval(function () {
-          show(index + 1);
+        timer = setTimeout(function () {
+          timer = null;
+          show(index + 1, start);
         }, interval);
       }
 
       /* Advancing by hand re-syncs the timer so the slide the customer asked
          for still gets a full interval on screen. It never stops autoplay. */
       function goTo(next) {
-        show(next);
-        start();
+        stop();
+        show(next, start);
       }
 
       var prev = hero.querySelector('[data-hero-prev]');
@@ -696,6 +771,8 @@
       else on(window, 'load', warmNext);
 
       return function cleanup() {
+        disposed = true;
+        transitionRequest += 1;
         stop();
         clearTimeout(leaveTimer);
         teardown.forEach(function (off) {

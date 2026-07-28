@@ -2,6 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const { bootSection, tick } = require('./helpers/section.js');
 const { productSection } = require('./helpers/fixtures.js');
@@ -677,6 +679,18 @@ test('retry restores responsive sources even when another media item is selected
 
 const embedIn = (root) => root.querySelector('[data-stage-item] iframe');
 const thumbAt = (root, i) => root.querySelector(`[data-thumb="${i}"]`);
+
+test('the first external video keeps its src without gallery JavaScript', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'snippets', 'product-media-gallery.liquid'),
+    'utf8'
+  );
+  assert.match(
+    source,
+    /elsif media\.media_type == 'external_video'[\s\S]*if forloop\.first[\s\S]*\{\{\s*media_embed\s*\}\}[\s\S]*else[\s\S]*replace:\s*' src=',\s*' data-src='/,
+    'the active external video is deferred even when JavaScript never initialises the gallery'
+  );
+});
 
 test('an external embed is not connected while its item is off stage', () => {
   const { root } = bootGallery({ embed: true });

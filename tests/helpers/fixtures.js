@@ -8,9 +8,8 @@
    media 1, variant 12 (M) on media 2; the S/L combination does not exist,
    which is the invalid-option case. */
 /* `embed` appends an external-video item; `embedFirst` makes it the media the
-   page opens on. Its iframe carries data-src and no src, the way the section
-   renders one: an iframe fetches its src whether or not anything is showing it,
-   so the URL is withheld until the gallery shows that item. */
+   page opens on. Off-stage frames carry data-src so they cannot fetch early.
+   The first frame keeps src because it must work before gallery JavaScript. */
 function productSection({
   id = 'a',
   selected = 'S',
@@ -29,10 +28,11 @@ function productSection({
                id="opt-${id}-${value}" data-option-input
                ${value === selected ? 'checked' : ''}>`;
 
+  const embedSourceAttribute = embedFirst ? 'src' : 'data-src';
   const embedItem = `
     <div data-stage-item data-media-id="4">
       <iframe class="product__image" title="external clip"
-              data-src="https://www.youtube.com/embed/keepsake"></iframe>
+              ${embedSourceAttribute}="https://www.youtube.com/embed/keepsake"></iframe>
     </div>`;
 
   const stageItems = [

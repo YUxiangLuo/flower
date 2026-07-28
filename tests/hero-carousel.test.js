@@ -18,16 +18,52 @@ const { heroSection } = require('./helpers/fixtures.js');
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
-function bootHero(html, { reducedMotion = false } = {}) {
+function bootHero(html, { reducedMotion = false, pendingImages = [] } = {}) {
   let setMedia = null;
+  const imageStates = new Map();
+  const pending = new Set(pendingImages);
+
+  function registerImages(scope) {
+    scope.querySelectorAll('[data-hero-slide] img[data-image]').forEach((image) => {
+      if (imageStates.has(image)) return;
+
+      const imageIndex = Number(image.getAttribute('data-image'));
+      const state = { ready: !pending.has(imageIndex), failed: false };
+      imageStates.set(image, state);
+      Object.defineProperties(image, {
+        complete: {
+          configurable: true,
+          get() {
+            return state.ready;
+          }
+        },
+        naturalWidth: {
+          configurable: true,
+          get() {
+            return state.ready && !state.failed ? 1200 : 0;
+          }
+        }
+      });
+    });
+  }
+
   const window = bootSection('hero.liquid', html, {
     beforeScript(win) {
       setMedia = stubMatchMedia(win, { [REDUCED_MOTION]: reducedMotion });
+      registerImages(win.document);
     }
   });
   return {
     window,
-    setReducedMotion: (matches) => setMedia(REDUCED_MOTION, matches)
+    registerImages,
+    setReducedMotion: (matches) => setMedia(REDUCED_MOTION, matches),
+    finishImage(index, { error = false } = {}) {
+      const image = window.document.querySelector(`[data-image="${index}"]`);
+      const state = imageStates.get(image);
+      state.ready = true;
+      state.failed = error;
+      image.dispatchEvent(new window.Event(error ? 'error' : 'load'));
+    }
   };
 }
 
@@ -290,12 +326,14 @@ test('unloading the section stops autoplay for good', async () => {
 });
 
 test('a section re-rendered by the theme editor is wired against the fresh DOM', async () => {
-  const { window } = bootHero(heroSection({ interval: 60 }));
+  const hero = bootHero(heroSection({ interval: 60 }));
+  const { window } = hero;
   const section = window.document.getElementById('section-hero');
 
   section.innerHTML = heroSection({ interval: 60 })
     .replace(/^[\s\S]*?<div class="hero"/, '<div class="hero"')
     .replace(/<\/div>\s*$/, '');
+  hero.registerImages(section);
   dispatchSectionEvent(window, 'shopify:section:load', section);
 
   await tick(window, 100);
@@ -435,6 +473,82 @@ test('jumping to a slide promotes it and the one after it', async () => {
   assert.equal(activeIndex(window), 3);
   assert.ok(isPromoted(mediaOf(window, 3)), 'the slide the customer asked for has no artwork');
   assert.ok(isPromoted(mediaOf(window, 4)), 'the jump left the rotation with nothing warmed ahead');
+});
+
+test('a deferred dot target stays inactive until its artwork loads', async () => {
+  const hero = bootHero(heroSection({ slides: 5, autoplay: false }), {
+    pendingImages: [3]
+  });
+  const { window } = hero;
+
+  await tick(window, 0);
+  heroEl(window)
+    .querySelectorAll('[data-hero-dot]')[3]
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 0, 'the empty target slide became active');
+  assert.ok(isPromoted(mediaOf(window, 3)), 'the requested artwork was not connected');
+
+  hero.finishImage(3);
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 3);
+});
+
+test('a stale deferred load cannot override a newer slide request', async () => {
+  const hero = bootHero(heroSection({ slides: 5, autoplay: false }), {
+    pendingImages: [3]
+  });
+  const { window } = hero;
+  const dots = heroEl(window).querySelectorAll('[data-hero-dot]');
+
+  await tick(window, 0);
+  dots[3].dispatchEvent(new window.Event('click', { bubbles: true }));
+  dots[2].dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 2, 'the newer ready target did not win the navigation race');
+
+  hero.finishImage(3);
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 2, 'the stale load callback replaced the newer target');
+});
+
+test('a cached dot target stays inactive until decoding finishes', async () => {
+  const { window } = bootHero(heroSection({ slides: 5, autoplay: false }));
+  const target = mediaOf(window, 3).image;
+  let finishDecode;
+  target.decode = () =>
+    new Promise((resolve) => {
+      finishDecode = resolve;
+    });
+
+  await tick(window, 0);
+  heroEl(window)
+    .querySelectorAll('[data-hero-dot]')[3]
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 0, 'the undecoded target slide became active');
+
+  finishDecode();
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 3);
+});
+
+test('autoplay keeps the current slide visible while the next artwork loads', async () => {
+  const hero = bootHero(heroSection({ slides: 3, interval: 60 }), {
+    pendingImages: [1]
+  });
+  const { window } = hero;
+
+  await tick(window, 100);
+  assert.equal(activeIndex(window), 0, 'autoplay crossfaded into an unloaded slide');
+
+  hero.finishImage(1);
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 1);
 });
 
 test('autoplay stays one slide ahead of itself', async () => {

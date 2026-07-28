@@ -85,8 +85,10 @@
               item on a product would pull a megabyte of player on every view of
               that product, for a video most customers never open.
 
-              So the URL travels in data-src and the gallery connects it the
-              first time the item is shown.
+              So an off-stage URL travels in data-src and the gallery connects
+              it the first time the item is shown. The first item keeps src:
+              it is already visible and must still work when gallery JavaScript
+              is unavailable.
 
               Named rather than left as the fallback branch, because the rewrite
               suits nothing else. An uploaded video carries src on its <source>
@@ -97,7 +99,11 @@
             {%- capture media_embed -%}
               {{ media | media_tag: class: 'product__image', image_size: '1600x' }}
             {%- endcapture -%}
-            {{ media_embed | replace: ' src=', ' data-src=' }}
+            {% if forloop.first %}
+              {{ media_embed }}
+            {% else %}
+              {{ media_embed | replace: ' src=', ' data-src=' }}
+            {% endif %}
           {% else %}
             {{ media | media_tag: class: 'product__image', image_size: '1600x' }}
           {% endif %}

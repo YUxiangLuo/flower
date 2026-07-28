@@ -15,8 +15,8 @@
 {%- liquid
   if collection.image
     assign hero_1x = collection.image | image_url: width: 750
-    assign hero_15x = collection.image | image_url: width: 1100
-    assign hero_25x = collection.image | image_url: width: 1500
+    assign hero_2x = collection.image | image_url: width: 1500
+    assign hero_3x = collection.image | image_url: width: 2250
   endif
 -%}
 
@@ -37,8 +37,8 @@
   {%- endcomment -%}
   {% # theme-check-disable AssetPreload %}
   <link rel="preload" as="image" media="(max-width: 749px) and (max-resolution: 1.49dppx)" href="{{ hero_1x }}">
-  <link rel="preload" as="image" media="(max-width: 749px) and (min-resolution: 1.5dppx) and (max-resolution: 2.49dppx)" href="{{ hero_15x }}">
-  <link rel="preload" as="image" media="(max-width: 749px) and (min-resolution: 2.5dppx)" href="{{ hero_25x }}">
+  <link rel="preload" as="image" media="(max-width: 749px) and (min-resolution: 1.5dppx) and (max-resolution: 2.49dppx)" href="{{ hero_2x }}">
+  <link rel="preload" as="image" media="(max-width: 749px) and (min-resolution: 2.5dppx)" href="{{ hero_3x }}">
   {% # theme-check-enable AssetPreload %}
 {%- endif -%}
 
@@ -61,8 +61,8 @@
     {%- if collection.image %}
       style="
         --collection-media: url('{{ hero_1x | escape }}');
-        --collection-media-15x: url('{{ hero_15x | escape }}');
-        --collection-media-25x: url('{{ hero_25x | escape }}');
+        --collection-media-2x: url('{{ hero_2x | escape }}');
+        --collection-media-3x: url('{{ hero_3x | escape }}');
       "
     {%- endif %}
   >
@@ -331,13 +331,13 @@
 
     @media (min-resolution: 1.5dppx) {
       .collection__header--media::before {
-        background-image: var(--collection-media-15x);
+        background-image: var(--collection-media-2x);
       }
     }
 
     @media (min-resolution: 2.5dppx) {
       .collection__header--media::before {
-        background-image: var(--collection-media-25x);
+        background-image: var(--collection-media-3x);
       }
     }
 
