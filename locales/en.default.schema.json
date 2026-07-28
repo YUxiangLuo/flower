@@ -135,6 +135,11 @@
     "page": {
       "eyebrow": "Eyebrow",
       "content_width": "Content width",
+      "content_mode": "Content rendering",
+      "content_mode_info": "Auto isolates embedded tools that contain scripts or full-page markup.",
+      "content_mode_auto": "Auto",
+      "content_mode_rich_text": "Rich text",
+      "content_mode_isolated": "Isolated embedded tool",
       "show_content": "Show page content",
       "compact_bottom_spacing": "Reduce space below the page title"
     },

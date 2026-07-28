@@ -1,0 +1,196 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "404": {
+    "title": "404",
+    "not_found": "Pagina non trovata.",
+    "back_to_shopping": "Torna allo shopping"
+  },
+  "blog": {
+    "article_comments": "Commenti",
+    "article_metadata_html": "{{ date }} di {{ author }}",
+    "comment_form_body": "Commento",
+    "comment_form_email": "Email",
+    "comment_form_name": "Nome",
+    "comment_form_submit": "Pubblica",
+    "comment_form_title": "Aggiungi un commento",
+    "read_more": "Leggi di più"
+  },
+  "cart": {
+    "checkout": "Vai al checkout",
+    "title": "Carrello",
+    "update": "Aggiorna",
+    "remove": "Rimuovi",
+    "empty": "Il carrello è vuoto.",
+    "empty_cta": "Continua lo shopping",
+    "product": "Prodotto",
+    "quantity": "Quantità",
+    "total": "Totale",
+    "subtotal": "Subtotale",
+    "taxes_note": "Spese di spedizione e imposte calcolate al checkout.",
+    "taxes_included": "Imposte incluse. Le spese di spedizione vengono calcolate al checkout.",
+    "duties_included": "Dazi inclusi. Imposte e spese di spedizione vengono calcolate al checkout.",
+    "duties_and_taxes_included": "Dazi e imposte inclusi. Le spese di spedizione vengono calcolate al checkout.",
+    "note": "Nota sull'ordine",
+    "updating": "Aggiornamento del carrello…",
+    "updated": "Carrello aggiornato.",
+    "note_saved": "Nota sull'ordine salvata.",
+    "update_error": "Impossibile aggiornare il carrello. Riprova.",
+    "quantity_invalid": "Inserisci un numero intero pari o superiore a 0.",
+    "view_cart": "Visualizza carrello"
+  },
+  "collection": {
+    "apply": "Applica",
+    "sort_by": "Ordina per",
+    "products_count": "{{ count }} prodotti",
+    "empty": "Nessun prodotto trovato.",
+    "sort_recommended": "Consigliati"
+  },
+  "collections": {
+    "empty": "Nessuna collezione trovata."
+  },
+  "general": {
+    "accessibility": {
+      "skip_to_content": "Vai al contenuto",
+      "close": "Chiudi"
+    },
+    "meta": {
+      "tagged": "Contrassegnato con {{ tags }}",
+      "page": "Pagina {{ page }}"
+    },
+    "pagination": {
+      "label": "Paginazione",
+      "previous": "Pagina precedente",
+      "next": "Pagina successiva"
+    }
+  },
+  "gift_card": {
+    "add_to_apple_wallet": "Aggiungi ad Apple Wallet",
+    "balance": "Saldo della carta regalo",
+    "card": "Carta regalo",
+    "code_label": "Codice della carta regalo",
+    "copy_code": "Copia codice",
+    "copy_success": "Codice copiato",
+    "expired": "Questa carta regalo è scaduta",
+    "expires_on": "Scade il {{ expires_on }}",
+    "qr_code": "Codice QR della carta regalo",
+    "shop": "Continua lo shopping",
+    "use_at_checkout": "Usa questa carta regalo al checkout"
+  },
+  "password": {
+    "title": "Questo negozio è privato",
+    "password": "Password",
+    "enter": "Entra"
+  },
+  "product": {
+    "add_to_cart": "Aggiungi al carrello",
+    "sold_out": "Esaurito",
+    "unavailable": "Non disponibile",
+    "variant": "Variante",
+    "quantity": "Quantità",
+    "decrease_quantity": "Riduci quantità",
+    "increase_quantity": "Aumenta quantità",
+    "sale": "In saldo",
+    "from_price": "A partire da {{ price }}",
+    "optional": "Facoltativo",
+    "adding_to_cart": "Aggiunta al carrello…",
+    "add_to_cart_error": "Impossibile aggiungere questo articolo. Riprova."
+  },
+  "search": {
+    "title": "Cerca",
+    "label": "Cerca nel negozio",
+    "placeholder": "Cerca articoli, pagine o prodotti",
+    "submit": "Cerca",
+    "no_results_html": "Nessun risultato trovato per {{ terms }}",
+    "results_for_html": "{{ count }} risultati trovati per {{ terms }}"
+  },
+  "sections": {
+    "announcement_bar": {
+      "label": "Annuncio"
+    },
+    "featured_products": {
+      "view_all": "Vedi tutto",
+      "sale": "In saldo"
+    },
+    "testimonials": {
+      "rating": "{{ rating }} stelle su 5",
+      "add_review": "Aggiungi una testimonianza verificata di un cliente nell'editor del tema."
+    },
+    "customer_videos": {
+      "play": "Riproduci il video del cliente {{ number }}",
+      "viewer": "Video del cliente",
+      "close": "Chiudi video",
+      "add_video": "Aggiungi un video di un cliente nell'editor del tema."
+    },
+    "customer_photos": {
+      "rail_label": "Foto dei clienti, scorrimento orizzontale",
+      "photo_alt": "Foto di un cliente di {{ product }}",
+      "editor_hint": "Le foto dei clienti provengono dalle voci di metaoggetti collegate a questo prodotto. Aggiungile nei metacampi del prodotto nel pannello di controllo Shopify."
+    },
+    "newsletter": {
+      "email_label": "Indirizzo email",
+      "email_placeholder": "Inserisci la tua email",
+      "button": "Iscriviti",
+      "success": "Grazie per l'iscrizione."
+    },
+    "footer": {
+      "email_placeholder": "Email",
+      "subscribe": "Iscriviti",
+      "newsletter_success": "Grazie per l'iscrizione.",
+      "country": "Paese/area geografica",
+      "language": "Lingua",
+      "update_localization": "Aggiorna",
+      "follow_facebook": "Seguici su Facebook",
+      "follow_instagram": "Seguici su Instagram"
+    },
+    "header": {
+      "account": "Account",
+      "cart": {
+        "one": "Carrello, {{ count }} articolo",
+        "other": "Carrello, {{ count }} articoli"
+      },
+      "cart_label_one": "Carrello, __COUNT__ articolo",
+      "cart_label_other": "Carrello, __COUNT__ articoli",
+      "menu": "Menu",
+      "primary_navigation": "Navigazione principale",
+      "view_all": "Vedi tutto: {{ title }}"
+    },
+    "hero": {
+      "label": "In evidenza",
+      "carousel": "Carosello",
+      "slides": "Diapositive",
+      "previous_slide": "Diapositiva precedente",
+      "next_slide": "Diapositiva successiva",
+      "go_to_slide": "Vai alla diapositiva {{ index }}"
+    },
+    "product": {
+      "zoom": "Ingrandisci immagine",
+      "gallery": "Galleria prodotto",
+      "thumbnails": "Contenuti multimediali del prodotto",
+      "go_to_media": "Mostra elemento multimediale {{ index }}",
+      "previous_gallery_item": "Elemento precedente della galleria",
+      "next_gallery_item": "Elemento successivo della galleria",
+      "close": "Chiudi",
+      "previous_media": "Immagine precedente",
+      "next_media": "Immagine successiva",
+      "loading_image": "Caricamento dell'immagine {{ index }} di {{ count }}…",
+      "image_position": "Immagine {{ index }} di {{ count }}",
+      "image_loaded": "Immagine {{ index }} di {{ count }} caricata.",
+      "image_error": "Impossibile caricare questa immagine.",
+      "retry_image": "Riprova"
+    },
+    "gallery": {
+      "rail_label": "Galleria, scorrimento orizzontale"
+    },
+    "page": {
+      "javascript_required": "Questo contenuto interattivo richiede JavaScript."
+    }
+  }
+}

@@ -5,6 +5,22 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/page
 {% endcomment %}
 
+{% liquid
+  assign isolate_content = false
+  assign normalized_content = page.content | downcase
+
+  case section.settings.content_mode
+    when 'isolated'
+      assign isolate_content = true
+    when 'auto'
+      if normalized_content contains '<body'
+        assign isolate_content = true
+      elsif normalized_content contains '<script'
+        assign isolate_content = true
+      endif
+  endcase
+%}
+
 <div class="page{% if section.settings.compact_bottom_spacing %} page--compact-bottom{% endif %}">
   <header class="page__header">
     {% if section.settings.eyebrow != blank %}
@@ -15,9 +31,26 @@
 
   {% if section.settings.show_content %}
     {% if page.content != blank %}
-      <div class="page__content rte" style="--measure: {{ section.settings.content_width }}rem">
-        {{ page.content }}
-      </div>
+      {% if isolate_content %}
+        <div class="page__embedded" data-page-embedded>
+          <iframe
+            class="page__embedded-frame"
+            title="{{ page.title | escape }}"
+            loading="eager"
+            aria-busy="true"
+            hidden
+            data-page-embedded-frame
+          ></iframe>
+          <template data-page-embedded-template>{{ page.content | escape }}</template>
+          <noscript>
+            <p class="page__javascript-required">{{ 'sections.page.javascript_required' | t }}</p>
+          </noscript>
+        </div>
+      {% else %}
+        <div class="page__content rte" style="--measure: {{ section.settings.content_width }}rem">
+          {{ page.content }}
+        </div>
+      {% endif %}
     {% endif %}
   {% endif %}
 </div>
@@ -52,6 +85,30 @@
     max-width: var(--measure);
     margin-inline: auto;
     color: var(--color-foreground);
+  }
+
+  .page__embedded {
+    width: 100%;
+    max-width: var(--page-width);
+    margin-inline: auto;
+  }
+
+  .page__embedded-frame {
+    display: block;
+    width: 100%;
+    min-height: min(40rem, 70vh);
+    border: 0;
+    background: transparent;
+  }
+
+  .page__embedded-frame[hidden] {
+    display: none;
+  }
+
+  .page__javascript-required {
+    padding: 1rem;
+    text-align: center;
+    color: var(--color-muted);
   }
 
   .rte {
@@ -109,8 +166,13 @@
   }
 
   .rte img {
-    width: 100%;
+    max-width: 100%;
     height: auto;
+  }
+
+  .rte > img,
+  .rte > p > img {
+    width: 100%;
   }
 
   .rte blockquote {
@@ -131,6 +193,258 @@
   }
 {% endstylesheet %}
 
+{% javascript %}
+  (function () {
+    var selector = '[data-page-embedded]';
+    var mutationSettleDelay = 120;
+    var states = new WeakMap();
+
+    function embeddedDocument(content) {
+      return (
+        '<!doctype html><html><head>' +
+        '<meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+        '<base target="_top">' +
+        '<style>html{overflow-x:hidden}body{margin:0}img{max-width:100%;height:auto}</style>' +
+        '</head><body>' +
+        content +
+        '</body></html>'
+      );
+    }
+
+    function initContainer(container) {
+      if (states.has(container)) return;
+
+      var frame = container.querySelector('[data-page-embedded-frame]');
+      var template = container.querySelector('[data-page-embedded-template]');
+      if (!frame || !template) return;
+
+      var state = {
+        widthObserver: null,
+        mutationObserver: null,
+        measurementTimer: null,
+        mutationTimer: null,
+        measuring: false,
+        pendingSync: false,
+        syncHeight: null,
+        frameDocument: null,
+        previousFrameHeight: '',
+        previousFrameMinHeight: '',
+        previousContainerMinHeight: ''
+      };
+
+      state.cancelMeasurement = function () {
+        if (state.measurementTimer !== null) {
+          window.clearTimeout(state.measurementTimer);
+          state.measurementTimer = null;
+        }
+
+        if (state.mutationTimer !== null) {
+          window.clearTimeout(state.mutationTimer);
+          state.mutationTimer = null;
+        }
+
+        if (state.measuring) {
+          frame.style.height = state.previousFrameHeight;
+          frame.style.minHeight = state.previousFrameMinHeight;
+          container.style.minHeight = state.previousContainerMinHeight;
+        }
+
+        state.measuring = false;
+        state.pendingSync = false;
+      };
+
+      state.onResize = function () {
+        if (state.syncHeight) state.syncHeight();
+      };
+
+      state.onDocumentChange = function () {
+        if (state.syncHeight) state.syncHeight();
+      };
+
+      state.onMutation = function () {
+        if (state.mutationTimer !== null) {
+          window.clearTimeout(state.mutationTimer);
+        }
+
+        state.mutationTimer = window.setTimeout(function () {
+          state.mutationTimer = null;
+          if (state.syncHeight) state.syncHeight();
+        }, mutationSettleDelay);
+      };
+
+      state.cleanupDocument = function () {
+        if (state.mutationObserver) {
+          state.mutationObserver.disconnect();
+          state.mutationObserver = null;
+        }
+
+        if (state.frameDocument) {
+          ['load', 'loadedmetadata', 'toggle', 'change', 'transitionend', 'animationend'].forEach(
+            function (eventName) {
+              state.frameDocument.removeEventListener(eventName, state.onDocumentChange, true);
+            }
+          );
+        }
+
+        state.frameDocument = null;
+      };
+
+      state.onLoad = function () {
+        state.cancelMeasurement();
+        state.cleanupDocument();
+        state.syncHeight = null;
+
+        try {
+          var frameDocument = frame.contentDocument;
+          if (!frameDocument) {
+            frame.removeAttribute('aria-busy');
+            return;
+          }
+
+          state.frameDocument = frameDocument;
+          state.syncHeight = function () {
+            if (state.measuring) {
+              state.pendingSync = true;
+              return;
+            }
+
+            state.measuring = true;
+            state.pendingSync = false;
+
+            state.previousFrameHeight = frame.style.height;
+            state.previousFrameMinHeight = frame.style.minHeight;
+            state.previousContainerMinHeight = container.style.minHeight;
+            var renderedHeight = frame.getBoundingClientRect().height;
+            if (renderedHeight > 0) {
+              container.style.minHeight = Math.ceil(renderedHeight) + 'px';
+            }
+
+            frame.style.minHeight = '0px';
+            frame.style.height = '0px';
+
+            state.measurementTimer = window.setTimeout(function () {
+              state.measurementTimer = null;
+
+              var bodyHeight = frameDocument.body ? frameDocument.body.scrollHeight : 0;
+              var documentHeight = frameDocument.documentElement
+                ? frameDocument.documentElement.scrollHeight
+                : 0;
+              var height = Math.max(bodyHeight, documentHeight, 1);
+
+              frame.style.height = Math.ceil(height) + 'px';
+              frame.style.minHeight = state.previousFrameMinHeight;
+              container.style.minHeight = state.previousContainerMinHeight;
+              state.measuring = false;
+
+              if (state.pendingSync) {
+                state.pendingSync = false;
+                state.syncHeight();
+              }
+            }, 0);
+          };
+
+          state.mutationObserver = new MutationObserver(state.onMutation);
+          state.mutationObserver.observe(frameDocument.documentElement, {
+            attributes: true,
+            characterData: true,
+            childList: true,
+            subtree: true
+          });
+
+          ['load', 'loadedmetadata', 'toggle', 'change', 'transitionend', 'animationend'].forEach(
+            function (eventName) {
+              frameDocument.addEventListener(eventName, state.onDocumentChange, true);
+            }
+          );
+
+          state.syncHeight();
+
+          frameDocument.querySelectorAll('img').forEach(function (image) {
+            if (image.complete) return;
+            image.addEventListener('load', state.syncHeight, { once: true });
+            image.addEventListener('error', state.syncHeight, { once: true });
+          });
+
+          if (frameDocument.fonts && frameDocument.fonts.ready) {
+            frameDocument.fonts.ready.then(function () {
+              if (state.frameDocument === frameDocument && state.syncHeight) {
+                state.syncHeight();
+              }
+            });
+          }
+
+          frame.removeAttribute('aria-busy');
+        } catch (error) {
+          frame.removeAttribute('aria-busy');
+        }
+      };
+
+      frame.addEventListener('load', state.onLoad);
+      window.addEventListener('resize', state.onResize);
+      states.set(container, state);
+
+      if ('ResizeObserver' in window) {
+        var observedWidth = frame.getBoundingClientRect().width;
+        state.widthObserver = new ResizeObserver(function (entries) {
+          var width = entries.length > 0 ? entries[0].contentRect.width : frame.getBoundingClientRect().width;
+          if (Math.abs(width - observedWidth) < 0.5) return;
+          observedWidth = width;
+          if (state.syncHeight) state.syncHeight();
+        });
+        state.widthObserver.observe(frame);
+      }
+
+      frame.hidden = false;
+      frame.srcdoc = embeddedDocument(template.content.textContent);
+    }
+
+    function findContainers(scope) {
+      var containers = [];
+
+      if (scope.matches && scope.matches(selector)) {
+        containers.push(scope);
+      }
+      if (scope.querySelectorAll) {
+        scope.querySelectorAll(selector).forEach(function (container) {
+          containers.push(container);
+        });
+      }
+
+      return containers;
+    }
+
+    function init(scope) {
+      findContainers(scope).forEach(initContainer);
+    }
+
+    function unload(scope) {
+      findContainers(scope).forEach(function (container) {
+        var state = states.get(container);
+        if (!state) return;
+
+        var frame = container.querySelector('[data-page-embedded-frame]');
+        if (frame) frame.removeEventListener('load', state.onLoad);
+        state.cancelMeasurement();
+        if (state.widthObserver) state.widthObserver.disconnect();
+        state.cleanupDocument();
+        window.removeEventListener('resize', state.onResize);
+        states.delete(container);
+      });
+    }
+
+    init(document);
+
+    document.addEventListener('shopify:section:load', function (event) {
+      init(event.target);
+    });
+
+    document.addEventListener('shopify:section:unload', function (event) {
+      unload(event.target);
+    });
+  })();
+{% endjavascript %}
+
 {% schema %}
 {
   "name": "t:general.page",
@@ -149,6 +463,27 @@
       "step": 2,
       "unit": "rem",
       "default": 42
+    },
+    {
+      "type": "select",
+      "id": "content_mode",
+      "label": "t:sections.page.content_mode",
+      "info": "t:sections.page.content_mode_info",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:sections.page.content_mode_auto"
+        },
+        {
+          "value": "rich_text",
+          "label": "t:sections.page.content_mode_rich_text"
+        },
+        {
+          "value": "isolated",
+          "label": "t:sections.page.content_mode_isolated"
+        }
+      ],
+      "default": "auto"
     },
     {
       "type": "checkbox",

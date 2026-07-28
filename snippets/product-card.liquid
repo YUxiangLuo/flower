@@ -36,6 +36,7 @@
   would silently never apply.
 {%- endcomment -%}
 {% assign card_alt = product.featured_image.alt | default: product.title %}
+{% assign card_price = product.price | money %}
 
 <a class="product-card" href="{{ product.url }}">
   <div class="product-card__media">
@@ -60,7 +61,11 @@
       {% if product.compare_at_price > product.price %}
         <s class="product-card__price-was">{{ product.compare_at_price | money }}</s>
       {% endif %}
-      <span>{{ product.price | money }}</span>
+      {% if product.price_varies %}
+        <span>{{ 'product.from_price' | t: price: card_price }}</span>
+      {% else %}
+        <span>{{ card_price }}</span>
+      {% endif %}
     </p>
   </div>
 </a>

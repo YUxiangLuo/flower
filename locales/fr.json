@@ -98,6 +98,7 @@
     "decrease_quantity": "Diminuer la quantité",
     "increase_quantity": "Augmenter la quantité",
     "sale": "Solde",
+    "from_price": "À partir de {{ price }}",
     "optional": "Facultatif",
     "adding_to_cart": "Ajout au panier…",
     "add_to_cart_error": "Impossible d'ajouter cet article. Veuillez réessayer."
@@ -187,6 +188,9 @@
     },
     "gallery": {
       "rail_label": "Galerie, défilante"
+    },
+    "page": {
+      "javascript_required": "Ce contenu interactif nécessite JavaScript."
     }
   }
 }
