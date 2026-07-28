@@ -12,11 +12,12 @@
   </header>
 
   {% if article.image %}
+    {% assign article_image_alt = article.image.alt | default: article.title %}
     <div class="article__hero">
       {{
         article.image
         | image_url: width: 1600
-        | image_tag: loading: 'eager', class: 'article__hero-image', sizes: '(min-width: 750px) 60rem, 100vw', widths: '600, 900, 1200, 1600'
+        | image_tag: loading: 'eager', class: 'article__hero-image', sizes: '(min-width: 750px) 60rem, 100vw', widths: '600, 900, 1200, 1600', alt: article_image_alt
       }}
     </div>
   {% endif %}
