@@ -12,6 +12,7 @@
   @param {string} columns - Number of desktop grid columns.
   @param {boolean} show_description - Whether to show collection descriptions.
   @param {string} image_sizes - Responsive `sizes` value for collection images.
+  @param {number} [eager_rows] - How many leading cards to load without deferring. Pass the number on screen at the narrowest layout — not the desktop column count — where the grid opens above the fold; leave it off where it does not.
 
   @example
   {% render 'collection-grid',
@@ -22,16 +23,35 @@
   %}
 {% enddoc %}
 
+{%- comment -%}
+  `plus: 0` is a coercion, not arithmetic. Liquid compares an Integer to a
+  String by raising, and prints the exception in place of the whole block that
+  contained it — so a caller handing this the value of a `select` setting, whose
+  options are the strings "2" and "4", would replace every card on the page with
+  an error message. Unset it is nil, which coerces to 0 and defers everything.
+{%- endcomment -%}
+{%- assign eager_rows = eager_rows | plus: 0 -%}
+
 {% if collection_items.size > 0 %}
   <div class="collections__grid" style="--columns: {{ columns }}">
     {% for collection in collection_items %}
       <a class="collections__card" href="{{ collection.url }}">
         <div class="collections__media">
           {% if collection.featured_image %}
+            {%- comment -%}
+              A deferred image is not discovered by the preload scanner and is
+              queued at low priority after layout, which is the wrong treatment
+              for the row that is already on screen. The caller says how many
+              cards that is; the rest of the grid stays deferred.
+            {%- endcomment -%}
+            {%- assign card_loading = 'lazy' -%}
+            {% if forloop.index0 < eager_rows %}
+              {%- assign card_loading = 'eager' -%}
+            {% endif %}
             {{
               collection.featured_image
               | image_url: width: 900, height: 1100, crop: 'center'
-              | image_tag: loading: 'lazy', class: 'collections__image', sizes: image_sizes, widths: '360, 540, 720, 900', alt: collection.title
+              | image_tag: loading: card_loading, class: 'collections__image', sizes: image_sizes, widths: '360, 540, 720, 900', alt: collection.title
             }}
           {% else %}
             {{ 'collection-1' | placeholder_svg_tag: 'collections__image collections__image--placeholder' }}

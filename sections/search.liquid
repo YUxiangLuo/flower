@@ -38,15 +38,33 @@
         <div class="search__grid">
           {% for result in search.results %}
             {% if result.object_type == 'product' %}
-              {% render 'product-card', product: result, image_size: 700, columns: 4 %}
+              {%- comment -%}
+                The results on screen when the page opens are fetched rather
+                than deferred. Counted over every result, not over the products
+                among them: an article in front of a product still takes up a
+                cell in the grid.
+
+                Two, not the four the grid is wide: it drops to two columns
+                under 990px and one under 550px, and eager cards below the fold
+                on a phone would be competing with the one that is on it.
+              {%- endcomment -%}
+              {% if forloop.index0 < 2 %}
+                {% render 'product-card', product: result, image_size: 700, columns: 4, eager: true %}
+              {% else %}
+                {% render 'product-card', product: result, image_size: 700, columns: 4 %}
+              {% endif %}
             {% else %}
               <a class="search__card" href="{{ result.url }}">
                 <div class="search__card-media">
                   {% if result.image %}
+                    {%- assign result_loading = 'lazy' -%}
+                    {% if forloop.index0 < 2 %}
+                      {%- assign result_loading = 'eager' -%}
+                    {% endif %}
                     {{
                       result.image
                       | image_url: width: 700, height: 875, crop: 'center'
-                      | image_tag: loading: 'lazy', class: 'search__card-image', sizes: '(min-width: 990px) 25vw, (min-width: 550px) 50vw, 100vw', widths: '240, 360, 480, 600, 700', alt: result.title
+                      | image_tag: loading: result_loading, class: 'search__card-image', sizes: '(min-width: 990px) 25vw, (min-width: 550px) 50vw, 100vw', widths: '240, 360, 480, 600, 700', alt: result.title
                     }}
                   {% else %}
                     {{ 'image' | placeholder_svg_tag: 'search__card-image search__card-image--placeholder' }}

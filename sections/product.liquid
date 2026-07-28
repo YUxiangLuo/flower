@@ -1257,10 +1257,24 @@
         if (delta) thumbRail.scrollLeft += delta;
       }
 
+      /* External embeds are rendered without their src — the markup explains
+         why an iframe cannot be left to lazy loading. Connect the one being
+         shown, once. Uploaded video and product images are untouched: they
+         carry their own src and their own loading lifecycle. */
+      function connectEmbed(item) {
+        if (!item) return;
+        item.querySelectorAll('[data-src]').forEach(function (node) {
+          var src = node.getAttribute('data-src');
+          node.removeAttribute('data-src');
+          if (src) node.setAttribute('src', src);
+        });
+      }
+
       function show(next, scrollThumb) {
         if (next < 0) next = items.length - 1;
         if (next >= items.length) next = 0;
         index = next;
+        connectEmbed(items[index]);
         items.forEach(function (item, i) {
           var active = i === index;
           item.classList.toggle('is-active', active);

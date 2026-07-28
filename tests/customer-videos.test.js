@@ -63,15 +63,59 @@ test('a clip that scrolls into view plays, and pauses when it leaves', () => {
   assert.equal(page.videoIn(first).paused, true);
 });
 
-test('every clip on screen plays, not just the first', () => {
+/* The rail plays one clip, not every clip that qualifies. It is a row of
+   phone-shaped cards, so a desktop viewport holds four or five at once, and
+   starting all of them meant four 1080p streams pulling and decoding in
+   parallel for as long as the customer stayed on the section. Which one wins is
+   the behaviour worth pinning: the source cannot show it, and getting it wrong
+   is either silence or the old pile-up. */
+
+test('only the most visible clip plays when several share the screen', () => {
   const page = boot(customerVideosSection({ clips: 3 }));
-  const cards = page.cards();
+  const [first, second, third] = page.cards();
 
-  cards.forEach((card) => page.observer.setVisible(card, true));
+  page.observer.setIntersectionRatio(first, 0.6);
+  page.observer.setIntersectionRatio(second, 0.9);
+  page.observer.setIntersectionRatio(third, 0.55);
 
-  cards.forEach((card, i) => {
-    assert.equal(page.videoIn(card).paused, false, `clip ${i} should be playing`);
-  });
+  assert.equal(page.videoIn(second).paused, false, 'the clip showing most of itself should play');
+  assert.equal(page.videoIn(first).paused, true, 'a less visible clip played alongside it');
+  assert.equal(page.videoIn(third).paused, true, 'a less visible clip played alongside it');
+});
+
+test('playback follows the rail as one clip gives way to another', () => {
+  const page = boot(customerVideosSection({ clips: 3 }));
+  const [first, second] = page.cards();
+
+  page.observer.setIntersectionRatio(first, 0.9);
+  assert.equal(page.videoIn(first).paused, false);
+
+  /* The customer scrolls the rail on: the second card is now the fuller one. */
+  page.observer.setIntersectionRatio(first, 0.3);
+  page.observer.setIntersectionRatio(second, 0.8);
+
+  assert.equal(page.videoIn(second).paused, false, 'the clip taking over never started');
+  assert.equal(page.videoIn(first).paused, true, 'the clip being scrolled away kept playing');
+});
+
+test('a tie goes to the clip the customer reached first', () => {
+  const page = boot(customerVideosSection({ clips: 3 }));
+  const [first, second] = page.cards();
+
+  page.observer.setIntersectionRatio(first, 0.8);
+  page.observer.setIntersectionRatio(second, 0.8);
+
+  assert.equal(page.videoIn(first).paused, false, 'an equal tie should hold the earlier clip');
+  assert.equal(page.videoIn(second).paused, true, 'both halves of a tie played');
+});
+
+test('a clip barely on screen is not worth starting', () => {
+  const page = boot(customerVideosSection({ clips: 3 }));
+  const [first] = page.cards();
+
+  page.observer.setIntersectionRatio(first, 0.3);
+
+  assert.equal(page.videoIn(first).paused, true, 'a clip under the threshold started anyway');
 });
 
 test('reduced motion suppresses autoplay until the preference changes', () => {

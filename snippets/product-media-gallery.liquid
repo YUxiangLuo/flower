@@ -65,6 +65,45 @@
                 }}
               {% endif %}
             </button>
+          {% elsif media.media_type == 'video' %}
+            {%- comment -%}
+              `preload: 'none'` because the stage holds every media item at
+              once. Shopify emits `preload="metadata"` otherwise, and
+              `display: none` does not stop a media element from acting on it —
+              the resource selection algorithm does not care whether anything
+              is rendering the video — so a product with two clips opened two
+              connections and pulled two file headers on every page view.
+              The poster is an image and still arrives.
+            {%- endcomment -%}
+            {{ media | media_tag: class: 'product__image', image_size: '1600x', preload: 'none' }}
+          {% elsif media.media_type == 'external_video' %}
+            {%- comment -%}
+              An external video is an <iframe>, and an iframe loads its src
+              whether or not anything is showing it. `loading="lazy"` is no help
+              either: Chrome exempts hidden frames from lazy loading, because
+              that is how tracking pixels are shipped. Left whole, a YouTube
+              item on a product would pull a megabyte of player on every view of
+              that product, for a video most customers never open.
+
+              So an off-stage URL travels in data-src and the gallery connects
+              it the first time the item is shown. The first item keeps src:
+              it is already visible and must still work when gallery JavaScript
+              is unavailable.
+
+              Named rather than left as the fallback branch, because the rewrite
+              suits nothing else. An uploaded video carries src on its <source>
+              and on its poster <img>, and a 3D model is a <model-viewer> whose
+              own bootstrap reads src as it initialises — neither survives having
+              the attribute renamed out from under it.
+            {%- endcomment -%}
+            {%- capture media_embed -%}
+              {{ media | media_tag: class: 'product__image', image_size: '1600x' }}
+            {%- endcapture -%}
+            {% if forloop.first %}
+              {{ media_embed }}
+            {% else %}
+              {{ media_embed | replace: ' src=', ' data-src=' }}
+            {% endif %}
           {% else %}
             {{ media | media_tag: class: 'product__image', image_size: '1600x' }}
           {% endif %}

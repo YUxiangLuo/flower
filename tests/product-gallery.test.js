@@ -2,6 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const { bootSection, tick } = require('./helpers/section.js');
 const { productSection } = require('./helpers/fixtures.js');
@@ -666,4 +668,78 @@ test('retry restores responsive sources even when another media item is selected
   images.load(failedImage);
   await tick(window);
   assert.equal(root.querySelector('[data-gallery-status]').hidden, true);
+});
+
+/* Deferred external embeds. An <iframe> loads its src whether or not anything
+   is showing it — display:none does not stop it, and Chrome exempts hidden
+   frames from lazy loading besides — so the section renders one without a src
+   and the gallery connects it when its item is shown. Nothing about that is
+   visible in the markup: a broken connect step looks like a page that loads
+   faster and plays nothing. */
+
+const embedIn = (root) => root.querySelector('[data-stage-item] iframe');
+const thumbAt = (root, i) => root.querySelector(`[data-thumb="${i}"]`);
+
+test('the first external video keeps its src without gallery JavaScript', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'snippets', 'product-media-gallery.liquid'),
+    'utf8'
+  );
+  assert.match(
+    source,
+    /elsif media\.media_type == 'external_video'[\s\S]*if forloop\.first[\s\S]*\{\{\s*media_embed\s*\}\}[\s\S]*else[\s\S]*replace:\s*' src=',\s*' data-src='/,
+    'the active external video is deferred even when JavaScript never initialises the gallery'
+  );
+});
+
+test('an external embed is not connected while its item is off stage', () => {
+  const { root } = bootGallery({ embed: true });
+  const embed = embedIn(root);
+
+  assert.ok(embed, 'the fixture should carry an external embed');
+  assert.equal(embed.hasAttribute('src'), false, 'the embed loaded before it was shown');
+  assert.equal(
+    embed.getAttribute('data-src'),
+    'https://www.youtube.com/embed/keepsake',
+    'the URL the gallery needs to connect later is gone'
+  );
+});
+
+test('showing an external embed connects it', () => {
+  const { window, root } = bootGallery({ embed: true });
+  const embed = embedIn(root);
+
+  click(window, thumbAt(root, 2));
+
+  assert.equal(embed.getAttribute('src'), 'https://www.youtube.com/embed/keepsake');
+  assert.equal(embed.hasAttribute('data-src'), false, 'the deferred URL was left behind');
+});
+
+test('an embed already on stage is connected without being asked for', () => {
+  const { root } = bootGallery({ embedFirst: true });
+  const embed = embedIn(root);
+
+  /* A merchant can put the video first. Nothing clicks a thumbnail in that
+     case, so the initial render is the only chance to connect it — miss it and
+     the product opens on a blank stage. */
+  assert.equal(embed.getAttribute('src'), 'https://www.youtube.com/embed/keepsake');
+});
+
+test('returning to an embed does not reload it', () => {
+  const { window, root } = bootGallery({ embed: true });
+  const embed = embedIn(root);
+
+  click(window, thumbAt(root, 2));
+  /* Standing in for playback state the customer built up: a reconnect would
+     wipe it, and re-assigning the same src is enough to make a frame reload. */
+  embed.setAttribute('src', 'https://www.youtube.com/embed/keepsake?t=42');
+
+  click(window, thumbAt(root, 0));
+  click(window, thumbAt(root, 2));
+
+  assert.equal(
+    embed.getAttribute('src'),
+    'https://www.youtube.com/embed/keepsake?t=42',
+    'the gallery reconnected an embed that was already running'
+  );
 });

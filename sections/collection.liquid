@@ -5,6 +5,43 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
+{%- comment -%}
+  One crop per pixel density, resolved once and used twice: the preload links
+  below and the custom properties on the header have to name the same file, or
+  the page fetches the artwork twice. The stylesheet picks between them with the
+  same three resolution bands the `media` attributes use here — change a band in
+  one place and it has to change in the other.
+{%- endcomment -%}
+{%- liquid
+  if collection.image
+    assign hero_1x = collection.image | image_url: width: 750
+    assign hero_2x = collection.image | image_url: width: 1500
+    assign hero_3x = collection.image | image_url: width: 2250
+  endif
+-%}
+
+{%- if collection.image -%}
+  {%- comment -%}
+    A background-image is discovered only after the stylesheet has been parsed
+    and the box laid out, and on a phone this artwork sits behind the page's own
+    <h1> — usually its largest paint. These give the preload scanner something
+    to find while the document is still being read. `media` keeps them as narrow
+    as the CSS: a desktop parses three links and requests none of them.
+  {%- endcomment -%}
+  {%- comment -%}
+    AssetPreload asks for `image_tag`'s preload argument instead, which is the
+    right answer for an <img> and no answer at all here: there is no <img> to
+    hang it on, and it emits an unconditional Link header — the artwork would
+    then be preloaded on the desktop that never displays it, which is the whole
+    reason this is a background image.
+  {%- endcomment -%}
+  {% # theme-check-disable AssetPreload %}
+  <link rel="preload" as="image" media="(max-width: 749px) and (max-resolution: 1.49dppx)" href="{{ hero_1x }}">
+  <link rel="preload" as="image" media="(max-width: 749px) and (min-resolution: 1.5dppx) and (max-resolution: 2.49dppx)" href="{{ hero_2x }}">
+  <link rel="preload" as="image" media="(max-width: 749px) and (min-resolution: 2.5dppx)" href="{{ hero_3x }}">
+  {% # theme-check-enable AssetPreload %}
+{%- endif -%}
+
 <div class="collection">
   {%- comment -%}
     On narrow screens the collection's own artwork sits behind its name. The URL
@@ -12,11 +49,21 @@
     only ever fetched where it is used: a background-image inside a media query
     is not requested when the query does not match, while an <img> is downloaded
     even when its container is display:none.
+
+    Three properties rather than one `image-set()`: a custom property holding a
+    function the browser does not know makes the whole declaration invalid at
+    computed-value time, which drops the artwork entirely instead of falling
+    back to an earlier declaration. Plain url() values and media queries have no
+    such cliff.
   {%- endcomment -%}
   <header
     class="collection__header{% if collection.image %} collection__header--media{% endif %}"
     {%- if collection.image %}
-      style="--collection-media: url('{{ collection.image | image_url: width: 1500 | escape }}');"
+      style="
+        --collection-media: url('{{ hero_1x | escape }}');
+        --collection-media-2x: url('{{ hero_2x | escape }}');
+        --collection-media-3x: url('{{ hero_3x | escape }}');
+      "
     {%- endif %}
   >
     <h1 class="collection__title">{{ collection.title }}</h1>
@@ -83,8 +130,27 @@
 
     {% if collection.products.size > 0 %}
       <div class="collection__grid" style="--columns: {{ section.settings.columns }}">
+        {%- comment -%}
+          The cards on screen when the page opens are asked for eagerly so the
+          preload scanner can find them; everything after stays deferred.
+
+          Two, not `section.settings.columns`. The grid is four across only on a
+          wide window: it is two columns under 990px and one under 550px, so a
+          desktop count marked eager here would be three off-screen images
+          racing the phone's own header artwork. Two is the whole first row at
+          both narrow widths and the largest paint at every width above them.
+        {%- endcomment -%}
         {% for product in collection.products %}
-          {% render 'product-card', product: product, image_size: 700, columns: section.settings.columns %}
+          {% if forloop.index0 < 2 %}
+            {% render 'product-card',
+              product: product,
+              image_size: 700,
+              columns: section.settings.columns,
+              eager: true
+            %}
+          {% else %}
+            {% render 'product-card', product: product, image_size: 700, columns: section.settings.columns %}
+          {% endif %}
         {% endfor %}
       </div>
 
@@ -252,12 +318,27 @@
       inset: 0;
     }
 
+    /* The bands match the `media` attributes on the preload links in the
+       markup one for one. A band that drifts here does not break the page, it
+       just downloads the artwork twice — once for the link and once for this. */
     .collection__header--media::before {
       z-index: -2;
       background-image: var(--collection-media);
       background-size: cover;
       background-position: center;
       filter: saturate(0.55);
+    }
+
+    @media (min-resolution: 1.5dppx) {
+      .collection__header--media::before {
+        background-image: var(--collection-media-2x);
+      }
+    }
+
+    @media (min-resolution: 2.5dppx) {
+      .collection__header--media::before {
+        background-image: var(--collection-media-3x);
+      }
     }
 
     .collection__header--media::after {

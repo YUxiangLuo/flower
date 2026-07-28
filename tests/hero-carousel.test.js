@@ -18,16 +18,52 @@ const { heroSection } = require('./helpers/fixtures.js');
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
-function bootHero(html, { reducedMotion = false } = {}) {
+function bootHero(html, { reducedMotion = false, pendingImages = [] } = {}) {
   let setMedia = null;
+  const imageStates = new Map();
+  const pending = new Set(pendingImages);
+
+  function registerImages(scope) {
+    scope.querySelectorAll('[data-hero-slide] img[data-image]').forEach((image) => {
+      if (imageStates.has(image)) return;
+
+      const imageIndex = Number(image.getAttribute('data-image'));
+      const state = { ready: !pending.has(imageIndex), failed: false };
+      imageStates.set(image, state);
+      Object.defineProperties(image, {
+        complete: {
+          configurable: true,
+          get() {
+            return state.ready;
+          }
+        },
+        naturalWidth: {
+          configurable: true,
+          get() {
+            return state.ready && !state.failed ? 1200 : 0;
+          }
+        }
+      });
+    });
+  }
+
   const window = bootSection('hero.liquid', html, {
     beforeScript(win) {
       setMedia = stubMatchMedia(win, { [REDUCED_MOTION]: reducedMotion });
+      registerImages(win.document);
     }
   });
   return {
     window,
-    setReducedMotion: (matches) => setMedia(REDUCED_MOTION, matches)
+    registerImages,
+    setReducedMotion: (matches) => setMedia(REDUCED_MOTION, matches),
+    finishImage(index, { error = false } = {}) {
+      const image = window.document.querySelector(`[data-image="${index}"]`);
+      const state = imageStates.get(image);
+      state.ready = true;
+      state.failed = error;
+      image.dispatchEvent(new window.Event(error ? 'error' : 'load'));
+    }
   };
 }
 
@@ -290,12 +326,14 @@ test('unloading the section stops autoplay for good', async () => {
 });
 
 test('a section re-rendered by the theme editor is wired against the fresh DOM', async () => {
-  const { window } = bootHero(heroSection({ interval: 60 }));
+  const hero = bootHero(heroSection({ interval: 60 }));
+  const { window } = hero;
   const section = window.document.getElementById('section-hero');
 
   section.innerHTML = heroSection({ interval: 60 })
     .replace(/^[\s\S]*?<div class="hero"/, '<div class="hero"')
     .replace(/<\/div>\s*$/, '');
+  hero.registerImages(section);
   dispatchSectionEvent(window, 'shopify:section:load', section);
 
   await tick(window, 100);
@@ -345,4 +383,189 @@ test('a single-slide hero initialises and unloads without a carousel', async () 
   dispatchSectionEvent(window, 'shopify:section:unload', section);
 
   assert.equal(activeIndex(window), 0, 'unloading a hero with nothing to rotate changed the slide');
+});
+
+/* Deferred artwork. Every slide sits in the same grid cell, so the ones behind
+   the active one are inside the viewport and `loading="lazy"` does not defer
+   them — the browser decides from layout geometry, and `visibility: hidden`
+   still lays out. The section therefore ships their URLs in data-src and
+   data-srcset, and these rules cover the promotion that has to make up for it:
+   nothing extra during load, the next slide ready before the crossfade needs
+   it, and sources ahead of images so a phone does not fetch the desktop crop
+   first. */
+
+const mediaOf = (window, i, id = 'hero') => {
+  const slide = slidesOf(window, id)[i];
+  return { source: slide.querySelector('source'), image: slide.querySelector('img') };
+};
+
+const isDeferred = ({ source, image }) =>
+  !source.hasAttribute('srcset') &&
+  source.hasAttribute('data-srcset') &&
+  !image.hasAttribute('src') &&
+  !image.hasAttribute('srcset') &&
+  image.hasAttribute('data-src');
+
+const isPromoted = ({ source, image }) =>
+  source.hasAttribute('srcset') &&
+  !source.hasAttribute('data-srcset') &&
+  image.hasAttribute('src') &&
+  image.hasAttribute('srcset') &&
+  !image.hasAttribute('data-src');
+
+test('slides behind the first request no artwork while the page is still loading', () => {
+  const { window } = bootHero(heroSection({ autoplay: false }));
+
+  assert.equal(
+    mediaOf(window, 0).image.getAttribute('src'),
+    '/desktop-0-1200.jpg',
+    'the slide on screen must carry its own URL, not wait for script'
+  );
+  assert.ok(isDeferred(mediaOf(window, 1)), 'the second slide fetched during load');
+  assert.ok(isDeferred(mediaOf(window, 2)), 'the third slide fetched during load');
+});
+
+test('the slide after the one on screen is promoted once the page has loaded', async () => {
+  const { window } = bootHero(heroSection({ autoplay: false }));
+
+  await tick(window, 0);
+
+  assert.ok(isPromoted(mediaOf(window, 1)), 'the next slide was never promoted');
+  assert.ok(isDeferred(mediaOf(window, 2)), 'promotion ran further ahead than the next slide');
+});
+
+test('a promoted slide is given its sources before its image', async () => {
+  const { window } = bootHero(heroSection({ autoplay: false }));
+  const { source, image } = mediaOf(window, 1);
+
+  /* An <img> handed its src first picks from its own srcset immediately and
+     re-evaluates only once the <source> has one — on a phone that is the
+     desktop crop, fetched and then thrown away. */
+  const order = [];
+  const observer = new window.MutationObserver((records) => {
+    records.forEach((record) => {
+      if (record.target === source && record.attributeName === 'srcset') order.push('source');
+      if (record.target === image && record.attributeName === 'src') order.push('image');
+    });
+  });
+  observer.observe(slidesOf(window)[1], {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ['src', 'srcset']
+  });
+
+  await tick(window, 0);
+  observer.disconnect();
+
+  assert.deepEqual(order, ['source', 'image'], 'the image was given its src before the source');
+});
+
+test('jumping to a slide promotes it and the one after it', async () => {
+  const { window } = bootHero(heroSection({ slides: 5, autoplay: false }));
+
+  await tick(window, 0);
+  assert.ok(isDeferred(mediaOf(window, 3)), 'the fixture should start with slide four deferred');
+
+  heroEl(window)
+    .querySelectorAll('[data-hero-dot]')[3]
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 3);
+  assert.ok(isPromoted(mediaOf(window, 3)), 'the slide the customer asked for has no artwork');
+  assert.ok(isPromoted(mediaOf(window, 4)), 'the jump left the rotation with nothing warmed ahead');
+});
+
+test('a deferred dot target stays inactive until its artwork loads', async () => {
+  const hero = bootHero(heroSection({ slides: 5, autoplay: false }), {
+    pendingImages: [3]
+  });
+  const { window } = hero;
+
+  await tick(window, 0);
+  heroEl(window)
+    .querySelectorAll('[data-hero-dot]')[3]
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 0, 'the empty target slide became active');
+  assert.ok(isPromoted(mediaOf(window, 3)), 'the requested artwork was not connected');
+
+  hero.finishImage(3);
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 3);
+});
+
+test('a stale deferred load cannot override a newer slide request', async () => {
+  const hero = bootHero(heroSection({ slides: 5, autoplay: false }), {
+    pendingImages: [3]
+  });
+  const { window } = hero;
+  const dots = heroEl(window).querySelectorAll('[data-hero-dot]');
+
+  await tick(window, 0);
+  dots[3].dispatchEvent(new window.Event('click', { bubbles: true }));
+  dots[2].dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 2, 'the newer ready target did not win the navigation race');
+
+  hero.finishImage(3);
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 2, 'the stale load callback replaced the newer target');
+});
+
+test('a cached dot target stays inactive until decoding finishes', async () => {
+  const { window } = bootHero(heroSection({ slides: 5, autoplay: false }));
+  const target = mediaOf(window, 3).image;
+  let finishDecode;
+  target.decode = () =>
+    new Promise((resolve) => {
+      finishDecode = resolve;
+    });
+
+  await tick(window, 0);
+  heroEl(window)
+    .querySelectorAll('[data-hero-dot]')[3]
+    .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+  assert.equal(activeIndex(window), 0, 'the undecoded target slide became active');
+
+  finishDecode();
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 3);
+});
+
+test('autoplay keeps the current slide visible while the next artwork loads', async () => {
+  const hero = bootHero(heroSection({ slides: 3, interval: 60 }), {
+    pendingImages: [1]
+  });
+  const { window } = hero;
+
+  await tick(window, 100);
+  assert.equal(activeIndex(window), 0, 'autoplay crossfaded into an unloaded slide');
+
+  hero.finishImage(1);
+  await tick(window, 0);
+
+  assert.equal(activeIndex(window), 1);
+});
+
+test('autoplay stays one slide ahead of itself', async () => {
+  const { window } = bootHero(heroSection({ slides: 4, interval: 60 }));
+
+  await tick(window, 100);
+
+  assert.equal(activeIndex(window), 1);
+  assert.ok(isPromoted(mediaOf(window, 2)), 'the slide about to arrive was not promoted');
+  assert.ok(isDeferred(mediaOf(window, 3)), 'autoplay promoted further ahead than it needs to');
+});
+
+test('a carousel re-initialised on a later slide promotes what is on screen', () => {
+  const { window } = bootHero(heroSection({ autoplay: false, active: 2 }));
+
+  assert.ok(
+    isPromoted(mediaOf(window, 2)),
+    'a carousel that had already rotated was left showing an empty slide'
+  );
 });
