@@ -26,27 +26,27 @@
         },
         "highlight-3": {
           "type": "highlight",
-          "settings": { "text": "Free worldwide shipping, duties prepaid" }
+          "settings": { "text": "Carefully packaged for secure delivery" }
         },
         "shipping": {
           "type": "collapsible_row",
           "settings": {
             "heading": "Shipping & Delivery",
-            "content": "<p>Each piece is handcrafted to order and typically takes 2–3 weeks to create. Free worldwide shipping typically takes 7–10 business days after dispatch. Duties are prepaid.</p>"
+            "content": "<p>Each piece is made to order, and creation time varies by design and size. Check the product details for the current estimate. Delivery times vary by destination; see our <a href=\"/policies/shipping-policy\">Shipping & Delivery policy</a> for current information.</p>"
           }
         },
         "returns": {
           "type": "collapsible_row",
           "settings": {
             "heading": "Returns & Exchanges",
-            "content": "<p>We want you to love your artwork. If you are not completely satisfied, contact us within 14 days of delivery to request a return.</p><p>Because every piece is made to order, a US$50–$75 production fee applies to returns. Please contact us before sending your order back so we can confirm the applicable fee and next steps.</p><p>If your artwork arrives damaged, contact us with your order number and clear photos of the damage. We’ll handle the claim with the carrier and send a complimentary replacement as quickly as possible.</p>"
+            "content": "<p>We want you to love your artwork. If you are not completely satisfied, contact us within 14 days of delivery to request a return.</p><p>Because every piece is made to order, a production fee of US$50–$75 is deducted from eligible returns. Contact us before returning your order so we can confirm eligibility, the applicable fee and the next steps.</p><p>If your artwork arrives damaged, contact us with your order number and clear photos of the damage. We’ll handle the claim with the carrier and send a complimentary replacement as quickly as possible.</p>"
           }
         },
         "made-to-order": {
           "type": "collapsible_row",
           "settings": {
             "heading": "Made to Order",
-            "content": "<p>Your artwork will be handcrafted by the same floral artist who created the original design. Before framing, we’ll send you a preview for approval.</p>"
+            "content": "<p>Your artwork will be handcrafted by an artist following the original design. Before framing, we’ll send you a preview for approval.</p>"
           }
         }
       },

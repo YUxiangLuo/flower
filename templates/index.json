@@ -33,7 +33,7 @@
             "heading": "A keepsake for the moments that matter",
             "subheading": "Anniversaries, birthdays, thank-yous — pressed by hand and made to last.",
             "button_label": "Discover your keepsake",
-            "button_link": ""
+            "button_link": "shopify://collections/best-sellers"
           }
         },
         "slide-3": {
@@ -42,7 +42,7 @@
             "image": "shopify://shop_images/03_burgundy_bouquet_modern_apartment_anniversary_4x3_2k.png",
             "overlay_opacity": 30,
             "eyebrow": "Yours alone",
-            "heading": "Built around the flowers that mean something to them",
+            "heading": "Made with the flowers that mean the most",
             "subheading": "Send us the stems from the day, or choose their birth flowers.",
             "button_label": "Discover your keepsake",
             "button_link": "shopify://collections/best-sellers"
@@ -69,24 +69,24 @@
           "type": "occasion",
           "settings": {
             "collection": "anniversary-gifts",
-            "title": "The anniversary collection",
-            "link": "/collections/all?sort_by=created-descending"
+            "title": "Anniversary keepsakes",
+            "link": ""
           }
         },
         "occasion-2": {
           "type": "occasion",
           "settings": {
             "collection": "birthday-gifts",
-            "title": "The birthday keepsake",
-            "link": "/collections/all?sort_by=created-descending"
+            "title": "Birthday keepsakes",
+            "link": ""
           }
         },
         "occasion-3": {
           "type": "occasion",
           "settings": {
             "collection": "gifts-for-mom",
-            "title": "Everlasting gifts for mum",
-            "link": "/collections/all?sort_by=created-descending"
+            "title": "Gifts for Mum",
+            "link": ""
           }
         }
       },
@@ -108,7 +108,7 @@
         "background": "surface-deep",
         "eyebrow": "A keepsake, not a bouquet",
         "heading": "The gift that never wilts",
-        "body": "<p>Fresh flowers fade within the week. A pressed-flower keepsake holds the colour and meaning of the moment for years — a gift they'll keep on the wall long after the occasion has passed.</p>",
+        "body": "<p>Fresh flowers naturally fade. With proper care, a pressed-flower keepsake preserves the colour and meaning of the moment for years — a thoughtful piece to display long after the occasion.</p>",
         "button_label": "Shop keepsakes",
         "button_link": "shopify://collections/best-sellers"
       }
@@ -119,28 +119,28 @@
         "step-1": {
           "type": "step",
           "settings": {
-            "title": "Choose Your Keepsake",
+            "title": "Choose your keepsake",
             "text": "<p>Select your botanical artwork and preferred frame, then add a personalisation note.</p>"
           }
         },
         "step-2": {
           "type": "step",
           "settings": {
-            "title": "Flowers, Carefully Preserved",
+            "title": "Flowers, carefully preserved",
             "text": "<p>We press and dry real botanicals, preserving their natural colour and character.</p>"
           }
         },
         "step-3": {
           "type": "step",
           "settings": {
-            "title": "Handcrafted for You",
+            "title": "Handcrafted for you",
             "text": "<p>Our artists arrange and frame each piece by hand, with updates along the way.</p>"
           }
         },
         "step_aNcEyc": {
           "type": "step",
           "settings": {
-            "title": "Delivered Ready to Display",
+            "title": "Delivered ready to display",
             "text": "<p>Your finished keepsake is securely packaged and shipped, ready to display or give.</p>"
           }
         }
@@ -161,7 +161,7 @@
     "featured": {
       "type": "featured-products",
       "settings": {
-        "eyebrow": "Ready to send",
+        "eyebrow": "Made with real flowers",
         "heading": "Best-selling gifts",
         "collection": "best-sellers",
         "products_to_show": 4,
@@ -301,25 +301,25 @@
         "point-1": {
           "type": "point",
           "settings": {
-            "label": "Arrives gift-ready"
+            "label": "Carefully packaged for gifting"
           }
         },
         "point-2": {
           "type": "point",
           "settings": {
-            "label": "Add a free gift note"
+            "label": "Add a personal gift note"
           }
         },
         "point-3": {
           "type": "point",
           "settings": {
-            "label": "Ships worldwide"
+            "label": "Worldwide delivery available"
           }
         },
         "point-4": {
           "type": "point",
           "settings": {
-            "label": "A gift that lasts for years"
+            "label": "Made to be treasured for years"
           }
         }
       },
@@ -343,7 +343,7 @@
         "background": "page",
         "eyebrow": "Dried Petals Gallery",
         "heading": "Meet the creator",
-        "body": "<p>Hello, I’m Thomas—the founder of Dried Petals Gallery.</p><p>My love for flowers began in my grandmother’s garden. It was always filled with quiet color and life, and as a child I was drawn to the small details—the shape of petals, the rhythm of leaves, the way flowers changed with the seasons. That early closeness to nature stayed with me.</p><p>Years later, pressing flowers became my way of preserving those moments—slowing time and honoring beauty that would otherwise fade. What began as a personal practice grew into Dried Petals Gallery.</p><p>Today, every frame is handcrafted with care. Each petal is selected and arranged by hand, never rushed or mass-produced. Guided by respect for nature and sustainability, our designs are minimal, timeless, and made to live beautifully in your home for years to come.</p>",
+        "body": "<p>Hello, I’m Thomas, founder of Dried Petals Gallery.</p><p>My love of flowers began in my grandmother’s garden. It was filled with quiet colour and life, and as a child I was drawn to the details — the shape of petals, the rhythm of leaves and the way flowers changed with the seasons. That connection to nature stayed with me.</p><p>Years later, pressing flowers became my way of preserving meaningful moments, slowing time and honouring beauty that would otherwise fade. What began as a personal practice grew into Dried Petals Gallery.</p><p>Today, every frame is handcrafted with care. Each petal is selected and arranged by hand to create a minimal, timeless piece designed to live beautifully in your home for years to come.</p>",
         "signature": "With gratitude, Thomas",
         "button_label": "Our story",
         "button_link": "shopify://pages/our-story"
@@ -358,7 +358,7 @@
         "alignment": "center",
         "eyebrow": "Our promise",
         "heading": "Made by hand, made to last",
-        "body": "<p>Every keepsake begins with real flowers, pressed and arranged by hand. We take our time so the piece you give holds its colour and meaning for years to come.</p>",
+        "body": "<p>Every keepsake begins with real flowers, pressed and arranged by hand. With proper care, it is designed to preserve their natural beauty and meaning for years to come.</p>",
         "button_label": "",
         "button_link": ""
       }
@@ -370,21 +370,21 @@
           "type": "question",
           "settings": {
             "question": "How long does a keepsake take to make?",
-            "answer": "<p>Each piece is pressed and framed by hand, so orders typically ship within 2–3 weeks. We'll email you the moment yours is on its way.</p>"
+            "answer": "<p>Each piece is made to order, and creation time varies by design and size. Check the product page for the current estimate; we’ll email you as soon as your keepsake is on its way.</p>"
           }
         },
         "q2": {
           "type": "question",
           "settings": {
             "question": "Can I send my own flowers to be pressed?",
-            "answer": "<p>Absolutely. Choose a bespoke keepsake at checkout and we'll send you simple instructions for posting the flowers that mean the most.</p>"
+            "answer": "<p>Yes. Select a bespoke keepsake on the product page, and we’ll send simple instructions for posting your flowers. Availability and mailing requirements vary by location, so contact us before ordering if you are unsure.</p>"
           }
         },
         "q3": {
           "type": "question",
           "settings": {
             "question": "How do I care for my pressed-flower art?",
-            "answer": "<p>Keep it out of direct sunlight and wipe the glass with a dry cloth. Your keepsake is made to hold its colour for years.</p>"
+            "answer": "<p>Keep it away from direct sunlight and high humidity, and clean the glazing with a soft, dry cloth. Natural fading can occur over time, but careful placement will help preserve its colour.</p>"
           }
         }
       },
@@ -406,7 +406,7 @@
         "overlay_opacity": 55,
         "eyebrow": "Ready to give something lasting?",
         "heading": "Find the perfect gift",
-        "subheading": "A handcrafted keepsake they'll keep long after the flowers would have faded.",
+        "subheading": "A handcrafted keepsake made from real flowers, designed to be treasured for years.",
         "button_label": "Shop gifts",
         "button_link": "/collections/all?sort_by=created-descending",
         "background_color": "#2a3320",

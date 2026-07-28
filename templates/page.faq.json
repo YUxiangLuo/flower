@@ -23,21 +23,21 @@
           "type": "question",
           "settings": {
             "question": "How long does a keepsake take to make?",
-            "answer": "<p>Each piece is pressed and framed by hand, so orders typically ship within 2–3 weeks. We'll email you the moment yours is on its way.</p>"
+            "answer": "<p>Each piece is made to order, and creation time varies by design and size. Check the product page for the current estimate; we’ll email you as soon as your keepsake is on its way.</p>"
           }
         },
         "q2": {
           "type": "question",
           "settings": {
             "question": "Can I send my own flowers to be pressed?",
-            "answer": "<p>Absolutely. Choose a bespoke keepsake at checkout and we'll send you simple instructions for posting the flowers that mean the most.</p>"
+            "answer": "<p>Yes. Select a bespoke keepsake on the product page, and we’ll send simple instructions for posting your flowers. Availability and mailing requirements vary by location, so contact us before ordering if you are unsure.</p>"
           }
         },
         "q3": {
           "type": "question",
           "settings": {
             "question": "How do I care for my pressed-flower art?",
-            "answer": "<p>Keep it out of direct sunlight and wipe the glass with a dry cloth. Your keepsake is made to hold its colour for years.</p>"
+            "answer": "<p>Keep it away from direct sunlight and high humidity, and clean the glazing with a soft, dry cloth. Natural fading can occur over time, but careful placement will help preserve its colour.</p>"
           }
         }
       },
