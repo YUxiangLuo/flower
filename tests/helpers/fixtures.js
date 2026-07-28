@@ -13,20 +13,77 @@
 function productSection({
   id = 'a',
   selected = 'S',
+  variantConfig = null,
   videoFallback = false,
   embed = false,
   embedFirst = false
 } = {}) {
-  const variants = [
-    { id: 11, options: ['S'], available: true },
-    { id: 12, options: ['M'], available: true }
-  ];
-  const variantMedia = { 11: 1, 12: 2 };
+  const variants = variantConfig
+    ? variantConfig.variants
+    : [
+        { id: 11, options: ['S'], available: true, price: '$10', mediaId: 1 },
+        { id: 12, options: ['M'], available: true, price: '$12', mediaId: 2 }
+      ];
+  const optionGroups = variantConfig
+    ? variantConfig.options
+    : [{ values: ['S', 'M', 'L'], selected }];
+  const selectedValues = optionGroups.map((group) => group.selected);
+  const selectedVariant = variants.find((variant) =>
+    variant.options.every((value, index) => value === selectedValues[index])
+  );
+  const variantMedia = Object.fromEntries(
+    variants
+      .filter((variant) => variant.mediaId)
+      .map((variant) => [variant.id, variant.mediaId])
+  );
 
-  const option = (value) => `
-        <input type="radio" name="Option-${id}" value="${value}"
-               id="opt-${id}-${value}" data-option-input
-               ${value === selected ? 'checked' : ''}>`;
+  const optionAvailable = (value, position) =>
+    variants.some((variant) => {
+      if (!variant.available || variant.options[position - 1] !== value) return false;
+      return selectedValues
+        .slice(0, position - 1)
+        .every((selectedValue, index) => variant.options[index] === selectedValue);
+    });
+
+  const option = (value, position, selectedValue) => {
+    const available = optionAvailable(value, position);
+    const inputId = position === 1 ? `opt-${id}-${value}` : `opt-${id}-${position}-${value}`;
+
+    return `
+        <label class="product__swatch${available ? '' : ' is-disabled'}">
+          <input type="radio" name="Option-${id}-${position}" value="${value}"
+                 id="${inputId}" data-option-input
+                 ${value === selectedValue ? 'checked' : ''}
+                 ${available ? '' : 'disabled'}>
+          <span class="product__swatch-label">${value}</span>
+          <span data-option-unavailable ${available ? 'hidden' : ''}>Unavailable</span>
+        </label>`;
+  };
+
+  const optionMarkup = optionGroups
+    .map(
+      (group, index) => `
+    <div data-option-position="${index + 1}">
+      ${group.values.map((value) => option(value, index + 1, group.selected)).join('')}
+    </div>`
+    )
+    .join('');
+
+  const variantOptions = variants
+    .map((variant, index) => {
+      const isSelected = variant.options.every(
+        (value, optionIndex) => value === selectedValues[optionIndex]
+      );
+      const price = variant.price || `$${10 + index}`;
+      const compare = variant.compare ? ` data-compare="${variant.compare}"` : '';
+
+      return `
+        <option value="${variant.id}" data-price="${price}" data-available="${variant.available}"
+                ${isSelected ? 'selected' : ''} ${variant.available ? '' : 'disabled'}${compare}>
+          ${variant.options.join(' / ')}
+        </option>`;
+    })
+    .join('');
 
   const embedSourceAttribute = embedFirst ? 'src' : 'data-src';
   const embedItem = `
@@ -119,20 +176,21 @@ function productSection({
   <script type="application/json" data-variant-media>${JSON.stringify(variantMedia)}</script>
 
   <form class="product__form">
-    <div data-option-position="1">${option('S')}${option('M')}${option('L')}</div>
+    ${optionMarkup}
     <div data-variant-select-wrapper>
-      <select data-variant-select>
-        <option value="11" data-price="$10" data-available="true">S</option>
-        <option value="12" data-price="$12" data-available="true">M</option>
+      <select name="id" data-variant-select>
+        ${variantOptions}
       </select>
     </div>
-    <p data-price>$10</p>
-    <input type="hidden" name="id" value="11">
+    <p data-price>${selectedVariant ? selectedVariant.price || '$10' : ''}</p>
     <input type="text" name="properties[Note]" data-property-optional value="">
     <button type="submit" data-add-button
             data-label-add="Add to cart"
             data-label-soldout="Sold out"
-            data-label-unavailable="Unavailable">Add to cart</button>
+            data-label-unavailable="Unavailable"
+            ${selectedVariant && selectedVariant.available ? '' : 'disabled'}>
+      ${selectedVariant ? (selectedVariant.available ? 'Add to cart' : 'Sold out') : 'Unavailable'}
+    </button>
     <p data-add-status></p>
   </form>
 </div>`;

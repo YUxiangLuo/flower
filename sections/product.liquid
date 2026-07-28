@@ -485,6 +485,10 @@
     cursor: pointer;
   }
 
+  .product__swatch.is-disabled {
+    cursor: not-allowed;
+  }
+
   .product__swatch input {
     position: absolute;
     opacity: 0;
@@ -514,6 +518,12 @@
     background-size: cover;
     background-position: center;
     transition: box-shadow 0.2s ease;
+  }
+
+  .product__swatch.is-disabled .product__swatch-label,
+  .product__swatch.is-disabled .product__swatch-chip {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   .product__swatch input:checked + .product__swatch-chip {
@@ -1854,6 +1864,39 @@
         });
       }
 
+      /* Shopify evaluates each option value against the choices before it, not
+         the choices after it. Mirror that contextual rule with the variant
+         data already on the page so impossible and sold-out paths stay visible
+         but cannot be selected. */
+      function updateOptionAvailability(values) {
+        if (!variants.length) return;
+
+        root.querySelectorAll('[data-option-position]').forEach(function (group) {
+          var position = parseInt(group.getAttribute('data-option-position'), 10) - 1;
+
+          group.querySelectorAll('[data-option-input]').forEach(function (input) {
+            var available = variants.some(function (variant) {
+              if (!variant.available || !variant.options) return false;
+              if (variant.options[position] !== input.value) return false;
+
+              for (var prior = 0; prior < position; prior += 1) {
+                if (variant.options[prior] !== values[prior]) return false;
+              }
+
+              return true;
+            });
+
+            input.disabled = !available;
+
+            var label = input.closest('.product__swatch');
+            if (label) label.classList.toggle('is-disabled', !available);
+
+            var unavailableText = label && label.querySelector('[data-option-unavailable]');
+            if (unavailableText) unavailableText.hidden = available;
+          });
+        });
+      }
+
       /* Keeps ?variant= in the address bar in sync so the selection survives a
          refresh and can be shared. Uses replaceState to avoid filling up history. */
       function updateUrl(variantId) {
@@ -1904,7 +1947,9 @@
       }
 
       function onOptionChange(syncUrl) {
-        var variant = findVariant(selectedValues());
+        var values = selectedValues();
+        updateOptionAvailability(values);
+        var variant = findVariant(values);
         if (variant && select) {
           select.value = String(variant.id);
           applyOption(select.selectedOptions[0]);

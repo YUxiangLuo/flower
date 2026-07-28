@@ -617,12 +617,16 @@ test('the add request asks for the drawer section by name', async () => {
   });
   const window = product.window;
 
+  const medium = window.document.querySelector('[data-option-input][value="M"]');
+  medium.checked = true;
+  medium.dispatchEvent(new window.Event('change', { bubbles: true }));
+
   submitProduct(window);
   await tick(window, 20);
 
   const body = product.requests[0].body;
   assert.equal(body.get('sections'), 'cart-drawer');
-  assert.equal(body.get('id'), '11', 'the selected variant did not reach the request');
+  assert.deepEqual(body.getAll('id'), ['12'], 'the selected variant did not reach the request exactly once');
 });
 
 test('the browser sets the multipart boundary, not the theme', async () => {

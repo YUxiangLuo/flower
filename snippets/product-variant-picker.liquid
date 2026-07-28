@@ -16,29 +16,44 @@
         <legend class="product__option-name">{{ option.name | escape }}</legend>
         <div class="product__swatches">
           {% for value in option.values %}
-            <label class="product__swatch">
+            {% assign value_name = value.name %}
+            {% assign input_id = 'OptionValue-' | append: section_id | append: '-' | append: option.position | append: '-' | append: forloop.index0 %}
+            {% assign status_id = input_id | append: '-status' %}
+
+            <label class="product__swatch{% unless value.available %} is-disabled{% endunless %}">
               <input
                 type="radio"
+                id="{{ input_id }}"
                 name="option-{{ option.position }}"
-                value="{{ value | escape }}"
+                value="{{ value_name | escape }}"
                 data-option-input
-                {% if option.selected_value == value %}checked{% endif %}
+                aria-describedby="{{ status_id }}"
+                {% if value.selected %}checked{% endif %}
+                {% unless value.available %}disabled{% endunless %}
               >
               {% if value.swatch.image %}
                 <span
                   class="product__swatch-chip"
                   style="background-image: url({{ value.swatch.image | image_url: width: 80 }})"
                 ></span>
-                <span class="visually-hidden">{{ value | escape }}</span>
+                <span class="visually-hidden">{{ value_name | escape }}</span>
               {% elsif value.swatch.color %}
                 <span
                   class="product__swatch-chip"
                   style="background-color: {{ value.swatch.color }}"
                 ></span>
-                <span class="visually-hidden">{{ value | escape }}</span>
+                <span class="visually-hidden">{{ value_name | escape }}</span>
               {% else %}
-                <span class="product__swatch-label">{{ value | escape }}</span>
+                <span class="product__swatch-label">{{ value_name | escape }}</span>
               {% endif %}
+              <span
+                id="{{ status_id }}"
+                class="visually-hidden"
+                data-option-unavailable
+                {% if value.available %}hidden{% endif %}
+              >
+                {{- 'product.unavailable' | t -}}
+              </span>
             </label>
           {% endfor %}
         </div>
