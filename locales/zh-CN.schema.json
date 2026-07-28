@@ -1,0 +1,344 @@
+{
+  "general": {
+    "404": "页面未找到",
+    "article": "文章",
+    "blog": "博客",
+    "brand": "品牌",
+    "cart": "购物车",
+    "collection": "系列",
+    "collections_grid": "系列网格",
+    "colors": "颜色",
+    "column": "列",
+    "fonts": "字体",
+    "footer": "页脚",
+    "group": "组",
+    "header": "页眉",
+    "layout": "布局",
+    "page": "页面",
+    "password": "密码",
+    "primary": "主要字体",
+    "product": "产品",
+    "row": "行",
+    "search": "搜索",
+    "text": "文本",
+    "typography": "排版"
+  },
+  "labels": {
+    "alignment": "对齐方式",
+    "background": "背景",
+    "foreground": "前景",
+    "input_corner_radius": "输入框圆角",
+    "layout_direction": "布局方向",
+    "logo": "徽标",
+    "logo_width": "徽标宽度",
+    "favicon": "网站图标",
+    "menu": "菜单",
+    "customer_account_menu": "客户账户菜单",
+    "padding": "内边距",
+    "page_margin": "页面边距",
+    "page_width": "页面宽度",
+    "link_sort_info": "从列表中选择会替换整个地址，包括其中携带的 ?sort_by= 参数。",
+    "show_payment_icons": "显示支付图标",
+    "text_style": "文本样式",
+    "text": "文本"
+  },
+  "options": {
+    "alignment": {
+      "left": "左对齐",
+      "center": "居中",
+      "right": "右对齐"
+    },
+    "direction": {
+      "horizontal": "水平",
+      "vertical": "垂直"
+    },
+    "page_width": {
+      "narrow": "窄",
+      "wide": "宽",
+      "full": "全宽"
+    },
+    "text_style": {
+      "title": "标题",
+      "subtitle": "副标题",
+      "normal": "正文"
+    },
+    "background": {
+      "page": "页面",
+      "surface": "米白",
+      "surface_deep": "深米白",
+      "inverse": "深色"
+    }
+  },
+  "sections": {
+    "header": {
+      "show_language_selector": "显示语言选择器",
+      "show_search": "显示搜索"
+    },
+    "announcement": {
+      "name": "公告栏",
+      "text": "文本",
+      "link": "链接",
+      "show_arrow": "显示箭头",
+      "background_color": "背景色",
+      "text_color": "文本颜色"
+    },
+    "footer": {
+      "tagline": "标语",
+      "social_header": "社交媒体",
+      "social_facebook": "Facebook 网址",
+      "social_instagram": "Instagram 网址",
+      "newsletter_header": "邮件订阅",
+      "show_newsletter": "显示邮件订阅表单",
+      "newsletter_heading": "邮件订阅标题",
+      "show_localization": "显示国家/地区和语言选择器",
+      "bottom_header": "底部栏",
+      "background_color": "背景色",
+      "text_color": "文本颜色",
+      "menu_block": "链接列",
+      "text_block": "文本列",
+      "column_heading": "列标题",
+      "content": "内容"
+    },
+    "apps": {
+      "name": "应用",
+      "include_margins": "包含页面边距"
+    },
+    "custom_content": {
+      "name": "自定义内容",
+      "background": "背景",
+      "content_width": "内容宽度",
+      "block_gap": "块间距",
+      "padding_top": "上内边距",
+      "padding_bottom": "下内边距"
+    },
+    "cart": {
+      "show_note": "显示订单备注"
+    },
+    "blog": {
+      "columns": "列数",
+      "show_excerpt": "显示摘要"
+    },
+    "collection": {
+      "show_description": "显示系列描述",
+      "products_per_page": "每页产品数",
+      "columns": "列数"
+    },
+    "collections": {
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "selected_collections": "系列",
+      "selected_collections_info": "手动选择系列并调整顺序。留空则显示所有已发布的系列。",
+      "columns": "列数",
+      "collections_per_page": "每页系列数",
+      "show_description": "显示系列描述"
+    },
+    "page": {
+      "eyebrow": "眉题",
+      "content_width": "内容宽度",
+      "content_mode": "内容渲染方式",
+      "content_mode_info": "“自动”会隔离包含脚本或整页标记的嵌入式工具。",
+      "content_mode_auto": "自动",
+      "content_mode_rich_text": "富文本",
+      "content_mode_isolated": "独立嵌入式工具",
+      "show_content": "显示页面内容",
+      "compact_bottom_spacing": "减少页面标题下方的间距"
+    },
+    "product": {
+      "show_vendor": "显示厂商",
+      "spec": "规格",
+      "spec_label": "名称",
+      "spec_value": "值",
+      "lead_time": "交付周期",
+      "personalization_heading": "个性化定制标题",
+      "personalization_field": "个性化定制字段",
+      "field_label": "名称",
+      "field_type": "字段类型",
+      "field_type_text": "单行",
+      "field_type_textarea": "多行",
+      "field_required": "必填",
+      "highlight": "亮点",
+      "highlight_text": "文本",
+      "collapsible": "可折叠行",
+      "collapsible_heading": "标题",
+      "collapsible_content": "内容"
+    },
+    "product_recommendations": {
+      "name": "您可能还喜欢",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "products_to_show": "显示产品数",
+      "columns": "列数"
+    },
+    "hero": {
+      "name": "主横幅",
+      "heading_level": "标题级别",
+      "heading_level_info": "当页面已有主标题时请使用标题 2，例如第二个主横幅，或产品页、系列页上的主横幅。",
+      "heading_level_h1": "标题 1（页面标题）",
+      "heading_level_h2": "标题 2",
+      "image": "图像",
+      "mobile_image": "移动端图像",
+      "mobile_image_info": "用于宽度不超过 749px 的屏幕。留空时回退为“图像”。",
+      "overlay_opacity": "遮罩不透明度",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "subheading": "副标题",
+      "button_label": "按钮文字",
+      "button_link": "按钮链接",
+      "content_position": "内容位置",
+      "position_left": "左侧",
+      "position_center": "居中",
+      "position_right": "右侧",
+      "content_width": "内容宽度",
+      "slide": "幻灯片",
+      "autoplay": "自动播放",
+      "autoplay_interval": "幻灯片切换间隔"
+    },
+    "occasion": {
+      "name": "按场合选购",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "block_name": "场合",
+      "collection": "系列",
+      "collection_info": "当下方的覆盖项留空时，卡片的标题、图像和链接均取自该系列。",
+      "image": "图像",
+      "image_info": "可选。替换系列图像。",
+      "title": "标题",
+      "title_info": "替换系列标题。未选择系列时必填。",
+      "link": "链接",
+      "link_info": "替换系列链接。未选择系列时必填。从列表中选择会替换整个地址，包括其中携带的 ?sort_by= 参数。"
+    },
+    "featured_products": {
+      "name": "热销产品",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "collection": "系列",
+      "products_to_show": "显示产品数",
+      "columns": "列数",
+      "show_view_all": "显示“查看全部”链接"
+    },
+    "testimonials": {
+      "name": "客户评价",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "columns": "列数",
+      "block_name": "评价",
+      "rating": "评分",
+      "quote": "评语",
+      "author": "署名"
+    },
+    "customer_photos": {
+      "name": "客户照片",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "background": "背景",
+      "photos_shown": "显示照片数"
+    },
+    "customer_videos": {
+      "name": "客户视频",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "block_name": "短片",
+      "video": "视频",
+      "product": "展示的产品"
+    },
+    "gallery": {
+      "name": "图库",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "columns": "列数",
+      "block_name": "图像",
+      "image": "图像",
+      "columns_info": "适用于宽度大于 990px 的屏幕。更窄的屏幕使用两列，手机上则显示可滑动的横向列表。"
+    },
+    "creator": {
+      "name": "创作者故事",
+      "image": "图像",
+      "image_position": "图像位置",
+      "position_left": "左侧",
+      "position_right": "右侧",
+      "background": "背景",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "body": "正文",
+      "signature": "签名",
+      "button_label": "按钮文字",
+      "button_link": "按钮链接"
+    },
+    "lasting_gift": {
+      "name": "永恒的礼物",
+      "image": "图像",
+      "image_position": "图像位置",
+      "position_left": "左侧",
+      "position_right": "右侧",
+      "background": "背景",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "body": "正文",
+      "button_label": "按钮文字",
+      "button_link": "按钮链接"
+    },
+    "gift_steps": {
+      "name": "轻松送礼",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "background": "背景",
+      "background_image": "背景图像",
+      "overlay_opacity": "遮罩不透明度",
+      "overlay_opacity_info": "用色带颜色为背景图像着色，以保证文字清晰可读。",
+      "block_name": "步骤",
+      "icon": "图标",
+      "icon_info": "可选。当步骤填写了标题或文本后，图标会替换步骤编号。请让图标颜色与所选背景相匹配。",
+      "title": "标题",
+      "text": "文本"
+    },
+    "gift_assurance": {
+      "name": "礼品保障栏",
+      "block_name": "保障项",
+      "icon": "图标",
+      "label": "文字",
+      "background_color": "背景色",
+      "text_color": "文本颜色"
+    },
+    "gift_cta": {
+      "name": "礼品行动号召",
+      "background_image": "背景图像",
+      "overlay_opacity": "遮罩不透明度",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "subheading": "副标题",
+      "button_label": "按钮文字",
+      "button_link": "按钮链接",
+      "background_color": "背景色",
+      "text_color": "文本颜色"
+    },
+    "newsletter": {
+      "name": "邮件订阅",
+      "background": "背景",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "subheading": "副标题"
+    },
+    "faq": {
+      "name": "常见问题",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "background": "背景",
+      "block_name": "问题",
+      "question": "问题",
+      "answer": "答案"
+    },
+    "rich_text": {
+      "name": "富文本",
+      "background": "背景",
+      "content_width": "内容宽度",
+      "eyebrow": "眉题",
+      "heading": "标题",
+      "body": "正文",
+      "button_label": "按钮文字",
+      "button_link": "按钮链接"
+    },
+    "cart_drawer": {
+      "name": "购物车抽屉"
+    }
+  }
+}

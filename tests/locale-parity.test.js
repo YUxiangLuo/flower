@@ -32,13 +32,17 @@ function placeholders(value) {
     .sort();
 }
 
-test('every translated storefront locale matches the default locale contract', () => {
-  const defaultLocale = flatten(parseLocale('en.default.json'));
-  const translatedLocales = fs
+function translationsOf(defaultFilename, isSchema) {
+  return fs
     .readdirSync(localeRoot)
     .filter((filename) => filename.endsWith('.json'))
-    .filter((filename) => filename !== 'en.default.json')
-    .filter((filename) => !filename.endsWith('.schema.json'));
+    .filter((filename) => filename.endsWith('.schema.json') === isSchema)
+    .filter((filename) => filename !== defaultFilename);
+}
+
+test('every translated storefront locale matches the default locale contract', () => {
+  const defaultLocale = flatten(parseLocale('en.default.json'));
+  const translatedLocales = translationsOf('en.default.json', false);
 
   assert.ok(translatedLocales.includes('it.json'), 'the Italian market has no theme locale');
 
@@ -58,5 +62,30 @@ test('every translated storefront locale matches the default locale contract', (
         `${filename}:${key} does not preserve the default locale placeholders`
       );
     });
+  });
+});
+
+/* Schema locales drive the theme editor rather than the storefront, so they are
+   a separate contract from the one above: a different default file, and a set of
+   languages that need not match the storefront's. A missing key here does not
+   fall back to English — the editor renders the raw `t:` handle as the setting
+   label — so the key sets have to line up exactly. */
+test('every translated schema locale matches the default schema contract', () => {
+  const defaultSchema = flatten(parseLocale('en.default.schema.json'));
+  const translatedSchemas = translationsOf('en.default.schema.json', true);
+
+  assert.ok(
+    translatedSchemas.includes('zh-CN.schema.json'),
+    'the Simplified Chinese admin has no schema locale'
+  );
+
+  translatedSchemas.forEach((filename) => {
+    const schema = flatten(parseLocale(filename));
+
+    assert.deepEqual(
+      Object.keys(schema).sort(),
+      Object.keys(defaultSchema).sort(),
+      `${filename} does not expose the same setting labels as en.default.schema.json`
+    );
   });
 });
