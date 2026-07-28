@@ -5,6 +5,7 @@
 
   @param {number} columns - Number of desktop grid columns
   @param {number} [two_column_breakpoint] - Viewport width where the grid changes from one to two columns
+  @param {boolean} [full_width] - Set when the grid spans the viewport instead of stopping at the page width
 
   @example
   {% capture image_sizes %}
@@ -17,4 +18,20 @@
   assign two_column_breakpoint = two_column_breakpoint | default: 550
   assign horizontal_page_margins = settings.min_page_margin | times: 2
 -%}
-(min-width: {{ settings.max_page_width }}) calc(({{ settings.max_page_width }} - {{ horizontal_page_margins }}px) / {{ desktop_columns }}), (min-width: 990px) calc((100vw - {{ horizontal_page_margins }}px) / {{ desktop_columns }}), (min-width: {{ two_column_breakpoint }}px) calc((100vw - {{ horizontal_page_margins }}px) / 2), calc(100vw - {{ horizontal_page_margins }}px)
+
+{%- comment -%}
+  A grid held to the page width stops growing there, so past it the card is a
+  fraction of that fixed width rather than of the viewport — this clause is what
+  keeps the browser from over-fetching on a wide monitor.
+
+  A full-width grid never stops, so the same clause would understate the card on
+  every screen wider than the page width, and the browser would answer with an
+  image too small for it. Leave it out and the `100vw` clause below carries all
+  the way up.
+{%- endcomment -%}
+{%- unless full_width -%}
+  {%- capture page_width_clause -%}
+    (min-width: {{ settings.max_page_width }}) calc(({{ settings.max_page_width }} - {{ horizontal_page_margins }}px) / {{ desktop_columns }}),
+  {%- endcapture -%}
+{%- endunless -%}
+{{- page_width_clause }} (min-width: 990px) calc((100vw - {{ horizontal_page_margins }}px) / {{ desktop_columns }}), (min-width: {{ two_column_breakpoint }}px) calc((100vw - {{ horizontal_page_margins }}px) / 2), calc(100vw - {{ horizontal_page_margins }}px)

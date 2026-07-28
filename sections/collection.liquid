@@ -42,7 +42,22 @@
   {% # theme-check-enable AssetPreload %}
 {%- endif -%}
 
-<div class="collection">
+{%- comment -%}
+  `full-width` opts out of the section grid's centred column so the product grid
+  runs the width of the screen — a pressed-flower arrangement is the detail the
+  customer came to look at, and at the page width four of them are small enough
+  that the petals turn to mush.
+
+  The inset comes back as padding rather than as the grid column, which keeps
+  `--page-margin` the one knob that sets it. Below the page width the two are
+  the same measurement, so nothing about the narrow layout moves: the header
+  artwork still steps back out of exactly this padding to reach both edges.
+
+  `--columns` sits here rather than on the grid because the header is laid out
+  against the same tracks, and the two have to agree. Inheriting it from a
+  common ancestor is what makes disagreeing impossible.
+{%- endcomment -%}
+<div class="collection full-width" style="--columns: {{ section.settings.columns }}">
   {%- comment -%}
     On narrow screens the collection's own artwork sits behind its name. The URL
     is handed to CSS as a custom property rather than an <img> so the file is
@@ -129,7 +144,7 @@
     </form>
 
     {% if collection.products.size > 0 %}
-      <div class="collection__grid" style="--columns: {{ section.settings.columns }}">
+      <div class="collection__grid">
         {%- comment -%}
           The cards on screen when the page opens are asked for eagerly so the
           preload scanner can find them; everything after stays deferred.
@@ -140,16 +155,40 @@
           racing the phone's own header artwork. Two is the whole first row at
           both narrow widths and the largest paint at every width above them.
         {%- endcomment -%}
+        {%- comment -%}
+          `full_width` is the grid's own layout restated for the image: the card
+          is a fraction of the viewport at every width, never of the page width,
+          and the `sizes` value has to say so or the browser keeps answering a
+          wide monitor with the file it picked for a 1440px one.
+
+          The larger `image_size` is what that answer needs to exist. Four cards
+          across a 1920px screen render at ~470px, which a 2x display wants at
+          ~940 — above the old ceiling of 700.
+
+          The ceiling is global, so a phone pays for it too: at one column a
+          350px card on a 3x screen now draws the 1000w candidate where it used
+          to settle for 700w. That is the correct file for 1050 device pixels
+          and it was under-served before, but it is also roughly double the
+          bytes on the two cards marked eager below. Accepted deliberately —
+          sharpness over weight — rather than overlooked. Lowering it back is a
+          one-line change here if that trade ever stops being worth it.
+        {%- endcomment -%}
         {% for product in collection.products %}
           {% if forloop.index0 < 2 %}
             {% render 'product-card',
               product: product,
-              image_size: 700,
+              image_size: 1000,
               columns: section.settings.columns,
+              full_width: true,
               eager: true
             %}
           {% else %}
-            {% render 'product-card', product: product, image_size: 700, columns: section.settings.columns %}
+            {% render 'product-card',
+              product: product,
+              image_size: 1000,
+              columns: section.settings.columns,
+              full_width: true
+            %}
           {% endif %}
         {% endfor %}
       </div>
@@ -169,12 +208,17 @@
      uses and the grid starts near the fold. */
   .collection {
     padding-block: clamp(1.5rem, 3.5vw, 2.75rem) var(--section-spacing);
+    /* Replaces the inset the section grid gives a centred child. See the note
+       on the `full-width` class in the markup. */
+    padding-inline: var(--page-margin);
   }
 
+  /* Left-aligned and stacked at every width, which is the whole design on a
+     phone and the fallback the desktop grid below is built on top of. The one
+     exception is the artwork band at 749px, which stays centred — near-white
+     copy over a dark scrim is a banner, and a banner is centred. */
   .collection__header {
-    text-align: center;
-    max-width: 40rem;
-    margin: 0 auto clamp(1rem, 2.5vw, 1.75rem);
+    margin-bottom: clamp(1rem, 2.5vw, 1.75rem);
   }
 
   .collection__title {
@@ -197,14 +241,86 @@
     font-size: 1.05rem;
     line-height: 1.6;
     color: var(--color-muted);
-    /* Hold it to a comfortable measure so it breaks into balanced lines
-       instead of running the full width of the band. */
-    max-width: 34ch;
-    margin-inline: auto;
+    /* A measure, not a layout: on the desktop grid the track says where the
+       copy starts and this says how wide it gets to be, so a merchant who
+       writes three sentences does not end up with one very long line.
+
+       68ch is about 77 characters in the rendered face — the top of the range
+       that still reads as a measure, chosen so a one-sentence description sits
+       on a single line. `ch` is the width of "0" in whatever font actually
+       resolves from the heading stack, so the exact break moves between
+       machines that do and do not have Georgia; the cap is deliberately loose
+       enough that it does not matter. */
+    max-width: 68ch;
   }
 
+  /* `pretty` rather than `balance`: balance evens out line lengths, which is
+     what a centred block wants and what a left-aligned one does not — it pulls
+     the rag in and leaves the measure looking short of its own width. The
+     centred artwork band puts `balance` back. */
   .collection__description p {
-    text-wrap: balance;
+    text-wrap: pretty;
+  }
+
+  /* Shopify's rich-text editor writes alignment as `style="text-align: center"`
+     on the paragraph itself, and an inline declaration outranks every normal
+     rule a stylesheet can write. An author `!important` is the only thing that
+     reaches past it — this is the theme's one use of it, together with the
+     banner override further down that has to answer this rule in kind.
+
+     Alignment here is structural, not decorative: the copy is a column of the
+     header grid, and a centred rag inside one column reads as a mistake rather
+     than a choice. Same position the `<strong>` rule below takes. `start`, not
+     `left`, so a right-to-left storefront is not pinned the wrong way. */
+  .collection__description,
+  .collection__description * {
+    text-align: start !important;
+  }
+
+  /* The header is set against the product grid's own tracks: the title takes
+     the first column, the description starts at the second. Its left edge
+     therefore lands on the second card's, and — this is the point — neither
+     block moves when a collection has a long name, because each is placed by
+     the track rather than by whatever precedes it.
+
+     1200px, not the 990px where the product grid reaches its full column count.
+     Sharing the grid's tracks means the title is set inside one of them, and at
+     990px with four columns that track is about 215px against a 32px display
+     serif — a two-word collection name wraps to two lines and a long one to
+     four or five, which `align-items: center` then builds the whole band
+     around. 1200px is where a track (~263px at a 38px face) is enough of a
+     column to set a heading in. Below it the header keeps the stacked layout,
+     which has the full width and does not care. */
+  @media (min-width: 1200px) {
+    .collection__header {
+      display: grid;
+      /* `--columns` and the gap both come from the same place the product grid
+         reads them, so the two sets of tracks are the same tracks. */
+      grid-template-columns: repeat(var(--columns), 1fr);
+      gap: var(--content-gap);
+      /* Centre lines, not baselines. The two blocks are different heights — one
+         line of display serif against two or three of italic — and sharing a
+         baseline hangs the taller one off the shorter, which leaves the row
+         bottom-heavy. Centring reads them as one band instead.
+
+         This only holds because the description's top margin is dropped below;
+         a stray margin would offset the centre it is being measured from. */
+      align-items: center;
+    }
+
+    .collection__title {
+      grid-column: 1;
+    }
+
+    /* `2 / -1`, not a fixed span. The column count is a merchant setting, and
+       a span of two would reach past the last track at their lowest choice and
+       have the grid invent an extra one. This ends at whatever the last track
+       is; `max-width` above is what actually sets the measure. */
+    .collection__description {
+      grid-column: 2 / -1;
+      /* The row is the gap to the title now. */
+      margin-top: 0;
+    }
   }
 
   /* The description is merchant rich text. A pasted <strong> would otherwise
@@ -304,11 +420,66 @@
       position: relative;
       isolation: isolate;
       overflow: hidden;
-      max-width: none;
+      /* No placeholder colour under the artwork, deliberately. The band is the
+         photograph and the gradient over it, nothing else — which does mean the
+         gradient paints a frame or two before the image it was drawn for, since
+         one is CSS and the other is a network request. A base colour would fill
+         that frame but only by substituting one visible state for another, and
+         this one is at least the state the band is actually made of. Priming
+         the fetch is what the preload links at the top of the file are for. */
+
+      /* The scrim colour as an rgb triplet, so the stops below can vary its
+         alpha. It is `--color-inverse-background` (#2a3320) at four tenths of
+         its brightness — same hue, a fraction of the luminance.
+
+         Taken down rather than used as-is because that colour carries too much
+         chroma for the luminance it has: darkening a photograph with it means
+         mixing in enough green to tint the whole band olive. At 40% the hue
+         survives as an undertone while the darkening comes from being dark,
+         which is the job. Written out by hand because Liquid does not run
+         inside a stylesheet tag, so the token cannot be converted here — if
+         that colour moves, move this with it.
+
+         A triplet rather than `color-mix()` on the token itself, because an
+         unsupported `color-mix()` invalidates the whole declaration — and the
+         declaration it would take down is the one keeping near-white text
+         legible over a photograph. `rgb()` with a slash alpha has no such
+         cliff. */
+      --scrim: 17 20 13;
+
+      /* The one place the header is centred. Everywhere else it reads as a
+         page heading and sits on the left margin; here it is a banner, and the
+         near-white copy is centred in its own artwork rather than aligned to a
+         grid that is behind the scrim. */
+      text-align: center;
       /* Step back out of the inset the section grid gives its children so the
          artwork reaches both edges. */
       margin-inline: calc(var(--page-margin) * -1);
-      padding: clamp(2rem, 9vw, 3rem) var(--page-margin);
+      /* Named because the scrim's stops are anchored to it. The copy begins one
+         of these in from the top and ends one up from the bottom, at any band
+         height — which is the only thing that makes the gradient's flat middle
+         line up with the text it is there to back. */
+      --band-padding: clamp(2rem, 9vw, 3rem);
+      padding: var(--band-padding) var(--page-margin);
+    }
+
+    /* Centring the block, not just the text — the measure would otherwise sit
+       against the left edge of a banner whose copy is centred inside it. */
+    .collection__header--media .collection__description {
+      margin-inline: auto;
+    }
+
+    /* Overrides the start-alignment default, which includes the `!important`
+       that holds off the merchant's own inline alignment: the banner decides
+       this one, the same way the rest of the header does. */
+    .collection__header--media .collection__description,
+    .collection__header--media .collection__description * {
+      text-align: center !important;
+    }
+
+    /* Centred copy is exactly the case `balance` is for. */
+    .collection__header--media .collection__description p {
+      text-wrap: balance;
     }
 
     .collection__header--media::before,
@@ -341,14 +512,128 @@
       }
     }
 
+    /* A flat scrim spends the same darkness everywhere, including the strips
+       above and below the copy where there is nothing to keep legible. This
+       spends it where the text is: dense through the middle, nearly clear at
+       the edges, so the artwork reads as a photograph rather than as something
+       behind a filter.
+
+       The stops are anchored to `--band-padding`, the same measurement that
+       insets the copy, so the flat middle begins exactly where the text begins
+       however tall the band grows. Percentages would only agree with the copy
+       at one band height: the padding is a fixed length, so a taller band — a
+       wrapped title, a three-line description — pushes a smaller fraction of
+       itself above the text, and the first line ends up sitting in the ramp at
+       an alpha the contrast budget below never accounted for.
+
+       The scrim carries the palette's hue rather than being neutral black, so
+       the band reads as part of the theme — but only as an undertone. See the
+       note on `--scrim` above for why the token is darkened before it is used.
+
+       Contrast is a budget, not a taste call, and any colour that is not 0/0/0
+       spends some of it: at a given alpha, a lighter scrim darkens less. 0.49
+       is what holds the same headroom a 0.44 black scrim had — 4.5:1 for the
+       near-white copy against artwork up to roughly 81% brightness. The five
+       points are the whole price of the hue at this luminance; the undarkened
+       token would have cost fifteen. A high-key photo above the line still
+       falls short, because no fixed scrim survives a white image. */
     .collection__header--media::after {
       z-index: -1;
-      background-color: rgb(0 0 0 / 0.5);
+      background-image: linear-gradient(
+        to bottom,
+        rgb(var(--scrim) / 0.16) 0,
+        rgb(var(--scrim) / 0.49) var(--band-padding),
+        rgb(var(--scrim) / 0.49) calc(100% - var(--band-padding)),
+        rgb(var(--scrim) / 0.18) 100%
+      );
     }
 
     .collection__header--media .collection__title,
     .collection__header--media .collection__description {
       color: var(--color-inverse-foreground);
+    }
+
+    /* The artwork deliberately does not animate.
+
+       An entrance keyed to page load only works on something that is there at
+       page load, and the photograph is not: it is a network request, while the
+       markup and the scrim are already painted. An animation running against it
+       lands the image mid-flight — dimmer and slightly larger than it should be,
+       then still moving — which is a worse arrival than no animation at all.
+       Motion cannot cover a gap it has already started crossing.
+
+       So the photograph simply appears, in one step and at its resting
+       appearance, whenever it gets there. The copy below carries the entrance
+       on its own, because the copy is the part that is actually ready when the
+       entrance begins. */
+
+    /* `ease-in-out`, deliberately not `--ease-out`. The theme's curve is front
+       loaded: it spends about seventy percent of the distance in the first
+       quarter of the time and drifts imperceptibly through the rest. That is
+       what a settle wants — the drawer and the panels elsewhere arrive and then
+       come to rest — and it is exactly wrong for a fade, because it makes a
+       long one read as short no matter how much duration it is given. A
+       symmetric curve is what lets two seconds be felt as two seconds.
+
+       Movement stays at 4px. At this size the travel is only there to give the
+       fade a direction; anything more and the copy is seen to move, which is
+       the thing that stops reading as elegant. */
+    .collection__header--media .collection__title,
+    .collection__header--media .collection__description {
+      animation: collection-copy-in 2s ease-in-out both;
+    }
+
+    /* The title starts on the first frame, with no delay of its own. On a phone
+       this <h1> is the largest text on screen and the band behind it is a
+       pseudo-element background, which is not an LCP candidate — so the heading
+       is what the metric measures, and a fully transparent element is not
+       counted as painted at all. Holding it back to open the choreography would
+       be paying for the stagger in load time. The description carries the
+       stagger instead; nothing measures when it arrives. */
+    .collection__header--media .collection__title {
+      animation-delay: 0s;
+    }
+
+    /* Far enough behind the title to be a second beat rather than a blur of the
+       same one — 400ms is longer than the fade takes to become visible, so the
+       two reads are sequential rather than overlapping. */
+    .collection__header--media .collection__description {
+      animation-delay: 400ms;
+    }
+
+    @keyframes collection-copy-in {
+      from {
+        opacity: 0;
+        transform: translateY(0.25rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Nothing moves, but the copy still resolves out of nothing — an element
+       that animates its own opacity from 0 has to be given a way to reach 1,
+       or reduced motion becomes invisible text. */
+    @media (prefers-reduced-motion: reduce) {
+      .collection__header--media .collection__title,
+      .collection__header--media .collection__description {
+        animation-name: collection-copy-fade;
+        animation-duration: 200ms;
+        /* The stagger above is a choreography, and choreography is the thing
+           being opted out of. Left in, it would hold the description invisible
+           for half a second with nothing happening to explain the wait. */
+        animation-delay: 0s;
+      }
+
+      @keyframes collection-copy-fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
     }
   }
 

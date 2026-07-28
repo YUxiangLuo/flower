@@ -6,6 +6,7 @@
   @param {string} [heading_level] - Heading element for the product title (defaults to h2)
   @param {number} [columns] - Number of desktop columns in the containing grid (defaults to 4)
   @param {boolean} [eager] - Load the image immediately instead of deferring it. Set it on the cards in the grid's first row and nowhere else.
+  @param {boolean} [full_width] - Set when the containing grid spans the viewport instead of stopping at the page width. Pair it with an `image_size` large enough for the wider card.
 
   @example
   {% render 'product-card', product: product %}
@@ -18,7 +19,18 @@
   assign heading_level = heading_level | default: 'h2'
   assign columns = columns | default: 4
 
-  if image_size > 700
+  # Each rung is roughly a doubling of the rendered card, because the candidate
+  # a browser wants is the CSS width times the device pixel ratio. The ceiling
+  # tracks `image_size`: a grid that renders cards twice as wide needs candidates
+  # to match, and one that does not should never be offered the larger files.
+  #
+  # Every rung tops out at exactly the `image_size` that reaches it, and has to.
+  # `image_size` is the width baked into the URL these candidates are derived
+  # from, so a larger entry is not served — it is dropped, and the rung quietly
+  # promises a file that never existed.
+  if image_size > 800
+    assign image_widths = '240, 360, 480, 600, 800, 1000'
+  elsif image_size > 700
     assign image_widths = '240, 360, 480, 600, 700, 800'
   elsif image_size > 600
     assign image_widths = '240, 360, 480, 600, 700'
@@ -28,7 +40,7 @@
 %}
 
 {% capture image_sizes %}
-  {%- render 'grid-image-sizes', columns: columns -%}
+  {%- render 'grid-image-sizes', columns: columns, full_width: full_width -%}
 {% endcapture %}
 {% assign image_sizes = image_sizes | strip %}
 
