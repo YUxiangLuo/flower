@@ -214,14 +214,17 @@
 
        The same measurement the site header insets its logo by, so the first
        card lines up under it — two full-width rows on the same page reading as
-       one edge instead of two. A flat `--page-margin` held at 20px while the
-       header grew with the viewport, which put them 57px apart on a 1920 screen
-       and further on anything wider.
+       one edge instead of two. A flat `--page-margin` stops growing while the
+       header's inset does not, so the two drift apart by whatever 3vw exceeds
+       the margin by: about 38px on a 1920 screen at the default 20px, more on
+       anything wider.
 
        Named because the artwork band below steps back out of exactly this to
-       reach the screen edges. Left as two separate expressions they agree only
-       while 3vw stays under 20px, and leak a strip of page colour down both
-       sides of the band between 667px and 749px, where it does not. */
+       reach the screen edges. Written out twice instead, the two would agree
+       only while 3vw stays under `--page-margin` — a merchant setting, so
+       where that stops being true depends on what they set it to, and above
+       it a strip of page colour would show down both sides of the band. One
+       expression, read from one place, cannot drift. */
     --collection-inset: max(var(--page-margin), 3vw);
 
     padding-inline: var(--collection-inset);
