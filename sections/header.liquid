@@ -369,9 +369,13 @@
     gap: 1.5rem;
     min-height: var(--header-height);
     padding-block: 0.75rem;
+    /* The bar runs the width of the screen rather than stopping at the page
+       width, so the logo sits on the left edge and the actions on the right
+       with the navigation centred between them. The inset is this padding
+       alone — the outer `.header` was already full-width, which is why the
+       rule beneath it has always reached both edges; only the row inside it
+       was being held to a column and centred. */
     padding-inline: max(var(--page-margin), 3vw);
-    max-width: var(--page-width);
-    margin-inline: auto;
   }
 
   .header__logo {
@@ -577,9 +581,16 @@
     border-bottom: 1px solid var(--color-line);
   }
 
+  /* Starts on the panel's own inset, which is the same measurement the bar
+     above uses — so the field lines up under the logo that opened it. Centring
+     it was right while the bar was a centred column and became a misalignment
+     the moment the bar took the screen.
+
+     The cap stays. It is the field's own comfortable maximum rather than a
+     page column: a search input two and a half thousand pixels wide is not a
+     better search input. */
   .search-form--header {
     max-width: var(--page-width);
-    margin-inline: auto;
   }
 
   .header__actions {

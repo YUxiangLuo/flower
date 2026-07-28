@@ -48,10 +48,10 @@
   customer came to look at, and at the page width four of them are small enough
   that the petals turn to mush.
 
-  The inset comes back as padding rather than as the grid column, which keeps
-  `--page-margin` the one knob that sets it. Below the page width the two are
-  the same measurement, so nothing about the narrow layout moves: the header
-  artwork still steps back out of exactly this padding to reach both edges.
+  The inset comes back as padding rather than as the grid column, under a name
+  of its own — see `--collection-inset` in the stylesheet, which everything on
+  this page that needs the measurement reads, including the artwork band that
+  steps back out of it to reach the screen edges.
 
   `--columns` sits here rather than on the grid because the header is laid out
   against the same tracks, and the two have to agree. Inheriting it from a
@@ -208,9 +208,23 @@
      uses and the grid starts near the fold. */
   .collection {
     padding-block: clamp(1.5rem, 3.5vw, 2.75rem) var(--section-spacing);
+
     /* Replaces the inset the section grid gives a centred child. See the note
-       on the `full-width` class in the markup. */
-    padding-inline: var(--page-margin);
+       on the `full-width` class in the markup.
+
+       The same measurement the site header insets its logo by, so the first
+       card lines up under it — two full-width rows on the same page reading as
+       one edge instead of two. A flat `--page-margin` held at 20px while the
+       header grew with the viewport, which put them 57px apart on a 1920 screen
+       and further on anything wider.
+
+       Named because the artwork band below steps back out of exactly this to
+       reach the screen edges. Left as two separate expressions they agree only
+       while 3vw stays under 20px, and leak a strip of page colour down both
+       sides of the band between 667px and 749px, where it does not. */
+    --collection-inset: max(var(--page-margin), 3vw);
+
+    padding-inline: var(--collection-inset);
   }
 
   /* Left-aligned and stacked at every width, which is the whole design on a
@@ -452,15 +466,16 @@
          near-white copy is centred in its own artwork rather than aligned to a
          grid that is behind the scrim. */
       text-align: center;
-      /* Step back out of the inset the section grid gives its children so the
-         artwork reaches both edges. */
-      margin-inline: calc(var(--page-margin) * -1);
+      /* Step back out of the section's own inset so the artwork reaches both
+         edges — `--collection-inset`, not the margin it is derived from, or the
+         two disagree at the widths where 3vw wins. */
+      margin-inline: calc(var(--collection-inset) * -1);
       /* Named because the scrim's stops are anchored to it. The copy begins one
          of these in from the top and ends one up from the bottom, at any band
          height — which is the only thing that makes the gradient's flat middle
          line up with the text it is there to back. */
       --band-padding: clamp(2rem, 9vw, 3rem);
-      padding: var(--band-padding) var(--page-margin);
+      padding: var(--band-padding) var(--collection-inset);
     }
 
     /* Centring the block, not just the text — the measure would otherwise sit
