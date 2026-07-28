@@ -55,7 +55,7 @@
         "slide-3"
       ],
       "settings": {
-        "autoplay": true,
+        "autoplay": false,
         "autoplay_interval": 6,
         "heading_level": "h1",
         "content_position": "center",

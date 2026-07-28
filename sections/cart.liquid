@@ -81,6 +81,18 @@
                   <ul class="cart__properties">{{ cart_item_properties }}</ul>
                 {%- endif -%}
                 <p class="cart__unit-price">{{ item.final_price | money }}</p>
+                {% if item.line_level_discount_allocations.size > 0 %}
+                  <ul class="cart__discounts" role="list">
+                    {% for discount_allocation in item.line_level_discount_allocations %}
+                      <li class="cart__discount">
+                        <span>{{ discount_allocation.discount_application.title | escape }}</span>
+                        <span class="cart__discount-amount">
+                          &minus;{{ discount_allocation.amount | money }}
+                        </span>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
                 <a
                   class="cart__remove"
                   href="{{ item.url_to_remove }}"
@@ -156,7 +168,23 @@
         <div class="cart__summary">
           <div class="cart__subtotal">
             <span>{{ 'cart.subtotal' | t }}</span>
-            <span class="cart__subtotal-value">{{ cart.total_price | money }}</span>
+            <span class="cart__subtotal-value">{{ cart.items_subtotal_price | money }}</span>
+          </div>
+          {% if cart.cart_level_discount_applications.size > 0 %}
+            <ul class="cart__discounts cart__discounts--summary" role="list">
+              {% for discount_application in cart.cart_level_discount_applications %}
+                <li class="cart__discount">
+                  <span>{{ discount_application.title | escape }}</span>
+                  <span class="cart__discount-amount">
+                    &minus;{{ discount_application.total_allocated_amount | money }}
+                  </span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+          <div class="cart__total">
+            <span>{{ 'cart.total' | t }}</span>
+            <span class="cart__total-value">{{ cart.total_price | money }}</span>
           </div>
           <p class="cart__taxes">
             {% if cart.duties_included %}
@@ -372,6 +400,27 @@
     font-size: 0.85rem;
   }
 
+  .cart__discounts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--color-accent);
+    font-size: 0.8rem;
+  }
+
+  .cart__discount {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+  }
+
+  .cart__discount-amount {
+    white-space: nowrap;
+  }
+
   .cart__footer {
     display: flex;
     flex-wrap: wrap;
@@ -415,8 +464,26 @@
   }
 
   .cart__subtotal-value {
+    white-space: nowrap;
+  }
+
+  .cart__discounts--summary .cart__discount {
+    justify-content: space-between;
+  }
+
+  .cart__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-sm);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .cart__total-value {
     font-family: var(--font-heading--family);
     font-size: 1.5rem;
+    white-space: nowrap;
   }
 
   .cart__taxes {

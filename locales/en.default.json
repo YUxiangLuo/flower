@@ -49,7 +49,10 @@
   "collection": {
     "apply": "Apply",
     "sort_by": "Sort by",
-    "products_count": "{{ count }} products",
+    "products_count": {
+      "one": "{{ count }} product",
+      "other": "{{ count }} products"
+    },
     "empty": "No products found.",
     "sort_recommended": "Recommended"
   },
@@ -109,7 +112,10 @@
     "placeholder": "Search articles, pages, or products",
     "submit": "Search",
     "no_results_html": "No results found for {{ terms }}",
-    "results_for_html": "{{ count }} results found for {{ terms }}"
+    "results_for_html": {
+      "one": "{{ count }} result found for {{ terms }}",
+      "other": "{{ count }} results found for {{ terms }}"
+    }
   },
   "sections": {
     "announcement_bar": {

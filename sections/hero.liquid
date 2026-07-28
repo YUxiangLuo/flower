@@ -177,7 +177,17 @@
             {% endif %}
 
             {% if block.settings.button_label != blank and block.settings.button_link != blank %}
-              <a class="hero__button" href="{{ block.settings.button_link }}">
+              {%- liquid
+                assign hero_button_link = block.settings.button_link
+                assign all_products_path = '/collections/all'
+                assign all_products_path_size = all_products_path | size
+                assign hero_button_link_prefix = hero_button_link | slice: 0, all_products_path_size
+                if hero_button_link_prefix == all_products_path
+                  assign hero_button_link_suffix = hero_button_link | remove_first: all_products_path
+                  assign hero_button_link = routes.all_products_collection_url | append: hero_button_link_suffix
+                endif
+              -%}
+              <a class="hero__button" href="{{ hero_button_link }}">
                 {{ block.settings.button_label }}
               </a>
             {% endif %}
@@ -896,7 +906,7 @@
       "type": "checkbox",
       "id": "autoplay",
       "label": "t:sections.hero.autoplay",
-      "default": true
+      "default": false
     },
     {
       "type": "range",

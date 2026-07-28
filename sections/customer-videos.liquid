@@ -49,10 +49,10 @@
                 a link inside a button gives one control two jobs and no
                 assistive technology reports it usefully.
 
-                `autoplay` is deliberately not passed: it would start every clip
-                on the page at once regardless of what is on screen. Playback is
-                driven from the observer below instead. `muted` is what lets that
-                programmatic play() through — browsers block an unmuted one.
+                `autoplay` is deliberately not passed: every rail card remains on
+                its poster until the customer opens it. The viewer below clones
+                the selected video and gives that user-triggered copy controls
+                and sound.
 
                 `preload: 'none'` is what keeps a rail of eight clips off the
                 critical path. Shopify emits `preload="metadata"` otherwise, so
@@ -411,7 +411,6 @@
       var viewer = root.querySelector('[data-clips-viewer]');
       var stage = root.querySelector('[data-clips-stage]');
       var closer = root.querySelector('[data-clips-close]');
-      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
       var closeTimer = null;
 
       /* Track every listener so the section can be torn down cleanly when the
@@ -424,22 +423,15 @@
         });
       }
 
-      /* How much of each card the observer last reported on screen, indexed
-         alongside `cards`. Kept as state rather than recomputed, because the
-         answer is also needed when nothing scrolled — a preference flip or a
-         tab coming back has to resume exactly the clip that is still in view.
-
-         A ratio rather than a yes/no, because the rail has to choose between
-         several cards that all qualify. */
-      var ratios = cards.map(function () {
-        return 0;
-      });
-
-      /* How much of a card has to be showing before it is worth starting. */
-      var PLAYABLE_RATIO = 0.5;
-
       function videoOf(card) {
         return card.querySelector('video');
+      }
+
+      function pauseRail() {
+        cards.forEach(function (card) {
+          var video = videoOf(card);
+          if (video) video.pause();
+        });
       }
 
       /* play() rejects when the browser declines — a still-loading source, a
@@ -450,54 +442,6 @@
         if (started && typeof started.catch === 'function') {
           started.catch(function () {});
         }
-      }
-
-      function railMayPlay() {
-        if (reduced.matches) return false;
-        if (document.hidden) return false;
-        /* The viewer is playing the same clip with sound. Two copies at once is
-           an echo, so the rail stands down for as long as it is open. */
-        if (viewer && viewer.open) return false;
-        return true;
-      }
-
-      /* One clip at a time. The rail is a row of phone-shaped cards, so a
-         desktop viewport holds four or five of them at once — and every card
-         that cleared the threshold used to start, which meant four 1080p
-         streams pulling and decoding in parallel for as long as the customer
-         stayed on the section. The one showing most of itself is the one they
-         are most likely watching.
-
-         Returns null when nothing qualifies, which is also the answer while the
-         rail is off screen. */
-      function leadingCard() {
-        var leader = null;
-        var leaderRatio = 0;
-
-        cards.forEach(function (card, i) {
-          if (!videoOf(card)) return;
-          if (ratios[i] < PLAYABLE_RATIO) return;
-          /* Strictly greater, so a tie goes to the earlier card: in a rail read
-             left to right, that is the one the customer reached first. */
-          if (ratios[i] > leaderRatio) {
-            leader = card;
-            leaderRatio = ratios[i];
-          }
-        });
-
-        return leader;
-      }
-
-      function sync() {
-        var playing = null;
-        if (railMayPlay()) playing = leadingCard();
-
-        cards.forEach(function (card) {
-          var video = videoOf(card);
-          if (!video) return;
-          if (card === playing) attemptPlay(video);
-          else video.pause();
-        });
       }
 
       function timeToMs(value) {
@@ -544,35 +488,6 @@
         closeTimer = setTimeout(finishViewerClose, wait + 50);
       }
 
-      /* Without IntersectionObserver nothing autoplays and every clip sits on
-         its poster, which is a usable page rather than a broken one. */
-      if (typeof window.IntersectionObserver === 'function') {
-        var observer = new window.IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              var at = cards.indexOf(entry.target);
-              if (at === -1) return;
-              /* isIntersecting decides, not the ratio alone: the callback that
-                 reports a card leaving can still carry the ratio it held on the
-                 way out. */
-              ratios[at] = entry.isIntersecting ? entry.intersectionRatio : 0;
-            });
-            sync();
-          },
-          /* A lone 0.5 threshold reports the crossings and nothing after, so
-             two cards that both cleared it stay recorded at whatever they
-             measured on the way past and the rail cannot tell which is more on
-             screen. The ladder gives that comparison something to read. */
-          { threshold: [0, 0.25, 0.5, 0.75, 1] }
-        );
-        cards.forEach(function (card) {
-          observer.observe(card);
-        });
-        teardown.push(function () {
-          observer.disconnect();
-        });
-      }
-
       function openViewer(card) {
         var source = videoOf(card);
         if (!source || !viewer || !stage) return;
@@ -595,7 +510,7 @@
         }
         viewer.removeAttribute('data-closing');
         viewer.showModal();
-        sync();
+        pauseRail();
         attemptPlay(full);
       }
 
@@ -618,7 +533,6 @@
           }
           viewer.removeAttribute('data-closing');
           if (stage) stage.textContent = '';
-          sync();
         });
 
         on(viewer, 'transitionend', function (event) {
@@ -649,29 +563,18 @@
         });
       }
 
-      /* A backgrounded tab is not something the customer did to the rail, so
-         coming back resumes whatever is still on screen. */
-      on(document, 'visibilitychange', sync);
-      if (reduced.addEventListener) on(reduced, 'change', sync);
-
-      sync();
+      pauseRail();
 
       return function cleanup() {
         if (closeTimer) {
           clearTimeout(closeTimer);
           closeTimer = null;
         }
-        ratios = cards.map(function () {
-          return 0;
-        });
         if (viewer) {
           viewer.removeAttribute('data-closing');
           if (viewer.open) viewer.close();
         }
-        cards.forEach(function (card) {
-          var video = videoOf(card);
-          if (video) video.pause();
-        });
+        pauseRail();
         if (stage) stage.textContent = '';
         teardown.forEach(function (off) {
           off();

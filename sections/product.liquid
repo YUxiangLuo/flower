@@ -99,12 +99,19 @@
       {% if detail_blocks.size > 0 %}
         <div class="product__details">
           {% for block in detail_blocks %}
+            {% liquid
+              assign detail_content = block.settings.content
+              if shop.shipping_policy.url != blank
+                assign shipping_policy_href = 'href="' | append: shop.shipping_policy.url | append: '"'
+                assign detail_content = detail_content | replace: 'href="/policies/shipping-policy"', shipping_policy_href
+              endif
+            %}
             <details class="product__detail" {{ block.shopify_attributes }}>
               <summary class="product__detail-summary">
                 {{ block.settings.heading }}
                 <span class="product__detail-icon" aria-hidden="true">&#43;</span>
               </summary>
-              <div class="product__detail-content">{{ block.settings.content }}</div>
+              <div class="product__detail-content">{{ detail_content }}</div>
             </details>
           {% endfor %}
         </div>

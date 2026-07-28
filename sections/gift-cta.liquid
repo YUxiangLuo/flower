@@ -50,7 +50,17 @@
         <p class="giftcta__subheading">{{ section.settings.subheading }}</p>
       {% endif %}
       {% if section.settings.button_label != blank and section.settings.button_link != blank %}
-        <a class="button button--on-dark giftcta__button" href="{{ section.settings.button_link }}">
+        {%- liquid
+          assign giftcta_button_link = section.settings.button_link
+          assign all_products_path = '/collections/all'
+          assign all_products_path_size = all_products_path | size
+          assign giftcta_button_link_prefix = giftcta_button_link | slice: 0, all_products_path_size
+          if giftcta_button_link_prefix == all_products_path
+            assign giftcta_button_link_suffix = giftcta_button_link | remove_first: all_products_path
+            assign giftcta_button_link = routes.all_products_collection_url | append: giftcta_button_link_suffix
+          endif
+        -%}
+        <a class="button button--on-dark giftcta__button" href="{{ giftcta_button_link }}">
           {{ section.settings.button_label }}
         </a>
       {% endif %}

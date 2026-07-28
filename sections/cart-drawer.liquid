@@ -119,8 +119,26 @@
                   </button>
                 </div>
 
-                <span class="cart-drawer__line-price">{{ item.final_line_price | money }}</span>
+                <span class="cart-drawer__line-price">
+                  {% if item.original_line_price > item.final_line_price %}
+                    <s class="cart-drawer__line-was">{{ item.original_line_price | money }}</s>
+                  {% endif %}
+                  <span>{{ item.final_line_price | money }}</span>
+                </span>
               </div>
+
+              {% if item.line_level_discount_allocations.size > 0 %}
+                <ul class="cart-drawer__discounts" role="list">
+                  {% for discount_allocation in item.line_level_discount_allocations %}
+                    <li class="cart-drawer__discount">
+                      <span>{{ discount_allocation.discount_application.title | escape }}</span>
+                      <span class="cart-drawer__discount-amount">
+                        &minus;{{ discount_allocation.amount | money }}
+                      </span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
 
               {% comment %}
                 A real link, so removing an item still works with the drawer's
@@ -143,7 +161,25 @@
       <footer class="cart-drawer__footer">
         <div class="cart-drawer__subtotal">
           <span>{{ 'cart.subtotal' | t }}</span>
-          <span class="cart-drawer__subtotal-value">{{ cart.total_price | money }}</span>
+          <span class="cart-drawer__subtotal-value">{{ cart.items_subtotal_price | money }}</span>
+        </div>
+
+        {% if cart.cart_level_discount_applications.size > 0 %}
+          <ul class="cart-drawer__discounts cart-drawer__discounts--summary" role="list">
+            {% for discount_application in cart.cart_level_discount_applications %}
+              <li class="cart-drawer__discount">
+                <span>{{ discount_application.title | escape }}</span>
+                <span class="cart-drawer__discount-amount">
+                  &minus;{{ discount_application.total_allocated_amount | money }}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <div class="cart-drawer__total">
+          <span>{{ 'cart.total' | t }}</span>
+          <span class="cart-drawer__total-value">{{ cart.total_price | money }}</span>
         </div>
 
         <p class="cart-drawer__taxes">
@@ -367,6 +403,39 @@
     font-size: 0.9rem;
   }
 
+  .cart-drawer__line-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+  }
+
+  .cart-drawer__line-was {
+    color: var(--color-muted);
+    font-size: 0.78rem;
+  }
+
+  .cart-drawer__discounts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--color-accent);
+    font-size: 0.78rem;
+  }
+
+  .cart-drawer__discount {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.4rem;
+  }
+
+  .cart-drawer__discount-amount {
+    white-space: nowrap;
+  }
+
   .cart-drawer__remove {
     align-self: flex-start;
     font-size: 0.78rem;
@@ -395,6 +464,29 @@
     display: flex;
     justify-content: space-between;
     font-size: 1rem;
+  }
+
+  .cart-drawer__subtotal-value {
+    white-space: nowrap;
+  }
+
+  .cart-drawer__discounts--summary .cart-drawer__discount {
+    justify-content: space-between;
+  }
+
+  .cart-drawer__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-sm);
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .cart-drawer__total-value {
+    font-family: var(--font-heading--family);
+    font-size: 1.2rem;
+    white-space: nowrap;
   }
 
   .cart-drawer__taxes {
