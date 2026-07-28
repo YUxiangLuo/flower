@@ -385,7 +385,19 @@
     letter-spacing: 0.02em;
     color: var(--color-foreground);
     text-decoration: none;
+    transition: opacity 0.3s ease;
     white-space: nowrap;
+  }
+
+  /* Opacity, and the theme's only hover that is not a colour change. The mark
+     is an <img> whenever the merchant has uploaded one, and colour reaches a
+     picture through nothing — it would answer for the text fallback and stay
+     silent for everyone who set a logo, which is the case that matters. The
+     other two logo links, in the footer and on the password page, depart for
+     the same reason. */
+  .header__logo:hover,
+  .header__logo:focus-visible {
+    opacity: 0.7;
   }
 
   .header__logo-mark {
@@ -646,6 +658,16 @@
     color: var(--color-foreground);
     text-decoration: none;
     cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  /* The icons are drawn with `stroke="currentColor"`, so the same answer the
+     navigation links give reaches them without anything icon-specific. Covers
+     the search toggle too — a <summary> rather than a link, but the same
+     control to a customer, and it would be the odd one out otherwise. */
+  .header__action:hover,
+  .header__action:focus-visible {
+    color: var(--color-accent);
   }
 
   .header__action svg {

@@ -288,6 +288,14 @@
     color: var(--color-foreground);
     cursor: pointer;
     padding: 0;
+    transition: color 0.3s ease;
+  }
+
+  /* Matches `.header__drawer-close`, which is the same control in the other
+     drawer this theme opens. */
+  .cart-drawer__close:hover,
+  .cart-drawer__close:focus-visible {
+    color: var(--color-accent);
   }
 
   .cart-drawer__close svg {
@@ -499,7 +507,12 @@
     display: block;
     width: 100%;
     padding: 0.9rem 1.5rem;
-    border: 0;
+    /* Was `0`. The border is the same colour as the fill, so it changes
+       nothing at rest — it is there to hold the button's shape once the fill
+       is taken away on hover, which is how the cart page's checkout button
+       already behaves. Without it the control would dissolve into the drawer
+       instead of inverting. */
+    border: 1px solid var(--color-accent);
     background-color: var(--color-accent);
     color: #fff;
     font-size: 0.78rem;
@@ -508,12 +521,28 @@
     text-align: center;
     text-decoration: none;
     cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* The same inversion `.cart__button` performs on the cart page. This is the
+     drawer's checkout — the one control in here a customer is most likely to
+     reach for, and it was the one giving no sign it could be pressed. */
+  .cart-drawer__button:hover,
+  .cart-drawer__button:focus-visible {
+    background-color: transparent;
+    color: var(--color-accent);
   }
 
   .cart-drawer__view-cart {
     text-align: center;
     font-size: 0.8rem;
     color: var(--color-muted);
+    transition: color 0.3s ease;
+  }
+
+  .cart-drawer__view-cart:hover,
+  .cart-drawer__view-cart:focus-visible {
+    color: var(--color-accent);
   }
 {% endstylesheet %}
 

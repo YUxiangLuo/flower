@@ -216,6 +216,16 @@
     font-size: 1.4rem;
     color: inherit;
     text-decoration: none;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Opacity rather than the theme's usual colour change: the mark is an <img>
+     whenever the merchant has uploaded one. Doubly so here — the footer runs
+     on a merchant-chosen background, so there is no one accent that is certain
+     to read against it. See the note on `.header__logo`. */
+  .footer__logo:hover,
+  .footer__logo:focus-visible {
+    opacity: 0.7;
   }
 
   .footer__logo-mark {
