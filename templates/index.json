@@ -16,6 +16,7 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
+            "mobile_image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
             "overlay_opacity": 30,
             "eyebrow": "The gift that lasts",
             "heading": "Flowers they'll keep for years",
@@ -53,6 +54,9 @@
         "slide-1",
         "slide-2",
         "slide-3"
+      ],
+      "custom_css": [
+        "@media screen and (max-width: 749px) {.hero__slides {width: 100%; height: auto; aspect-ratio: 3 / 4; } .hero__slide {min-height: 0; height: 100%; } .hero__image {width: 100%; height: 100%; object-fit: cover; object-position: center; } /* 防止放大动画裁掉图片边缘 */ .hero__slide[data-active] .hero__image, .hero__slide[data-leaving] .hero__image {animation: none; transform: none; }}"
       ],
       "settings": {
         "autoplay": false,
