@@ -7,3 +7,17 @@ ignore:
   - tests/**
   - package.json
   - package-lock.json
+
+# App-installed templates. The BSS Product Options app writes an alternate
+# search template that is not a page at all — `{% layout none %}` and a JSON
+# body — which it reads as a data endpoint. Paginating it by 1000 is the point
+# of it, and PaginationSize is written for templates a person scrolls.
+#
+# Scoped to the one rule rather than ignoring the file, so everything else
+# still applies to it: the app owns the contents and overwrites them on its own
+# schedule, and a syntax error it ships is one this repository would want to
+# hear about. Note the file must NOT go in `.shopifyignore` — the store needs
+# it, and excluding it from uploads is how it would get removed.
+PaginationSize:
+  ignore:
+    - templates/*.bss.po.liquid
