@@ -14,19 +14,29 @@
       "blocks": {
         "personalize-note": {
           "type": "personalization_field",
-          "settings": { "label": "Personalisation note", "field_type": "textarea" }
+          "settings": {
+            "label": "Personalisation note",
+            "field_type": "textarea",
+            "required": false
+          }
         },
         "highlight-1": {
           "type": "highlight",
-          "settings": { "text": "Handcrafted from real pressed flowers" }
+          "settings": {
+            "text": "Handcrafted from real pressed flowers"
+          }
         },
         "highlight-2": {
           "type": "highlight",
-          "settings": { "text": "Preview shared before final framing" }
+          "settings": {
+            "text": "Preview shared before final framing"
+          }
         },
         "highlight-3": {
           "type": "highlight",
-          "settings": { "text": "Carefully packaged for secure delivery" }
+          "settings": {
+            "text": "Carefully packaged for secure delivery"
+          }
         },
         "shipping": {
           "type": "collapsible_row",
@@ -59,16 +69,76 @@
         "returns",
         "made-to-order"
       ],
-      "settings": {}
+      "settings": {
+        "show_vendor": true,
+        "lead_time": "Made to order · timing varies by design",
+        "personalization_heading": "Personalise your keepsake"
+      }
     },
     "photos": {
       "type": "customer-photos",
-      "settings": {}
+      "settings": {
+        "eyebrow": "From our customers",
+        "heading": "Seen at home",
+        "background": "surface",
+        "photos_shown": 12
+      }
+    },
+    "1785283076625f83ac": {
+      "type": "apps",
+      "blocks": {
+        "loox_reviews_loox_rating_UaGwhH": {
+          "type": "shopify://apps/loox-reviews/blocks/loox-rating/5c3b337f-fd14-4df5-b1d6-80ec13e6e28e",
+          "disabled": true,
+          "settings": {
+            "contentSize": 16,
+            "pattern": "",
+            "hideText": false,
+            "alignment": "",
+            "layout": "",
+            "textColor": "",
+            "starColor": "",
+            "showAllReviews": false,
+            "looxOpenFloatingWidget": false,
+            "emptyRatingWidget": false
+          }
+        },
+        "loox_reviews_loox_dynamic_section_UnHUeE": {
+          "type": "shopify://apps/loox-reviews/blocks/loox-dynamic-section/5c3b337f-fd14-4df5-b1d6-80ec13e6e28e",
+          "settings": {
+            "reviews_to_display": "",
+            "default_tab": "automatic",
+            "only_photos": false,
+            "aggregated": false,
+            "limit": 20,
+            "hide_thumbnails": false,
+            "maxwidth": 1080,
+            "is_sample": true
+          }
+        }
+      },
+      "block_order": [
+        "loox_reviews_loox_rating_UaGwhH",
+        "loox_reviews_loox_dynamic_section_UnHUeE"
+      ],
+      "settings": {
+        "include_margins": true
+      }
     },
     "related": {
       "type": "product-recommendations",
-      "settings": {}
+      "settings": {
+        "eyebrow": "More to love",
+        "heading": "You may also like",
+        "products_to_show": 4,
+        "columns": 4
+      }
     }
   },
-  "order": ["main", "photos", "related"]
+  "order": [
+    "main",
+    "photos",
+    "1785283076625f83ac",
+    "related"
+  ]
 }
