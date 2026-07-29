@@ -11,7 +11,14 @@
   "sections": {
     "main": {
       "type": "collection",
-      "settings": {}
+      "custom_css": [
+        "@media(max-width:749px){.collection{padding-top:1.5rem}.collection__header--media{margin-inline:0;padding:0;text-align:center}.collection__header--media:before,.collection__header--media:after{display:none}.collection__header--media *{text-align:center!important;animation:none!important}.collection__header--media .collection__title{color:var(--color-foreground)}.collection__header--media .collection__description{margin-inline:auto;color:var(--color-muted)}}"
+      ],
+      "settings": {
+        "show_description": true,
+        "products_per_page": 12,
+        "columns": "4"
+      }
     }
   },
   "order": [
