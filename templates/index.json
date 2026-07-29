@@ -16,8 +16,8 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
-            "mobile_image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
-            "overlay_opacity": 30,
+            "mobile_image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_mobile_3x4_2k.png",
+            "overlay_opacity": 20,
             "eyebrow": "The gift that lasts",
             "heading": "Flowers they'll keep for years",
             "subheading": "Handcrafted keepsakes designed to outlive the occasion.",
@@ -29,7 +29,8 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/02_citrus_sunshine_vow_mediterranean_terrace_gift_4x3_2k.png",
-            "overlay_opacity": 30,
+            "mobile_image": "shopify://shop_images/02_citrus_sunshine_vow_mediterranean_terrace_gift_mobile_3x4_2k.png",
+            "overlay_opacity": 20,
             "eyebrow": "For every occasion",
             "heading": "A keepsake for the moments that matter",
             "subheading": "Anniversaries, birthdays, thank-yous — pressed by hand and made to last.",
@@ -41,7 +42,8 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/03_burgundy_bouquet_modern_apartment_anniversary_4x3_2k.png",
-            "overlay_opacity": 30,
+            "mobile_image": "shopify://shop_images/03_burgundy_bouquet_modern_apartment_anniversary_mobile_3x4_2k.png",
+            "overlay_opacity": 20,
             "eyebrow": "Yours alone",
             "heading": "Made with the flowers that mean the most",
             "subheading": "Choose birth flowers, wedding-vow text,  or bouquet-inspired colors.",
