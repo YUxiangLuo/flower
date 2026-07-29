@@ -161,9 +161,12 @@
           and the `sizes` value has to say so or the browser keeps answering a
           wide monitor with the file it picked for a 1440px one.
 
-          The larger `image_size` is what that answer needs to exist. Four cards
-          across a 1920px screen render at ~470px, which a 2x display wants at
-          ~940 — above the old ceiling of 700.
+          The larger `image_size` is what that answer needs to exist. A card is
+          `(100vw - 2 x --collection-inset - 3 x --content-gap) / 4`, which on a
+          1920px screen is about 420px, and a 2x display wants that at ~840 —
+          above the old ceiling of 700. The formula rather than the figure alone
+          because the number moves whenever either of those two changes, and
+          nothing about a bare `420` says so.
 
           The ceiling is global, so a phone pays for it too: at one column a
           350px card on a 3x screen now draws the 1000w candidate where it used
@@ -301,12 +304,13 @@
      the track rather than by whatever precedes it.
 
      1200px, not the 990px where the product grid reaches its full column count.
-     Sharing the grid's tracks means the title is set inside one of them, and at
-     990px with four columns that track is about 215px against a 32px display
-     serif — a two-word collection name wraps to two lines and a long one to
-     four or five, which `align-items: center` then builds the whole band
-     around. 1200px is where a track (~263px at a 38px face) is enough of a
-     column to set a heading in. Below it the header keeps the stacked layout,
+     Sharing the grid's tracks means the title is set inside one of them, and a
+     track is `(100vw - 2 x --collection-inset - 3 x --content-gap) / 4`: about
+     210px at 990px, against a title the same viewport sizes at ~32px. A
+     two-word collection name wraps to two lines there and a long one to four or
+     five, which `align-items: center` then builds the whole band around. By
+     1200px the track is ~255px against a ~38px face, which is enough of a
+     column to set a heading in. Below that the header keeps the stacked layout,
      which has the full width and does not care. */
   @media (min-width: 1200px) {
     .collection__header {
