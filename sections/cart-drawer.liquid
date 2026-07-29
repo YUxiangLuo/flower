@@ -526,9 +526,20 @@
 
   /* The same inversion `.cart__button` performs on the cart page. This is the
      drawer's checkout — the one control in here a customer is most likely to
-     reach for, and it was the one giving no sign it could be pressed. */
-  .cart-drawer__button:hover,
-  .cart-drawer__button:focus-visible {
+     reach for, and it was the one giving no sign it could be pressed.
+
+     `:not(:disabled)` because `setBusy` disables every button in the drawer
+     while a cart request is in flight, and `:hover` goes on matching a
+     disabled control — the inversion would promise a press at exactly the
+     moment the click does nothing. The `aria-busy` fade only dims the lines
+     above; this button sits in the footer, outside it.
+
+     Not `:enabled`, which would have been the narrower-looking answer and the
+     wrong one: this class is on the empty-cart link as well as on the checkout
+     button, and an <a> is neither enabled nor disabled, so `:enabled` would
+     have quietly taken the hover away from it. */
+  .cart-drawer__button:not(:disabled):hover,
+  .cart-drawer__button:not(:disabled):focus-visible {
     background-color: transparent;
     color: var(--color-accent);
   }
