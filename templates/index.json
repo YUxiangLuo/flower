@@ -424,18 +424,25 @@
     "questions": {
       "type": "faq",
       "blocks": {
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "Do you use real flowers?",
+            "answer": "<p>Yes. Each piece is handcrafted with real pressed botanicals. Because natural flowers vary slightly in shape and color, every frame is one of a kind.</p>"
+          }
+        },
+        "question_cdhkjk": {
+          "type": "question",
+          "settings": {
+            "question": "Do I need to send you flowers?",
+            "answer": "<p>No. We create your keepsake using our own preserved botanicals. For bouquet-inspired designs, you can upload a photo and we’ll recreate the overall color mood and floral feeling.</p>"
+          }
+        },
         "q1": {
           "type": "question",
           "settings": {
             "question": "How long does a keepsake take to make?",
             "answer": "<p>Each piece is made to order, and creation time varies by design and size. Check the product page for the current estimate; we’ll email you as soon as your keepsake is on its way.</p>"
-          }
-        },
-        "q2": {
-          "type": "question",
-          "settings": {
-            "question": "Can I send my own flowers to be pressed?",
-            "answer": "<p>Yes. Select a bespoke keepsake on the product page, and we’ll send simple instructions for posting your flowers. Availability and mailing requirements vary by location, so contact us before ordering if you are unsure.</p>"
           }
         },
         "q3": {
@@ -447,8 +454,9 @@
         }
       },
       "block_order": [
-        "q1",
         "q2",
+        "question_cdhkjk",
+        "q1",
         "q3"
       ],
       "settings": {
