@@ -18,8 +18,8 @@
             "image": "shopify://shop_images/05_ivory_vertical_garden_dusk_anniversary_4x3_2k.png",
             "overlay_opacity": 30,
             "eyebrow": "The gift that lasts",
-            "heading": "Flowers they'll keep for years, not days",
-            "subheading": "Handcrafted pressed-flower keepsakes, made to outlive the occasion.",
+            "heading": "Flowers they'll keep for years",
+            "subheading": "Handcrafted keepsakes designed to outlive the occasion.",
             "button_label": "Find the perfect gift",
             "button_link": "/collections/all?sort_by=created-descending"
           }
@@ -43,7 +43,7 @@
             "overlay_opacity": 30,
             "eyebrow": "Yours alone",
             "heading": "Made with the flowers that mean the most",
-            "subheading": "Send us the stems from the day, or choose their birth flowers.",
+            "subheading": "Choose birth flowers, wedding-vow text,  or bouquet-inspired colors.",
             "button_label": "Discover your keepsake",
             "button_link": "shopify://collections/best-sellers"
           }
@@ -226,7 +226,7 @@
             "reviewerNameColor": "#000000",
             "textColor": "#000000",
             "starsColor": "",
-            "quotesIconColor": "#EAEAEA",
+            "quotesIconColor": "#eaeaea",
             "arrows_iconColor": "#000000",
             "arrows_hideOnMobile": true,
             "pagination_active": true,
@@ -252,8 +252,8 @@
             "itemBackgroundColor": "#ffffff",
             "starsColor": "",
             "starsBackgroundColor": "#ffffff",
-            "arrows_backgroundColor": "#FFFFFF",
-            "arrows_iconColor": "#9A9A9A",
+            "arrows_backgroundColor": "#ffffff",
+            "arrows_iconColor": "#9a9a9a",
             "shadow": "offset-dark",
             "border_active": false,
             "border_width": 2,
