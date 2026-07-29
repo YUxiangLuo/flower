@@ -56,7 +56,7 @@
           "type": "collapsible_row",
           "settings": {
             "heading": "Made to Order",
-            "content": "<p>Your artwork will be handcrafted by an artist following the original design. Before framing, we’ll send you a preview for approval.</p>"
+            "content": "<p>Your artwork will be handcrafted by an artist following the original design. Before framing, we’ll send you a preview before shipping.</p>"
           }
         }
       },
